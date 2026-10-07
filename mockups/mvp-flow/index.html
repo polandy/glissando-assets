@@ -287,7 +287,7 @@ p{margin:6px 0;line-height:1.4}
   <li><b>Rückgängig statt Rückfrage</b>, wo immer die Aktion umkehrbar ist (Bild entfernen). Rückfrage nur für Unumkehrbares (Diashow löschen, Import verwerfen).</li>
   <li>Ein Fehler, den der Nutzer nicht beheben kann (z. B. WebGL fehlt), sagt das und bietet den Fallback an („Übergänge ohne Effekte abspielen“).</li>
 </ul>
-<div class="q"><b>Entscheidung für dich:</b> Die Palette „Sorbet“ hat keine Fehlerfarbe. Vorschlag: neuer Token <code>--gl-coral</code> <span class="swatch" style="background:#ff8f84"></span> <code>#FF8F84</code> als Füllung, Text darauf Plum — gleiche Regel wie bei den Akzenten. Warnungen nutzen Zitrone. Alternative: nur Zitrone + Icon, keine neue Farbe.</div>
+<div class="q"><b>Entschieden:</b> neuer Token <code>--gl-coral</code> <span class="swatch" style="background:#ff8f84"></span> <code>#FF8F84</code> als Fehler-Füllung, Text darauf Plum — gleiche Regel wie bei den Akzenten. Warnungen nutzen Zitrone.</div>
 
 <h2>5 · Entfernen und Umsortieren (minimales Editing)</h2>
 <ul>
@@ -306,13 +306,13 @@ p{margin:6px 0;line-height:1.4}
   <li>Am Ende: „Ende“-Karte mit <i>Nochmal</i> und <i>Schließen</i> — kein automatisches Zurückspringen.</li>
 </ul>
 
-<h2>7 · Offene Fragen</h2>
+<h2>7 · Entschieden (2026-10-08)</h2>
 <ol>
-  <li>Fehlerfarbe: neuer Token Koralle oder nur Zitrone + Icon? (siehe 4)</li>
-  <li>Titel der Diashow: automatisch aus dem Datumsbereich („Juli 2025“) und editierbar — oder beim Erzeugen abfragen?</li>
-  <li>Darf „Weiter“ schon während des Verkleinerns klickbar sein (Musik wählen, während Bilder laufen)? Im Mockup: nein, einfacher.</li>
-  <li>„Als App installieren“: dezent im Fuß des Startscreens (wie hier) oder als eigener Hinweis nach der ersten Diashow?</li>
-  <li>Ohne Musik: 5 s je Bild als Standard okay?</li>
+  <li>Fehlerfarbe: neuer Token Koralle <code>--gl-coral #FF8F84</code>; Zitrone für Warnungen.</li>
+  <li>Titel: automatisch aus dem Aufnahme-Datumsbereich, per Stift editierbar.</li>
+  <li>„Weiter“ erst, wenn alle Bilder verkleinert sind.</li>
+  <li>„Als App installieren“ dezent im Fuß des Startscreens, zusätzlich als Ausweg im Speicher-Dialog.</li>
+  <li>Ohne Musik: 5 s je Bild als Voreinstellung, pro Diashow änderbar (Musik-Schritt, später über ✎ am Diashow-Screen).</li>
 </ol>
 </div>
 
@@ -334,7 +334,7 @@ const PICS=[
 ];
 const SHUFFLED=[5,1,9,3,12,2,7,10,4,11,6,8]; // file-picker order; the app sorts by date
 const MUSIC={name:'Sommer am See.mp3',len:60};
-const DEFAULT_SEC=5;
+const DEFAULT_SEC=5; // default per picture without music, configurable per slideshow
 
 const SHAPES={
  sea:'<rect x="0" y="62" width="100" height="40" fill="#2a2340" opacity=".25"/><circle cx="72" cy="30" r="9" fill="#fff" opacity=".8"/>',
@@ -357,7 +357,7 @@ const S={
   screen:'start',
   shows:[],              // {id,title,pics:[ids],music}
   cur:null,              // id of the open show
-  imp:null,              // {step,pics:[ids],skipped,progress,music,spaceErr}
+  imp:null,              // {step,pics:[ids],skipped,progress,music,spaceErr,sec}
   sel:null,              // selected tile id (show screen)
   toast:null, modal:null, bg:null, player:null,
   undo:null,
@@ -411,16 +411,17 @@ function viewImport(){
     ${I.pics.length?`<div class="grid">${I.pics.map(id=>`<div class="tile" style="cursor:default">${photo(byId(id))}<div class="cap">${fmtDate(byId(id).date)}</div></div>`).join('')}</div>`:''}`;
     body+=`<div class="actions"><button class="btn ghost" data-act="back">Abbrechen</button><button class="btn primary" data-act="step2" ${done?'':'disabled'}>Weiter →</button></div>`;
   }else{
-    const n=I.pics.length, per=I.music?MUSIC.len/n:DEFAULT_SEC, len=I.music?MUSIC.len:n*DEFAULT_SEC;
+    const n=I.pics.length, sec=I.sec||DEFAULT_SEC, per=I.music?MUSIC.len/n:sec, len=I.music?MUSIC.len:n*sec;
     body=`<h1>Welche Musik?</h1><p class="muted">Ein Stück genügt — die Bilder teilen sich seine Länge. Ohne Musik läuft jedes Bild ${DEFAULT_SEC} Sekunden.</p>
     ${I.music?`<div class="card track"><span class="note">♪</span><div><b>${MUSIC.name}</b><span class="muted">${fmt(MUSIC.len)} · MP3</span></div><button class="rm" data-act="rmmusic" title="Entfernen">✕</button></div>`
-      :`<div class="drop"><span class="ic">🎵</span><button class="btn lemon" data-act="pickmusic">Musik auswählen</button><span class="muted" style="font-size:12px">MP3, M4A, Ogg, FLAC, WAV …</span></div>`}
+      :`<div class="drop"><span class="ic">🎵</span><button class="btn lemon" data-act="pickmusic">Musik auswählen</button><span class="muted" style="font-size:12px">MP3, M4A, Ogg, FLAC, WAV …</span></div>
+    <div class="card track" style="margin-top:12px"><div><b>Ohne Musik: Dauer je Bild</b><span class="muted">Voreinstellung 5 s, gilt für diese Diashow</span></div><div class="row" style="margin-left:auto;gap:4px;flex-wrap:nowrap"><button class="btn" style="padding:6px 14px" data-act="secdn" ${sec<=2?'disabled':''}>−</button><b style="min-width:40px;text-align:center">${sec} s</b><button class="btn" style="padding:6px 14px" data-act="secup" ${sec>=15?'disabled':''}>+</button></div></div>`}
     <div class="timing"><div><b>${n}</b><small>Bilder</small></div><div><b>${per%1?per.toFixed(1):per} s</b><small>je Bild</small></div><div><b>${fmt(len)}</b><small>Gesamt</small></div></div>
     <div class="actions"><button class="btn" data-act="step1">← Bilder</button><button class="btn primary" data-act="create">${I.music?'Diashow erstellen':'Ohne Musik erstellen'}</button></div>`;
   }
   return crumb+`<div class="steps"><i class="on"></i><i class="${I.step===2?'on':''}"></i></div><main>${body}</main>`;
 }
-function showLen(s){return s.music?MUSIC.len:s.pics.length*DEFAULT_SEC}
+function showLen(s){return s.music?MUSIC.len:s.pics.length*(s.sec||DEFAULT_SEC)}
 function viewShow(){
   const s=cur();
   const per=showLen(s)/s.pics.length;
@@ -429,7 +430,7 @@ function viewShow(){
   return header(['Glissando',s.title],`<button class="edit" data-act="rename" title="Umbenennen">✎</button>`)+`<main>
     <div class="card showhero">
       <div class="cover" data-act="play">${photo(byId(s.pics[0]))}<div class="play"><i>▶</i></div></div>
-      <div class="meta"><b style="font-size:17px;font-weight:800">${s.pics.length} Bilder · ${fmt(showLen(s))}</b><div class="muted">${s.music?'♪ '+MUSIC.name:'Ohne Musik'} · ${per%1?per.toFixed(1):per} s je Bild · Ken Burns und Übergänge automatisch</div></div>
+      <div class="meta"><b style="font-size:17px;font-weight:800">${s.pics.length} Bilder · ${fmt(showLen(s))}</b><div class="muted">${s.music?'♪ '+MUSIC.name:'Ohne Musik'} · ${per%1?per.toFixed(1):per} s je Bild${s.music?'':' <button class="edit" data-act="music" title="Dauer ändern">✎</button>'} · Ken Burns und Übergänge automatisch</div></div>
       <button class="btn primary" data-act="play">▶ Abspielen</button>
     </div>
     <h2 style="margin-bottom:2px">Bilder</h2><p class="muted" style="margin:0 0 4px">Nach Aufnahmedatum sortiert · antippen oder ziehen zum Umsortieren</p>
@@ -486,8 +487,8 @@ const A={
       if(I.progress>=SHUFFLED.length){clearInterval(timers.imp);I.skipped=true} render() },260) },
   cancelimp(){clearInterval(timers.imp);S.imp.progress=null;S.imp.pics=[];render()},
   step2(){S.imp.step=2;render()}, step1(){S.imp.step=1;render()},
-  pickmusic(){S.imp.music=true;render()}, rmmusic(){S.imp.music=false;render()},
-  create(){ const I=S.imp; busy('Diashow wird erzeugt …','Reihenfolge nach Aufnahmedatum · Ken Burns · Übergänge',1500,()=>{const s=addShow('Sommer am See',I.pics,!!I.music);S.imp=null;S.cur=s.id;S.screen='show';toast('Diashow erstellt — tippe auf Abspielen')}) },
+  pickmusic(){S.imp.music=true;render()}, secdn(){S.imp.sec=(S.imp.sec||DEFAULT_SEC)-1;render()}, secup(){S.imp.sec=(S.imp.sec||DEFAULT_SEC)+1;render()}, rmmusic(){S.imp.music=false;render()},
+  create(){ const I=S.imp; busy('Diashow wird erzeugt …','Reihenfolge nach Aufnahmedatum · Ken Burns · Übergänge',1500,()=>{const s=addShow('Sommer am See',I.pics,!!I.music);s.sec=I.sec||DEFAULT_SEC;S.imp=null;S.cur=s.id;S.screen='show';toast('Diashow erstellt — tippe auf Abspielen')}) },
   rename(){const s=cur();const t=prompt('Titel der Diashow',s.title);if(t){s.title=t;render()}},
   play(){startPlayer(0)},
   rm(e){ const s=cur(); const id=+e.dataset.id; const i=s.pics.indexOf(id); if(s.pics.length<2)return;
