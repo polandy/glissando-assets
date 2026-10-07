@@ -312,7 +312,7 @@ p{margin:6px 0;line-height:1.4}
   <li>Titel: automatisch aus dem Aufnahme-Datumsbereich, per Stift editierbar.</li>
   <li>„Weiter“ erst, wenn alle Bilder verkleinert sind.</li>
   <li>„Als App installieren“ dezent im Fuß des Startscreens, zusätzlich als Ausweg im Speicher-Dialog.</li>
-  <li>Ohne Musik: 5 s je Bild als Voreinstellung, pro Diashow änderbar (Musik-Schritt, später über ✎ am Diashow-Screen).</li>
+  <li>Ohne Musik: 5 s je Bild als Voreinstellung, pro Diashow in halben Sekunden änderbar (Musik-Schritt, später über ✎ am Diashow-Screen).</li>
 </ol>
 </div>
 
@@ -415,7 +415,7 @@ function viewImport(){
     body=`<h1>Welche Musik?</h1><p class="muted">Ein Stück genügt — die Bilder teilen sich seine Länge. Ohne Musik läuft jedes Bild ${DEFAULT_SEC} Sekunden.</p>
     ${I.music?`<div class="card track"><span class="note">♪</span><div><b>${MUSIC.name}</b><span class="muted">${fmt(MUSIC.len)} · MP3</span></div><button class="rm" data-act="rmmusic" title="Entfernen">✕</button></div>`
       :`<div class="drop"><span class="ic">🎵</span><button class="btn lemon" data-act="pickmusic">Musik auswählen</button><span class="muted" style="font-size:12px">MP3, M4A, Ogg, FLAC, WAV …</span></div>
-    <div class="card track" style="margin-top:12px"><div><b>Ohne Musik: Dauer je Bild</b><span class="muted">Voreinstellung 5 s, gilt für diese Diashow</span></div><div class="row" style="margin-left:auto;gap:4px;flex-wrap:nowrap"><button class="btn" style="padding:6px 14px" data-act="secdn" ${sec<=2?'disabled':''}>−</button><b style="min-width:40px;text-align:center">${sec} s</b><button class="btn" style="padding:6px 14px" data-act="secup" ${sec>=15?'disabled':''}>+</button></div></div>`}
+    <div class="card track" style="margin-top:12px"><div><b>Ohne Musik: Dauer je Bild</b><span class="muted">Voreinstellung 5 s, in halben Sekunden, gilt für diese Diashow</span></div><div class="row" style="margin-left:auto;gap:4px;flex-wrap:nowrap"><button class="btn" style="padding:6px 14px" data-act="secdn" ${sec<=2?'disabled':''}>−</button><b style="min-width:48px;text-align:center">${String(sec).replace('.',',')} s</b><button class="btn" style="padding:6px 14px" data-act="secup" ${sec>=15?'disabled':''}>+</button></div></div>`}
     <div class="timing"><div><b>${n}</b><small>Bilder</small></div><div><b>${per%1?per.toFixed(1):per} s</b><small>je Bild</small></div><div><b>${fmt(len)}</b><small>Gesamt</small></div></div>
     <div class="actions"><button class="btn" data-act="step1">← Bilder</button><button class="btn primary" data-act="create">${I.music?'Diashow erstellen':'Ohne Musik erstellen'}</button></div>`;
   }
@@ -487,7 +487,7 @@ const A={
       if(I.progress>=SHUFFLED.length){clearInterval(timers.imp);I.skipped=true} render() },260) },
   cancelimp(){clearInterval(timers.imp);S.imp.progress=null;S.imp.pics=[];render()},
   step2(){S.imp.step=2;render()}, step1(){S.imp.step=1;render()},
-  pickmusic(){S.imp.music=true;render()}, secdn(){S.imp.sec=(S.imp.sec||DEFAULT_SEC)-1;render()}, secup(){S.imp.sec=(S.imp.sec||DEFAULT_SEC)+1;render()}, rmmusic(){S.imp.music=false;render()},
+  pickmusic(){S.imp.music=true;render()}, secdn(){S.imp.sec=(S.imp.sec||DEFAULT_SEC)-.5;render()}, secup(){S.imp.sec=(S.imp.sec||DEFAULT_SEC)+.5;render()}, rmmusic(){S.imp.music=false;render()},
   create(){ const I=S.imp; busy('Diashow wird erzeugt …','Reihenfolge nach Aufnahmedatum · Ken Burns · Übergänge',1500,()=>{const s=addShow('Sommer am See',I.pics,!!I.music);s.sec=I.sec||DEFAULT_SEC;S.imp=null;S.cur=s.id;S.screen='show';toast('Diashow erstellt — tippe auf Abspielen')}) },
   rename(){const s=cur();const t=prompt('Titel der Diashow',s.title);if(t){s.title=t;render()}},
   play(){startPlayer(0)},
