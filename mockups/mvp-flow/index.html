@@ -348,6 +348,7 @@ const LOGO='<svg viewBox="0 0 120 100" fill="none"><g transform="rotate(-14 36 5
 
 function photo(p,cls=''){return `<div class="photo ${cls}" style="background:linear-gradient(160deg,hsl(${p.h} 75% 82%),hsl(${(p.h+40)%360} 60% 52%))"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${SHAPES[p.s]}</svg></div>`}
 const byId=id=>PICS.find(p=>p.id===id);
+const de=n=>String(n%1?n.toFixed(1):n).replace('.',',');
 const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 const fmtDate=d=>{const [y,m,dd]=d.split(' ')[0].split('-');return `${dd}.${m}.${y}`};
 const el=(sel,root=document)=>root.querySelector(sel);
@@ -415,8 +416,8 @@ function viewImport(){
     body=`<h1>Welche Musik?</h1><p class="muted">Ein Stück genügt — die Bilder teilen sich seine Länge. Ohne Musik läuft jedes Bild ${DEFAULT_SEC} Sekunden.</p>
     ${I.music?`<div class="card track"><span class="note">♪</span><div><b>${MUSIC.name}</b><span class="muted">${fmt(MUSIC.len)} · MP3</span></div><button class="rm" data-act="rmmusic" title="Entfernen">✕</button></div>`
       :`<div class="drop"><span class="ic">🎵</span><button class="btn lemon" data-act="pickmusic">Musik auswählen</button><span class="muted" style="font-size:12px">MP3, M4A, Ogg, FLAC, WAV …</span></div>
-    <div class="card track" style="margin-top:12px"><div><b>Ohne Musik: Dauer je Bild</b><span class="muted">Voreinstellung 5 s, in halben Sekunden, gilt für diese Diashow</span></div><div class="row" style="margin-left:auto;gap:4px;flex-wrap:nowrap"><button class="btn" style="padding:6px 14px" data-act="secdn" ${sec<=2?'disabled':''}>−</button><b style="min-width:48px;text-align:center">${String(sec).replace('.',',')} s</b><button class="btn" style="padding:6px 14px" data-act="secup" ${sec>=15?'disabled':''}>+</button></div></div>`}
-    <div class="timing"><div><b>${n}</b><small>Bilder</small></div><div><b>${per%1?per.toFixed(1):per} s</b><small>je Bild</small></div><div><b>${fmt(len)}</b><small>Gesamt</small></div></div>
+    <div class="card track" style="margin-top:12px"><div><b>Ohne Musik: Dauer je Bild</b><span class="muted">Voreinstellung 5 s, in halben Sekunden, gilt für diese Diashow</span></div><div class="row" style="margin-left:auto;gap:4px;flex-wrap:nowrap"><button class="btn" style="padding:6px 14px" data-act="secdn" ${sec<=2?'disabled':''}>−</button><b style="min-width:48px;text-align:center">${de(sec)} s</b><button class="btn" style="padding:6px 14px" data-act="secup" ${sec>=15?'disabled':''}>+</button></div></div>`}
+    <div class="timing"><div><b>${n}</b><small>Bilder</small></div><div><b>${de(per)} s</b><small>je Bild</small></div><div><b>${fmt(len)}</b><small>Gesamt</small></div></div>
     <div class="actions"><button class="btn" data-act="step1">← Bilder</button><button class="btn primary" data-act="create">${I.music?'Diashow erstellen':'Ohne Musik erstellen'}</button></div>`;
   }
   return crumb+`<div class="steps"><i class="on"></i><i class="${I.step===2?'on':''}"></i></div><main>${body}</main>`;
@@ -430,7 +431,7 @@ function viewShow(){
   return header(['Glissando',s.title],`<button class="edit" data-act="rename" title="Umbenennen">✎</button>`)+`<main>
     <div class="card showhero">
       <div class="cover" data-act="play">${photo(byId(s.pics[0]))}<div class="play"><i>▶</i></div></div>
-      <div class="meta"><b style="font-size:17px;font-weight:800">${s.pics.length} Bilder · ${fmt(showLen(s))}</b><div class="muted">${s.music?'♪ '+MUSIC.name:'Ohne Musik'} · ${per%1?per.toFixed(1):per} s je Bild${s.music?'':' <button class="edit" data-act="music" title="Dauer ändern">✎</button>'} · Ken Burns und Übergänge automatisch</div></div>
+      <div class="meta"><b style="font-size:17px;font-weight:800">${s.pics.length} Bilder · ${fmt(showLen(s))}</b><div class="muted">${s.music?'♪ '+MUSIC.name:'Ohne Musik'} · ${de(per)} s je Bild${s.music?'':' <button class="edit" data-act="music" title="Dauer ändern">✎</button>'} · Ken Burns und Übergänge automatisch</div></div>
       <button class="btn primary" data-act="play">▶ Abspielen</button>
     </div>
     <h2 style="margin-bottom:2px">Bilder</h2><p class="muted" style="margin:0 0 4px">Nach Aufnahmedatum sortiert · antippen oder ziehen zum Umsortieren</p>
