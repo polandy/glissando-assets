@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head><body>
+<title>Glissando Studio-Look</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Baloo+2:wght@800&display=swap">
+<style>
+/* Page chrome (follows the viewer's theme) */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --peach-soft: #ffb59a; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 62ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.note { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 16px; line-height: 1.5; }
+.note h3 { margin: 0 0 6px; font: 600 13px var(--ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--page-muted); }
+.note p { margin: 0; }
+
+/* ---------- The app frame: two fixed designs ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px;
+  width: 100%; max-width: 1200px; height: 760px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; container-type: inline-size; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 800px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --raised: #fbfafc; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --scrim: rgba(34, 29, 51, 0.04); --shadow: 0 1px 2px rgba(34, 29, 51, 0.06), 0 6px 18px rgba(34, 29, 51, 0.06);
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --raised: #221e2d; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --scrim: rgba(255, 255, 255, 0.03); --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* Top bar */
+.bar { display: flex; align-items: center; gap: 12px; padding: 0 18px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; }
+.brand { display: flex; align-items: center; gap: 9px; font: 800 19px "Baloo 2", var(--ui); letter-spacing: -0.01em; }
+.brand svg { width: 26px; height: 22px; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs .sep { color: var(--faint); }
+.spacer { flex: 1; }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.iconbtn:hover { background: var(--hover); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 15px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn svg.i.fill, .preview .play svg.i { fill: currentColor; stroke: none; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.lg { height: 44px; padding: 0 20px; font-size: 15px; }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+
+.scroll { flex: 1; overflow: auto; }
+.content { padding: 24px; display: grid; gap: 22px; align-content: start; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+.muted { color: var(--muted); }
+
+/* Pseudo photos */
+.ph { position: relative; overflow: hidden; background: #888; }
+.ph::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.22)); }
+
+/* Library */
+.lib-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.lib-head p { margin: 4px 0 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.show { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; text-align: left; padding: 0; color: inherit; transition: transform 0.15s, box-shadow 0.15s; }
+.show:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.show .cover { aspect-ratio: 16 / 10; display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; background: var(--line); }
+.show .cover .ph:first-child { grid-row: 1 / 3; }
+.show .meta { padding: 12px 14px 14px; display: grid; gap: 4px; }
+.show .name { font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+.show .facts { display: flex; gap: 10px; color: var(--muted); font-size: 12.5px; align-items: center; }
+.show .facts svg.i { width: 14px; height: 14px; }
+.newcard { border: 1.5px dashed var(--line); border-radius: var(--radius-lg); background: transparent; color: var(--muted); display: grid; place-items: center; gap: 8px; min-height: 200px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.newcard:hover { border-color: var(--accent); color: var(--ink); }
+.newcard span { display: grid; place-items: center; gap: 8px; }
+.status { display: flex; align-items: center; gap: 8px; padding: 10px 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12.5px; background: var(--surface); flex: none; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
+
+/* Slideshow screen */
+.detail { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.preview { border-radius: var(--radius-lg); overflow: hidden; aspect-ratio: 16 / 9; position: relative; cursor: pointer; }
+.preview .ph { position: absolute; inset: 0; }
+.preview .play { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 64px; height: 64px; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: #221d33; display: grid; place-items: center; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25); z-index: 1; }
+.preview .play svg.i { width: 26px; height: 26px; fill: currentColor; stroke: none; translate: 2px 0; }
+.preview .tc { position: absolute; left: 14px; bottom: 12px; z-index: 1; color: #fff; font-size: 12px; background: rgba(0, 0, 0, 0.4); padding: 3px 8px; border-radius: 6px; backdrop-filter: blur(6px); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; display: grid; gap: 16px; }
+.panel h2.t { font-size: 22px; }
+.rows { display: grid; gap: 0; margin: 0; }
+.rows div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); }
+.rows dt { color: var(--muted); }
+.rows dd { margin: 0; font-weight: 500; text-align: right; }
+.auto { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--scrim); border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px; }
+.auto i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+.strip-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.tile { border-radius: 8px; overflow: hidden; aspect-ratio: 4 / 3; position: relative; }
+.tile .ph { position: absolute; inset: 0; }
+.tile .n { position: absolute; left: 6px; top: 6px; z-index: 1; font: 500 11px var(--mono); color: #fff; background: rgba(0, 0, 0, 0.45); padding: 1px 6px; border-radius: 5px; }
+.tile .d { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; font: 500 11px var(--mono); color: #fff; padding: 14px 7px 5px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.55)); }
+.tile.pending { background: var(--hover); }
+.tile.pending::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, var(--scrim) 50%, transparent 70%); background-size: 200% 100%; animation: shimmer 1.4s infinite linear; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* Import */
+.steps { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; }
+.step { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.step .num { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font: 500 11px var(--mono); }
+.step.on { color: var(--ink); }
+.step.on .num { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.step.done .num { background: var(--mint); border-color: var(--mint); color: #16302a; }
+.steps .line { width: 28px; height: 1.5px; background: var(--line); }
+.progress { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 14px 16px; display: grid; gap: 10px; }
+.progress .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.meter { height: 6px; border-radius: 3px; background: var(--hover); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--mint); border-radius: 3px; transition: width 0.3s; }
+.notice { display: flex; gap: 10px; align-items: flex-start; padding: 11px 14px; border-radius: var(--radius); border: 1px solid; line-height: 1.45; }
+.notice.warn { background: color-mix(in srgb, var(--lemon) 14%, var(--surface)); border-color: color-mix(in srgb, var(--lemon) 55%, var(--line)); }
+.notice svg.i { margin-top: 1px; color: #b8890f; }
+.dark .notice svg.i { color: var(--lemon); }
+.actions { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 24px; border-top: 1px solid var(--line); background: var(--surface); flex: none; }
+.music { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px; display: grid; gap: 14px; }
+.track { display: flex; align-items: center; gap: 12px; }
+.track .art { width: 44px; height: 44px; border-radius: 9px; background: linear-gradient(135deg, var(--lemon), var(--peach)); display: grid; place-items: center; color: #3a2a10; flex: none; }
+.track .tn { font-weight: 600; }
+.wave { height: 54px; width: 100%; display: block; }
+.fit { display: grid; gap: 6px; }
+.segments { display: flex; height: 26px; gap: 2px; }
+.segments i { flex: 1; border-radius: 3px; background-size: cover; }
+.fitline { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+.sum { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.sum div { padding: 10px 12px; display: grid; gap: 2px; background: var(--raised); }
+.sum div + div { border-left: 1px solid var(--line); }
+.sum b { font: 500 17px var(--mono); }
+.sum span { font-size: 12px; color: var(--muted); }
+
+/* Player */
+.player { position: absolute; inset: 0; background: #000; color: #fff; z-index: 5; display: flex; flex-direction: column; justify-content: space-between; }
+.player .ph { position: absolute; inset: 0; animation: kb 9s ease-in-out infinite alternate; }
+@keyframes kb { from { transform: scale(1.02) translate(0, 0); } to { transform: scale(1.14) translate(-2%, -1.5%); } }
+.player .top, .player .bottom { position: relative; z-index: 1; padding: 16px 20px; display: flex; align-items: center; gap: 14px; }
+.player .top { background: linear-gradient(rgba(0, 0, 0, 0.5), transparent); }
+.player .bottom { background: linear-gradient(transparent, rgba(0, 0, 0, 0.65)); flex-direction: column; align-items: stretch; gap: 10px; padding-top: 40px; }
+.glass { width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.14); backdrop-filter: blur(10px); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.ptitle { font-family: var(--display); font-weight: 700; font-size: 16px; }
+.ptitle small { display: block; font: 400 12px var(--ui); opacity: 0.7; }
+.scrub { position: relative; height: 18px; display: flex; align-items: center; }
+.scrub .track2 { position: absolute; left: 0; right: 0; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.25); }
+.scrub .done { position: absolute; left: 0; height: 4px; border-radius: 2px; background: var(--peach-soft); }
+.scrub .ticks { position: absolute; left: 0; right: 0; height: 4px; }
+.scrub .ticks i { position: absolute; top: 0; width: 2px; height: 4px; background: rgba(0, 0, 0, 0.45); }
+.scrub .knob { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #fff; translate: -50% 0; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
+.prow { display: flex; align-items: center; gap: 12px; }
+.pplay { width: 48px; height: 48px; border-radius: 50%; border: 0; background: #fff; color: #111; display: grid; place-items: center; cursor: pointer; }
+.pplay svg.i { fill: currentColor; stroke: none; width: 20px; height: 20px; }
+.ptime { font: 500 13px var(--mono); opacity: 0.9; }
+.kbd { font-size: 12px; opacity: 0.65; display: flex; gap: 6px; align-items: center; }
+.kbd kbd { font: 500 11px var(--mono); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 4px; padding: 1px 5px; }
+
+/* Phone and narrow containers */
+@container (max-width: 720px) {
+  .content { padding: 18px 16px; gap: 18px; }
+  .bar { padding: 0 12px; }
+  .detail { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr; gap: 14px; }
+  .strip { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .actions { padding: 12px 16px; }
+  .actions .btn.primary { flex: 1; }
+  .status { padding: 10px 16px; }
+  .kbd, .bar .hide-narrow { display: none; }
+  h2.t { font-size: 23px; }
+}
+
+/* Settings sheet */
+.sheet-scrim { position: absolute; inset: 0; background: rgba(10, 8, 18, 0.38); z-index: 4; }
+.sheet { position: absolute; z-index: 5; top: 72px; right: 24px; width: 380px; max-height: calc(100% - 96px); overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 18px; display: grid; gap: 18px; }
+.sheet header { display: flex; align-items: center; }
+.group { display: grid; gap: 8px; }
+.opts { display: grid; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.opt { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: var(--surface); border: 0; color: var(--ink); text-align: left; cursor: pointer; font-size: 14px; }
+.opt + .opt { border-top: 1px solid var(--line); }
+.opt:hover { background: var(--hover); }
+.opt span { flex: 1; display: grid; gap: 2px; }
+.opt b { font-weight: 600; }
+.opt small { color: var(--muted); font-size: 12.5px; }
+.opt[aria-checked="true"] { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.opt[aria-checked="true"] svg.i:last-child { color: var(--ink); }
+@container (max-width: 720px) {
+  .sheet { top: auto; bottom: 0; left: 0; right: 0; width: auto; border-radius: 18px 18px 0 0; max-height: 85%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .player .ph, .tile.pending::after { animation: none; }
+  .show { transition: none; }
+}
+</style>
+
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Glissando – Studio-Look</h1>
+      <p>Vorschlag für eine erwachsenere Oberfläche: ruhige neutrale Flächen, die Bilder geben die Farbe, Pfirsich nur noch als Akzent. Hell und Dunkel werden beide angeboten; standardmässig folgt die App dem Gerät, in den Einstellungen (Zahnrad auf dem Start) lässt es sich festlegen.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Erscheinungsbild">
+        <button id="v-system" aria-pressed="false" data-variant="system">System</button>
+        <button id="v-light" aria-pressed="true" data-variant="light">Hell</button>
+        <button id="v-dark" aria-pressed="false" data-variant="dark">Dunkel</button>
+      </div>
+      <div class="seg" role="group" aria-label="Breite">
+        <button id="w-desk" aria-pressed="true" data-width="desk">Desktop</button>
+        <button id="w-phone" aria-pressed="false" data-width="phone">Handy</button>
+      </div>
+      <div class="seg" role="group" aria-label="Bildschirm">
+        <button id="s-lib" aria-pressed="true" data-screen="lib">Start</button>
+        <button id="s-show" aria-pressed="false" data-screen="show">Diashow</button>
+        <button id="s-pics" aria-pressed="false" data-screen="pics">Bilder</button>
+        <button id="s-music" aria-pressed="false" data-screen="music">Musik</button>
+        <button id="s-play" aria-pressed="false" data-screen="play">Player</button>
+        <button id="s-settings" aria-pressed="false" data-screen="settings">Einstellungen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage"><div class="app light" id="app"></div></div>
+
+  <div class="notes">
+    <div class="note"><h3>Schrift</h3><p>Instrument Sans für die Bedienung, Bricolage Grotesque nur für Titel, Geist Mono für Zeiten und Zähler. Baloo 2 bleibt im Logo-Schriftzug.</p></div>
+    <div class="note"><h3>Farbe</h3><p>Neutrale Flächen mit leichtem Pflaumen-Stich. Pfirsich nur für die eine Hauptaktion und den Abspielkopf; Mint und Zitrone nur als Status.</p></div>
+    <div class="note"><h3>Form</h3><p>Einheitliche Linien-Icons statt Emoji, Knöpfe mit 10 px Radius statt Pillen, feine Linien statt Schatten. Die Bilder stehen im Vordergrund.</p></div>
+    <div class="note"><h3>Unverändert</h3><p>Ablauf, Texte, drei Ebenen, Warteformen und Fehlerorte aus dem freigegebenen MVP-Mockup. Logo und Startanimation bleiben.</p></div>
+  </div>
+</div>
+
+<script>
+const ICON = {
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  play: '<path d="M7 4.5v15l13-7.5z"/>',
+  pause: '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  image: '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 8.5"/>',
+  music: '<path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+  folder: '<path d="M3 7.5A1.5 1.5 0 014.5 6H9l2 2h8.5A1.5 1.5 0 0121 9.5v8a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 17.5z"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  more: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+  expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  moon: '<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>',
+  monitor: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  device: '<rect x="6" y="3" width="12" height="18" rx="2.5"/><path d="M11 18h2"/>',
+};
+const icon = (name) => `<svg class="i${name === "play" || name === "pause" ? " fill" : ""}" viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
+const LOGO = '<svg viewBox="0 0 52 44" aria-hidden="true"><rect x="3" y="14" width="26" height="20" rx="5" transform="rotate(-12 16 24)" fill="#ffb59a" stroke="currentColor" stroke-width="3"/><rect x="13" y="9" width="26" height="20" rx="5" transform="rotate(-4 26 19)" fill="#8fd9c4" stroke="currentColor" stroke-width="3"/><rect x="23" y="3" width="26" height="20" rx="5" transform="rotate(8 36 13)" fill="#ffd95a" stroke="currentColor" stroke-width="3"/></svg>';
+
+// Pseudo photos: sky, sun and land bands; no external images.
+const SCENES = [
+  ["#f7b267", "#f4845f", "#ffe8a3", "#3d5a80", "#293241"],
+  ["#a8dadc", "#457b9d", "#ffffff", "#2a9d8f", "#1d3557"],
+  ["#ffcdb2", "#e5989b", "#fff1e6", "#6d6875", "#3e3a4f"],
+  ["#bde0fe", "#90c2e7", "#fffbe0", "#6a994e", "#386641"],
+  ["#ffd6a5", "#ff9e7a", "#fff6d5", "#0a9396", "#005f73"],
+  ["#cdb4db", "#a2d2ff", "#ffffff", "#7f8c8d", "#34495e"],
+  ["#fec89a", "#f9844a", "#fff3b0", "#bc6c25", "#5c3d2e"],
+  ["#caf0f8", "#48cae4", "#ffffff", "#e9c46a", "#d4a373"],
+  ["#2b2d42", "#8d99ae", "#ffe5b4", "#3a3f58", "#14161f"],
+  ["#e0fbfc", "#98c1d9", "#ffffff", "#3d5a80", "#22303f"],
+  ["#ffafcc", "#cdb4db", "#fff0f6", "#588157", "#344e41"],
+  ["#f6bd60", "#f28482", "#fff0c2", "#84a59d", "#3f5e57"],
+];
+function scene(index) {
+  const [skyTop, skyLow, sun, hill, land] = SCENES[index % SCENES.length];
+  const sunX = 25 + ((index * 37) % 50);
+  const horizon = 58 + ((index * 13) % 14);
+  return [
+    `radial-gradient(circle at ${sunX}% ${horizon - 22}%, ${sun} 0 6%, transparent 7%)`,
+    `radial-gradient(ellipse 45% 16% at ${100 - sunX}% ${horizon + 4}%, ${hill} 0 60%, transparent 61%)`,
+    `linear-gradient(${skyTop}, ${skyLow} ${horizon}%, ${land} ${horizon}%, ${land})`,
+  ].join(",");
+}
+const ph = (index, extra = "") => `<div class="ph" style="background:${scene(index)}" ${extra}></div>`;
+
+const SHOWS = [
+  { title: "Sommer am See", count: 24, time: "2:14", music: true, scenes: [0, 4, 1] },
+  { title: "Juli–August 2025", count: 12, time: "1:00", music: true, scenes: [3, 7, 11] },
+  { title: "Herbst im Tessin", count: 38, time: "3:10", music: false, scenes: [6, 2, 10] },
+  { title: "Winter 2024", count: 17, time: "1:25", music: true, scenes: [9, 5, 8] },
+];
+const DATES = ["03.07.2025", "05.07.2025", "07.07.2025", "11.07.2025", "15.07.2025", "19.07.2025", "23.07.2025", "27.07.2025", "31.07.2025", "04.08.2025", "08.08.2025", "16.08.2025"];
+
+const state = { theme: "light", language: "de", variant: "light", width: "desk", screen: "lib", playing: true, imported: 9 };
+
+function bar(crumbs, { back = false, right = "" } = {}) {
+  const left = back
+    ? `<button class="iconbtn" aria-label="Zurück" data-go="${back}">${icon("back")}</button>`
+    : `<div class="brand">${LOGO}<span>Glissando</span></div>`;
+  const trail = crumbs.length ? `<div class="crumbs">${crumbs.map((c, i) => (i === crumbs.length - 1 ? `<b>${c}</b>` : `<span class="hide-narrow">${c}</span><span class="sep hide-narrow">/</span>`)).join("")}</div>` : "";
+  return `<header class="bar">${left}${trail}<div class="spacer"></div>${right}</header>`;
+}
+
+function library() {
+  const cards = SHOWS.map((s) => `
+    <button class="show" data-go="show">
+      <div class="cover">${s.scenes.map((n) => ph(n)).join("")}</div>
+      <div class="meta">
+        <div class="name">${s.title}</div>
+        <div class="facts"><span class="mono">${s.count} Bilder</span><span class="mono">${s.time}</span>${s.music ? `<span title="mit Musik">${icon("music")}</span>` : ""}</div>
+      </div>
+    </button>`).join("");
+  return `
+    ${bar([], { right: `<button class="iconbtn" aria-label="Einstellungen" data-go="settings">${icon("gear")}</button><button class="btn primary" data-go="pics">${icon("plus")}<span>Neue Diashow</span></button>` })}
+    <div class="scroll"><div class="content">
+      <div class="lib-head"><div><div class="eyebrow">Bibliothek</div><h2 class="t">Deine Diashows</h2></div></div>
+      <div class="grid">${cards}
+        <button class="newcard" data-go="pics"><span>${icon("plus")}Bilder auswählen</span></button>
+      </div>
+    </div></div>
+    <div class="status"><span class="dot"></span>Offline · gespeichert auf diesem Gerät<span class="spacer"></span><span class="mono">4 Diashows · 312 MB</span></div>`;
+}
+
+function slideshow() {
+  const tiles = DATES.map((d, i) => `<div class="tile">${ph(i)}<span class="n">${i + 1}</span><span class="d">${d}</span></div>`).join("");
+  return `
+    ${bar(["Bibliothek", "Juli–August 2025"], { back: "lib", right: `<button class="iconbtn" aria-label="Umbenennen">${icon("pencil")}</button><button class="iconbtn" aria-label="Mehr">${icon("more")}</button>` })}
+    <div class="scroll"><div class="content">
+      <div class="detail">
+        <div style="display:grid;gap:20px">
+          <div class="preview" data-go="play">${ph(3)}<span class="play">${icon("play")}</span><span class="tc mono">0:00 / 1:00</span></div>
+          <div class="strip-head"><div><div class="eyebrow">Bilder</div><div class="muted" style="margin-top:3px">Nach Aufnahmedatum sortiert</div></div><span class="mono muted">12</span></div>
+          <div class="strip">${tiles}</div>
+        </div>
+        <aside class="panel">
+          <div><div class="eyebrow">Diashow</div><h2 class="t" style="margin-top:4px">Juli–August 2025</h2><div class="muted mono" style="margin-top:4px;font-size:12.5px">03.07. – 16.08.2025</div></div>
+          <button class="btn primary lg" data-go="play">${icon("play")}<span>Abspielen</span></button>
+          <dl class="rows">
+            <div><dt>Bilder</dt><dd class="mono">12</dd></div>
+            <div><dt>Dauer</dt><dd class="mono">1:00</dd></div>
+            <div><dt>Musik</dt><dd>Sommerwind.mp3</dd></div>
+            <div><dt>Je Bild</dt><dd class="mono">5,0 s</dd></div>
+            <div><dt>Ken Burns</dt><dd><span class="auto"><i></i>automatisch</span></dd></div>
+            <div><dt>Übergänge</dt><dd><span class="auto"><i></i>abwechselnd</span></dd></div>
+          </dl>
+        </aside>
+      </div>
+    </div></div>`;
+}
+
+function pictures() {
+  const total = 12;
+  const done = state.imported;
+  const tiles = DATES.map((d, i) => (i < done ? `<div class="tile">${ph(i)}<span class="d">${d}</span></div>` : `<div class="tile pending"></div>`)).join("");
+  const finished = done >= total;
+  return `
+    ${bar(["Bibliothek", "Neue Diashow"], { back: "lib" })}
+    <div class="scroll"><div class="content">
+      <div class="steps"><span class="step on"><span class="num">1</span>Bilder</span><span class="line"></span><span class="step"><span class="num">2</span>Musik</span></div>
+      <div><h2 class="t">Welche Bilder?</h2><p class="muted" style="margin:6px 0 0;max-width:60ch;line-height:1.5">Glissando sortiert sie nach Aufnahmedatum und verkleinert sie fürs Gerät. Deine Originale bleiben unverändert.</p></div>
+      <div class="progress">
+        <div class="top"><span>${finished ? "<b>12 Bilder</b> · 03.07.2025 bis 16.08.2025" : `<span class="mono">${done} / ${total}</span> Bilder werden verkleinert …`}</span>
+          <span>${finished ? `<button class="btn ghost">${icon("plus")}Mehr hinzufügen</button>` : `<button class="btn ghost" data-act="finish">Abbrechen</button>`}</span></div>
+        <div class="meter"><i style="width:${(done / total) * 100}%"></i></div>
+      </div>
+      <div class="notice warn">${icon("info")}<span><b>1 Datei übersprungen:</b> urlaub_strand.heic – dieses Format kann der Browser nicht lesen. Die anderen Bilder sind drin.</span></div>
+      <div class="strip">${tiles}</div>
+    </div></div>
+    <div class="actions"><button class="btn ghost" data-go="lib">Abbrechen</button><button class="btn primary" data-go="music" ${finished ? "" : "disabled"}>Weiter</button></div>`;
+}
+
+function waveform() {
+  const bars = 120;
+  let rects = "";
+  for (let i = 0; i < bars; i++) {
+    const h = 8 + Math.abs(Math.sin(i * 0.37) * 18 + Math.sin(i * 0.11) * 14 + Math.sin(i * 1.7) * 5);
+    rects += `<rect x="${i * 5}" y="${27 - h / 2}" width="3" height="${h}" rx="1.5" fill="${i < 40 ? "var(--accent)" : "var(--faint)"}" opacity="${i < 40 ? 1 : 0.55}"/>`;
+  }
+  return `<svg class="wave" viewBox="0 0 600 54" preserveAspectRatio="none" aria-hidden="true">${rects}</svg>`;
+}
+
+function music() {
+  const segs = DATES.map((_, i) => `<i style="background:${scene(i)}"></i>`).join("");
+  return `
+    ${bar(["Bibliothek", "Neue Diashow"], { back: "pics" })}
+    <div class="scroll"><div class="content">
+      <div class="steps"><span class="step done"><span class="num">✓</span>Bilder</span><span class="line"></span><span class="step on"><span class="num">2</span>Musik</span></div>
+      <div><h2 class="t">Welche Musik?</h2><p class="muted" style="margin:6px 0 0;max-width:60ch;line-height:1.5">Ein Stück genügt – die Bilder teilen sich seine Länge. Ohne Musik läuft jedes Bild 5 Sekunden.</p></div>
+      <div class="music">
+        <div class="track"><span class="art">${icon("music")}</span><div style="min-width:0"><div class="tn">Sommerwind.mp3</div><div class="muted mono" style="font-size:12.5px">1:00 · MP3</div></div><span class="spacer"></span><button class="iconbtn" aria-label="Entfernen">${icon("close")}</button></div>
+        ${waveform()}
+        <div class="fit"><div class="segments">${segs}</div><div class="fitline mono"><span>0:00</span><span>12 × 5,0 s</span><span>1:00</span></div></div>
+      </div>
+      <div class="sum"><div><b>12</b><span>Bilder</span></div><div><b>5,0 s</b><span>je Bild</span></div><div><b>1:00</b><span>Gesamt</span></div></div>
+    </div></div>
+    <div class="actions"><button class="btn" data-go="pics">${icon("back")}Bilder</button><button class="btn primary" data-go="show">Diashow erstellen</button></div>`;
+}
+
+function player() {
+  const ticks = Array.from({ length: 11 }, (_, i) => `<i style="left:${((i + 1) / 12) * 100}%"></i>`).join("");
+  return `
+    <div class="player">
+      ${ph(4)}
+      <div class="top"><button class="glass" aria-label="Schließen" data-go="show">${icon("close")}</button><div class="ptitle">Juli–August 2025<small>15.07.2025</small></div><span class="spacer"></span><span class="mono" style="font-size:13px">4 / 12</span><button class="glass" aria-label="Vollbild">${icon("expand")}</button></div>
+      <div class="bottom">
+        <div class="kbd" style="justify-content:flex-end"><kbd>Leertaste</kbd><kbd>←</kbd><kbd>→</kbd><kbd>Esc</kbd></div>
+        <div class="scrub"><span class="track2"></span><span class="done" style="width:29%"></span><span class="ticks">${ticks}</span><span class="knob" style="left:29%"></span></div>
+        <div class="prow"><button class="pplay" data-act="toggle" aria-label="${state.playing ? "Pause" : "Abspielen"}">${icon(state.playing ? "pause" : "play")}</button><span class="ptime">0:17 / 1:00</span><span class="spacer"></span><span style="font-size:12.5px;opacity:.8;display:flex;gap:6px;align-items:center">${icon("music")}Sommerwind.mp3</span></div>
+      </div>
+    </div>`;
+}
+
+function settings() {
+  const option = (group, value, label, iconName, hint) => `
+    <button class="opt" role="radio" aria-checked="${state[group] === value}" data-set="${group}:${value}">
+      ${iconName ? icon(iconName) : ""}<span><b>${label}</b>${hint ? `<small>${hint}</small>` : ""}</span>${state[group] === value ? icon("check") : ""}
+    </button>`;
+  return `
+    <div class="sheet-scrim" data-go="lib"></div>
+    <section class="sheet" role="dialog" aria-label="Einstellungen">
+      <header><h2 class="t" style="font-size:20px">Einstellungen</h2><span class="spacer"></span><button class="iconbtn" aria-label="Schließen" data-go="lib">${icon("close")}</button></header>
+      <div class="group"><div class="eyebrow">Erscheinungsbild</div>
+        <div class="opts" role="radiogroup" aria-label="Erscheinungsbild">
+          ${option("theme", "system", "Wie das Gerät", "monitor", "Hell oder dunkel, je nach Systemeinstellung")}
+          ${option("theme", "light", "Hell", "sun")}
+          ${option("theme", "dark", "Dunkel", "moon")}
+        </div></div>
+      <div class="group"><div class="eyebrow">Sprache</div>
+        <div class="opts" role="radiogroup" aria-label="Sprache">
+          ${option("language", "auto", "Wie der Browser", "", "Zurzeit Deutsch")}
+          ${option("language", "de", "Deutsch")}
+          ${option("language", "en", "English")}
+        </div></div>
+      <p class="muted" style="margin:0;font-size:12.5px">Gilt sofort und wird auf diesem Gerät gespeichert.</p>
+    </section>`;
+}
+
+const SCREENS = { lib: library, show: slideshow, pics: pictures, music, play: () => slideshow() + player(), settings: () => library() + settings() };
+const app = document.getElementById("app");
+let timer = null;
+
+function render() {
+  const systemDark = matchMedia("(prefers-color-scheme: dark)").matches;
+  state.variant = state.theme === "system" ? (systemDark ? "dark" : "light") : state.theme;
+  app.className = `app ${state.variant}${state.width === "phone" ? " phone" : ""}`;
+  app.innerHTML = SCREENS[state.screen]();
+  for (const btn of document.querySelectorAll(".controls button")) {
+    const key = btn.dataset.variant ? "variant" : btn.dataset.width ? "width" : "screen";
+    btn.setAttribute("aria-pressed", String(btn.dataset[key] === (key === "variant" ? state.theme : state[key])));
+  }
+  clearInterval(timer);
+  if (state.screen === "pics" && state.imported < 12) {
+    timer = setInterval(() => { state.imported += 1; render(); }, 650);
+  }
+}
+
+document.querySelector(".controls").addEventListener("click", (event) => {
+  const btn = event.target.closest("button");
+  if (!btn) return;
+  if (btn.dataset.variant) state.theme = btn.dataset.variant;
+  if (btn.dataset.width) state.width = btn.dataset.width;
+  if (btn.dataset.screen) { state.screen = btn.dataset.screen; if (state.screen === "pics") state.imported = 5; }
+  render();
+});
+app.addEventListener("click", (event) => {
+  const target = event.target.closest("[data-go],[data-act],[data-set]");
+  if (!target || target.disabled) return;
+  if (target.dataset.go) { state.screen = target.dataset.go; if (state.screen === "pics") state.imported = 5; }
+  if (target.dataset.set) { const [group, value] = target.dataset.set.split(":"); state[group] = value; }
+  if (target.dataset.act === "toggle") state.playing = !state.playing;
+  if (target.dataset.act === "finish") state.imported = 12;
+  render();
+});
+render();
+</script>
+
+</html>
