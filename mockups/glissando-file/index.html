@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glissando-Datei</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --peach-soft: #ffb59a; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 66ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.hint { color: var(--page-muted); font-size: 13px; line-height: 1.5; margin: 0; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; }
+.concept p, .concept li { line-height: 1.55; max-width: 72ch; }
+.concept ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; min-width: 620px; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-top: 1px solid var(--page-line); line-height: 1.45; }
+.tbl th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--page-muted); border-top: 0; }
+.q { border-left: 3px solid var(--lemon); }
+code { font-family: var(--mono); font-size: 12.5px; }
+.tree { font: 12.5px/1.6 var(--mono); margin: 0; white-space: pre; overflow-x: auto; }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px;
+  width: 100%; max-width: 1200px; height: 760px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; container-type: inline-size; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 800px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --raised: #fbfafc; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --scrim: rgba(34, 29, 51, 0.04); --shadow: 0 1px 2px rgba(34, 29, 51, 0.06), 0 6px 18px rgba(34, 29, 51, 0.06);
+  --danger-text: #c4473a; --warn-icon: #b8890f; --backdrop: rgba(10, 8, 18, 0.38);
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --raised: #221e2d; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --scrim: rgba(255, 255, 255, 0.03); --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --danger-text: #f2786b; --warn-icon: #f5c94a; --backdrop: rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.app svg.i.fill { fill: currentColor; stroke: none; }
+
+.bar { position: relative; display: flex; align-items: center; gap: 12px; padding: 0 18px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; z-index: 3; }
+.bar .busyline { position: absolute; left: 0; bottom: -1px; height: 3px; background: var(--mint); transition: width 0.3s; }
+.brand { display: flex; align-items: center; gap: 9px; font: 800 19px "Baloo 2", var(--ui); letter-spacing: -0.01em; }
+.brand svg { width: 26px; height: 22px; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs .sep { color: var(--faint); }
+.spacer { flex: 1; }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.iconbtn:hover, .iconbtn[aria-expanded="true"] { background: var(--hover); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 15px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--ink); background: var(--hover); }
+.btn.sm { height: 32px; padding: 0 12px; font-size: 13px; }
+.btn.lg { height: 44px; padding: 0 20px; font-size: 15px; }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+.btn.danger { background: var(--coral); border-color: transparent; color: #2a1a14; }
+
+/* Global indicator: background work that does not block. */
+.bgind { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+.ring { width: 18px; height: 18px; border-radius: 50%; background: conic-gradient(var(--mint) calc(var(--p) * 360deg), var(--hover) 0); display: grid; place-items: center; flex: none; }
+.ring::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); }
+
+.scroll { flex: 1; overflow: auto; position: relative; }
+.content { padding: 24px; display: grid; gap: 22px; align-content: start; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+.muted { color: var(--muted); }
+.ph { position: relative; overflow: hidden; background: #888; }
+.ph::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.22)); }
+
+/* Library */
+.lib-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.show { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; text-align: left; padding: 0; color: inherit; transition: transform 0.15s, box-shadow 0.15s; }
+.show:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.show.fresh { outline: 2px solid var(--mint); outline-offset: 2px; }
+.show .cover { aspect-ratio: 16 / 10; display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; background: var(--line); }
+.show .cover .ph:first-child { grid-row: 1 / 3; }
+.show .meta { padding: 12px 14px 14px; display: grid; gap: 4px; }
+.show .name { font-family: var(--display); font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+.show .facts { display: flex; gap: 10px; color: var(--muted); font-size: 12.5px; align-items: center; }
+.show .facts svg.i { width: 14px; height: 14px; }
+.newcard { border: 1.5px dashed var(--line); border-radius: var(--radius-lg); background: transparent; color: var(--muted); display: grid; place-items: center; min-height: 200px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.newcard:hover { border-color: var(--accent); color: var(--ink); }
+.newcard span { display: grid; place-items: center; gap: 8px; }
+.status { display: flex; align-items: center; gap: 8px; padding: 10px 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12.5px; background: var(--surface); flex: none; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
+
+/* Drop target over the library and the picture step */
+.droplayer { position: absolute; inset: 12px; z-index: 4; border: 2px dashed var(--accent); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--accent) 10%, var(--ground)); display: grid; place-items: center; text-align: center; font-weight: 600; pointer-events: none; }
+.droplayer span { display: grid; gap: 8px; justify-items: center; }
+
+/* Slideshow */
+.detail { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.preview { border-radius: var(--radius-lg); overflow: hidden; aspect-ratio: 16 / 9; position: relative; max-width: 100%; }
+.preview .ph { position: absolute; inset: 0; }
+.preview .play { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 64px; height: 64px; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: #221d33; display: grid; place-items: center; z-index: 1; }
+.preview .play svg.i { width: 26px; height: 26px; translate: 2px 0; }
+.preview .tc { position: absolute; left: 14px; bottom: 12px; z-index: 1; color: #fff; font-size: 12px; background: rgba(0, 0, 0, 0.4); padding: 3px 8px; border-radius: 6px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; display: grid; gap: 16px; }
+.panel h2.t { font-size: 22px; }
+.rows { display: grid; margin: 0; }
+.rows div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); }
+.rows dt { color: var(--muted); }
+.rows dd { margin: 0; font-weight: 500; text-align: right; }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.tile { border-radius: 8px; overflow: hidden; aspect-ratio: 4 / 3; position: relative; }
+.tile .ph { position: absolute; inset: 0; }
+.tile .n { position: absolute; left: 6px; top: 6px; z-index: 1; font: 500 11px var(--mono); color: #fff; background: rgba(0, 0, 0, 0.45); padding: 1px 6px; border-radius: 5px; }
+
+/* ⋯ menu */
+.more { position: relative; }
+.menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 5; display: grid; min-width: 260px; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow); }
+.item { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); font-size: 14px; text-align: left; cursor: pointer; }
+.item:hover:not([aria-disabled="true"]) { background: var(--hover); }
+.item span { display: grid; gap: 1px; }
+.item small { color: var(--muted); font-size: 12px; }
+.item[aria-disabled="true"] { color: var(--muted); cursor: default; }
+.item.danger { color: var(--danger-text); }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
+
+/* Import step 1 */
+.steps { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; }
+.step { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.step .num { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font: 500 11px var(--mono); }
+.step.on { color: var(--ink); }
+.step.on .num { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.steps .line { width: 28px; height: 1.5px; background: var(--line); }
+.drop { border: 1.5px dashed var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: 34px 20px; display: grid; gap: 12px; justify-items: center; text-align: center; }
+.drop .big { width: 52px; height: 52px; border-radius: 14px; background: var(--hover); display: grid; place-items: center; }
+.drop .big svg.i { width: 26px; height: 26px; }
+.drop p { margin: 0; }
+.fromfile { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--raised); }
+.fromfile .txt { flex: 1; min-width: 180px; display: grid; gap: 2px; }
+.fromfile .txt b { font-weight: 600; }
+.fromfile .txt span { color: var(--muted); font-size: 12.5px; }
+.fileglyph { width: 36px; height: 40px; flex: none; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 24px; border-top: 1px solid var(--line); background: var(--surface); flex: none; }
+
+/* Notices */
+.notice { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--radius); border: 1px solid; line-height: 1.45; }
+.notice.warn { background: color-mix(in srgb, var(--lemon) 14%, var(--surface)); border-color: color-mix(in srgb, var(--lemon) 55%, var(--line)); }
+.notice.warn > svg.i { color: var(--warn-icon); }
+.notice.error { background: color-mix(in srgb, var(--coral) 12%, var(--surface)); border-color: color-mix(in srgb, var(--coral) 55%, var(--line)); }
+.notice.error > svg.i { color: var(--danger-text); }
+.notice > svg.i { margin-top: 1px; }
+.notice .body { flex: 1; display: grid; gap: 4px; min-width: 0; }
+.notice .body b { font-weight: 600; overflow-wrap: anywhere; }
+.notice .body p { margin: 0; color: var(--ink); }
+.notice .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.notice .iconbtn { width: 28px; height: 28px; margin: -4px -6px 0 0; }
+
+/* Blocking overlay */
+.overlay { position: absolute; inset: 0; z-index: 8; background: var(--backdrop); display: grid; place-items: center; padding: 16px; }
+.overlay .box { width: min(360px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 22px; display: grid; gap: 12px; }
+.overlay .box h3 { margin: 0; font-family: var(--display); font-size: 18px; }
+.overlay .box p { margin: 0; color: var(--muted); }
+.meter { height: 6px; border-radius: 3px; background: var(--hover); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--mint); border-radius: 3px; transition: width 0.25s; }
+.overlay .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+/* Simulated system file picker */
+.sys { position: absolute; inset: 0; z-index: 9; background: rgba(0, 0, 0, 0.45); display: grid; place-items: center; padding: 16px; }
+.sys .win { width: min(480px, 100%); max-height: 100%; overflow: auto; background: #fdfdfd; color: #1d1d1f; border-radius: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35); font: 14px system-ui, sans-serif; }
+.sys .win header { padding: 12px 16px; border-bottom: 1px solid #e3e3e6; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sys .win header small { color: #8a8a90; }
+.sys ul { list-style: none; margin: 0; padding: 6px; }
+.sys li button { width: 100%; display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; text-align: left; padding: 9px 10px; border: 0; background: transparent; border-radius: 8px; cursor: pointer; color: inherit; font: inherit; }
+.sys li button:hover { background: #eef0f6; }
+.sys li small { display: block; color: #8a8a90; font-size: 12px; }
+.sys li .sz { font: 12px var(--mono); color: #8a8a90; }
+.sys .foot { padding: 10px 16px; border-top: 1px solid #e3e3e6; display: flex; justify-content: flex-end; }
+.sys .foot button { border: 1px solid #d0d0d6; background: #fff; border-radius: 7px; padding: 6px 14px; cursor: pointer; font: inherit; color: inherit; }
+
+/* Toast */
+.toast { position: absolute; right: 20px; bottom: 56px; z-index: 7; max-width: 420px; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 14px; border-radius: 12px; background: var(--ink); color: var(--surface); box-shadow: var(--shadow); }
+.toast > svg.i { color: var(--mint); }
+.toast.error > svg.i { color: var(--coral); }
+.toast span { flex: 1; line-height: 1.4; }
+.toast .act { border: 0; background: transparent; color: var(--accent); font-weight: 600; cursor: pointer; padding: 6px 8px; border-radius: 7px; font-size: 14px; }
+.toast .iconbtn { color: var(--surface); width: 30px; height: 30px; }
+.toast .iconbtn:hover { background: rgba(127, 127, 127, 0.25); }
+
+@container (max-width: 720px) {
+  .content { padding: 18px 16px; gap: 18px; }
+  .bar { padding: 0 12px; gap: 8px; }
+  .detail { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr; gap: 14px; }
+  .strip { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .actions { padding: 12px 16px; }
+  .actions .btn.primary { flex: 1; }
+  .status { padding: 10px 16px; }
+  .hide-narrow { display: none !important; }
+  h2.t { font-size: 23px; }
+  .toast { left: 12px; right: 12px; bottom: 52px; max-width: none; }
+  .menu { right: -6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .show, .meter i, .bar .busyline { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Glissando-Datei: Export und Import</h1>
+      <p>Eine Diashow als eine <code>.glissando</code>-Datei auf ein anderes Gerät mitnehmen. Exportieren über ⋯ in der Diashow, öffnen über die Bibliothek oder „Neue Diashow“. Die Dateiauswahl ist simuliert und spielt alle Fälle durch; auf dem Desktop kannst du auch eine echte Datei in die Bibliothek ziehen.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Ansicht"><button id="tab-try" data-tab="try">Ausprobieren</button><button id="tab-concept" data-tab="concept">Konzept</button></div>
+      <div class="seg" role="group" aria-label="Breite"><button id="w-desk" data-width="desk">Desktop</button><button id="w-phone" data-width="phone">Telefon</button></div>
+      <div class="seg" role="group" aria-label="Thema"><button id="t-light" data-theme-set="light">Hell</button><button id="t-dark" data-theme-set="dark">Dunkel</button></div>
+    </div>
+  </div>
+  <div class="controls" id="sim">
+    <div class="seg" role="group" aria-label="Export simulieren"><button id="ex-ok" data-export="ok">Export klappt</button><button id="ex-full" data-export="full">Export: Speicher voll</button></div>
+    <div class="seg" role="group" aria-label="Bibliothek"><button id="lib-full" data-lib="full">Bibliothek mit Diashows</button><button id="lib-empty" data-lib="empty">Leere Bibliothek</button></div>
+  </div>
+  <div class="stage" id="stage"></div>
+  <div class="concept" id="concept" hidden>
+    <h2>So funktioniert es</h2>
+    <div class="card">
+      <ul>
+        <li><b>Exportieren</b> steht im ⋯-Menü der Diashow über „Diashow löschen …“, mit der ungefähren Dateigröße. Der Export läuft im Hintergrund (globaler Indikator in der Kopfzeile, Linie unter der Kopfzeile), die App bleibt bedienbar, auch beim Wechsel in die Bibliothek. Am Ende lädt der Browser <code>Herbst in Wien.glissando</code> herunter, Toast mit Größe. Während er läuft, steht im Menü „Wird exportiert … 34 %“.</li>
+        <li><b>Öffnen</b>: „Datei öffnen“ im Kopf der Bibliothek, „.glissando-Datei öffnen“ unter dem Leer-Zustand und ein Hinweis in Schritt 1 von „Neue Diashow“. Auf dem Desktop auch: Datei in die Bibliothek oder auf Schritt 1 ziehen.</li>
+        <li><b>Fortschritt beim Öffnen</b>: blockierendes Overlay, denn die Diashow existiert erst danach. Titel, Zeile mit Zähler „Bild 12 von 48“, Balken, „Abbrechen“. Danach öffnet sich die neue Diashow, Toast „„Herbst in Wien“ geöffnet“.</li>
+        <li><b>Erst prüfen, dann schreiben</b>: Kennung, Formatversion, Vollständigkeit (Prüfsummen) und freier Speicher werden geprüft, bevor etwas gespeichert wird. Scheitert es mittendrin (Abbrechen, Speicher läuft voll), wird alles Geschriebene wieder entfernt; es bleibt nie eine halbe Diashow zurück.</li>
+        <li><b>Nie überschreiben</b>: eine Datei wird immer zu einer neuen Diashow. Gibt es den Titel schon, heißt die neue „Sommer am See (2)“.</li>
+      </ul>
+    </div>
+    <h2>Fehler, an ihrer Ursache</h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Fall</th><th>Wo und wie</th><th>Ausweg</th></tr></thead>
+        <tbody>
+          <tr><td>Fremde Datei (ZIP, JPEG, …)</td><td>Korallen-Hinweis oben auf dem Screen, von dem aus geöffnet wurde: „„urlaub-fotos.zip“ ist keine Glissando-Diashow.“</td><td>Andere Datei wählen; bei Bildern: „Neue Diashow“</td></tr>
+          <tr><td>Beschädigt / unvollständig</td><td>Korallen-Hinweis: Datei unvollständig, vielleicht nicht fertig kopiert.</td><td>Auf dem anderen Gerät neu exportieren; andere Datei wählen</td></tr>
+          <tr><td>Einzelne Bilder beschädigt</td><td>Wie „beschädigt“: die ganze Datei wird abgelehnt, nichts gespeichert. Eine Diashow kommt nur vollständig an.</td><td>Auf dem anderen Gerät neu exportieren</td></tr>
+          <tr><td>Aus neuerer Glissando-Version</td><td>Korallen-Hinweis: diese Version kann die Datei noch nicht lesen.</td><td>App neu laden (holt die neue Version)</td></tr>
+          <tr><td>Speicher voll beim Öffnen</td><td>Korallen-Hinweis mit Zahlen: braucht 2,1 GB, frei sind 640 MB. Vorab geprüft, nichts geschrieben.</td><td>Alte Diashows löschen; andere Datei wählen</td></tr>
+          <tr><td>Speicher voll beim Export</td><td>Toast mit Korallen-Symbol, da vorübergehend: „Export fehlgeschlagen: zu wenig Speicher auf dem Gerät.“</td><td>„Erneut versuchen“</td></tr>
+          <tr><td>Abgebrochen</td><td>Toast „Öffnen abgebrochen, nichts gespeichert.“</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h2>Die Datei</h2>
+    <div class="card">
+      <p>Ein ZIP-Container ohne Kompression (Bilder und Musik sind schon komprimiert), damit jedes Entpack-Programm hineinschauen kann. Die Bilder liegen in der beim Import verkleinerten Fassung drin, also so groß wie in der Bibliothek.</p>
+      <pre class="tree">Herbst in Wien.glissando
+├─ glissando.json      Kennung, Formatversion, Diashow (Titel, Reihenfolge, Sekunden je Bild, Musik)
+├─ pictures/0001.jpg … 0048.jpg
+└─ music/track.m4a</pre>
+      <p>Ob ein eigener kleiner ZIP-Leser/-Schreiber oder eine Bibliothek, entscheidet ein ADR im PR.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const ICON = {
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  play: '<path d="M7 4.5v15l13-7.5z"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  image: '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 8.5"/>',
+  music: '<path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+  folder: '<path d="M3 7.5A1.5 1.5 0 014.5 6H9l2 2h8.5A1.5 1.5 0 0121 9.5v8a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 17.5z"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  more: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
+  download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/>',
+  open: '<path d="M3 7.5A1.5 1.5 0 014.5 6H9l2 2h8.5A1.5 1.5 0 0121 9.5v8a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 17.5z"/><path d="M12 11v5M9.5 13.5L12 11l2.5 2.5"/>',
+  trash: '<path d="M4.5 7h15M10 11v6M14 11v6M6 7l1 12.5h10L18 7M9.5 7V4.5h5V7"/>',
+  alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2h.01"/>',
+  warn: '<path d="M12 4l9 16H3z"/><path d="M12 10v4.5M12 17.2h.01"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+  file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
+};
+const icon = (n) => `<svg class="i${n === "play" ? " fill" : ""}" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+const LOGO = '<svg viewBox="0 0 52 44" aria-hidden="true"><rect x="3" y="14" width="26" height="20" rx="5" transform="rotate(-12 16 24)" fill="#ffb59a" stroke="currentColor" stroke-width="3"/><rect x="13" y="9" width="26" height="20" rx="5" transform="rotate(-4 26 19)" fill="#8fd9c4" stroke="currentColor" stroke-width="3"/><rect x="23" y="3" width="26" height="20" rx="5" transform="rotate(8 36 13)" fill="#ffd95a" stroke="currentColor" stroke-width="3"/></svg>';
+// A .glissando file icon: the three logo cards on a page.
+const FILEGLYPH = '<svg class="fileglyph" viewBox="0 0 36 40" aria-hidden="true"><path d="M4 2h20l8 8v28H4z" fill="var(--surface)" stroke="var(--faint)" stroke-width="1.5"/><path d="M24 2v8h8" fill="none" stroke="var(--faint)" stroke-width="1.5"/><rect x="9" y="20" width="11" height="9" rx="2" fill="#ffb59a" transform="rotate(-12 14 24)"/><rect x="13" y="18" width="11" height="9" rx="2" fill="#8fd9c4" transform="rotate(-3 18 22)"/><rect x="17" y="16" width="11" height="9" rx="2" fill="#ffd95a" transform="rotate(8 22 20)"/></svg>';
+
+const SCENES = [
+  ["#f7b267", "#f4845f", "#ffe8a3", "#3d5a80", "#293241"], ["#a8dadc", "#457b9d", "#ffffff", "#2a9d8f", "#1d3557"],
+  ["#ffcdb2", "#e5989b", "#fff1e6", "#6d6875", "#3e3a4f"], ["#bde0fe", "#90c2e7", "#fffbe0", "#6a994e", "#386641"],
+  ["#ffd6a5", "#ff9e7a", "#fff6d5", "#0a9396", "#005f73"], ["#cdb4db", "#a2d2ff", "#ffffff", "#7f8c8d", "#34495e"],
+  ["#fec89a", "#f9844a", "#fff3b0", "#bc6c25", "#5c3d2e"], ["#caf0f8", "#48cae4", "#ffffff", "#e9c46a", "#d4a373"],
+  ["#2b2d42", "#8d99ae", "#ffe5b4", "#3a3f58", "#14161f"], ["#e0fbfc", "#98c1d9", "#ffffff", "#3d5a80", "#22303f"],
+  ["#ffafcc", "#cdb4db", "#fff0f6", "#588157", "#344e41"], ["#f6bd60", "#f28482", "#fff0c2", "#84a59d", "#3f5e57"],
+];
+function scene(i) {
+  const [a, b, sun, hill, land] = SCENES[i % SCENES.length];
+  const x = 25 + ((i * 37) % 50), h = 58 + ((i * 13) % 14);
+  return `radial-gradient(circle at ${x}% ${h - 22}%, ${sun} 0 6%, transparent 7%),radial-gradient(ellipse 45% 16% at ${100 - x}% ${h + 4}%, ${hill} 0 60%, transparent 61%),linear-gradient(${a}, ${b} ${h}%, ${land} ${h}%, ${land})`;
+}
+const ph = (i) => `<div class="ph" style="background:${scene(i)}"></div>`;
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+const BASE_SHOWS = [
+  { id: 1, title: "Sommer am See", count: 24, time: "2:14", music: true, size: "92 MB", scenes: [0, 4, 1] },
+  { id: 2, title: "Juli–August 2025", count: 12, time: "1:00", music: true, size: "47 MB", scenes: [3, 7, 11] },
+  { id: 3, title: "Herbst im Tessin", count: 38, time: "3:10", music: false, size: "131 MB", scenes: [6, 2, 10] },
+];
+
+// The simulated system file picker: one entry per case the import must handle.
+const FILES = [
+  { name: "Herbst in Wien.glissando", sub: "von einem anderen Gerät", size: "184 MB", kind: "ok", show: { title: "Herbst in Wien", count: 48, time: "4:00", music: true, size: "184 MB", scenes: [2, 6, 9] } },
+  { name: "Silvester.glissando", sub: "2 Bilder darin beschädigt", size: "96 MB", kind: "broken" },
+  { name: "Sommer am See.glissando", sub: "gibt es schon in der Bibliothek", size: "92 MB", kind: "dup", show: { title: "Sommer am See (2)", count: 24, time: "2:14", music: true, size: "92 MB", scenes: [0, 4, 1] } },
+  { name: "urlaub-fotos.zip", sub: "fremde Datei", size: "310 MB", kind: "foreign" },
+  { name: "Geburtstag.glissando", sub: "Kopieren abgebrochen", size: "12 MB", kind: "broken" },
+  { name: "Hochzeit.glissando", sub: "aus einer neueren Glissando-Version", size: "240 MB", kind: "newer" },
+  { name: "Familienfest.glissando", sub: "zu groß für den freien Speicher", size: "2,1 GB", kind: "full" },
+];
+
+const prefersDark = matchMedia("(prefers-color-scheme: dark)").matches;
+const S = {
+  tab: "try", width: innerWidth < 760 ? "phone" : "desk", theme: prefersDark ? "dark" : "light",
+  exportMode: "ok", lib: "full", screen: "lib", cur: 1, shows: BASE_SHOWS.map((s) => ({ ...s })),
+  menu: false, picker: null, busy: null, bg: null, notice: null, toast: null, drag: false, fresh: null,
+};
+let nextId = 10;
+const timers = {};
+const cur = () => S.shows.find((s) => s.id === S.cur);
+
+function bar(crumbs, { back = false, right = "" } = {}) {
+  const left = back ? `<button class="iconbtn" aria-label="Zurück" data-go="${back}">${icon("back")}</button>` : `<div class="brand">${LOGO}<span>Glissando</span></div>`;
+  const trail = crumbs.length ? `<div class="crumbs">${crumbs.map((c, i) => (i === crumbs.length - 1 ? `<b>${esc(c)}</b>` : `<span class="hide-narrow">${esc(c)}</span><span class="sep hide-narrow">/</span>`)).join("")}</div>` : "";
+  const ind = S.bg ? `<div class="bgind" role="status"><span class="ring" style="--p:${S.bg.p}"></span><span class="hide-narrow">Exportiere „${esc(S.bg.title)}“ … ${Math.round(S.bg.p * 100)} %</span></div>` : "";
+  const line = S.bg ? `<div class="busyline" style="width:${S.bg.p * 100}%"></div>` : "";
+  return `<header class="bar">${left}${trail}<div class="spacer"></div>${ind}${right}${line}</header>`;
+}
+
+function notice(where) {
+  const n = S.notice;
+  if (!n || n.where !== where) return "";
+  const acts = (n.actions || []).map((a, i) => `<button class="btn sm${i ? " ghost" : ""}" data-act="${a.act}">${esc(a.label)}</button>`).join("");
+  return `<div class="notice ${n.tone}" role="${n.tone === "error" ? "alert" : "status"}">${icon(n.tone === "error" ? "alert" : "warn")}<div class="body"><b>${esc(n.title)}</b><p>${n.text}</p>${acts ? `<div class="acts">${acts}</div>` : ""}</div><button class="iconbtn" aria-label="Hinweis schließen" data-act="closeNotice">${icon("close")}</button></div>`;
+}
+
+function libScreen() {
+  const empty = S.shows.length === 0;
+  const right = `<button class="iconbtn" aria-label="Einstellungen">${icon("gear")}</button>${empty ? "" : `<button class="btn primary sm" data-act="newShow">${icon("plus")}<span class="hide-narrow">Neue Diashow</span></button>`}`;
+  const body = empty
+    ? `<div style="display:grid;justify-items:center;text-align:center;gap:14px;padding:40px 0 20px">
+         <svg viewBox="0 0 52 44" style="width:120px;height:100px" aria-hidden="true">${LOGO.replace(/^<svg[^>]*>|<\/svg>$/g, "")}</svg>
+         <h2 class="t" style="font-size:30px">Bilder rein, Diashow raus.</h2>
+         <p class="muted" style="margin:0;max-width:42ch;line-height:1.5">Wähle Bilder und Musik von diesem Gerät. Glissando macht daraus eine ruhige Diashow, ganz ohne Internet.</p>
+         <button class="btn primary lg" data-act="newShow">${icon("plus")}Neue Diashow</button>
+         <button class="btn ghost" data-act="pick" data-from="lib">${icon("open")}.glissando-Datei öffnen</button>
+       </div>`
+    : `<div class="lib-head"><div><div class="eyebrow">Bibliothek</div><h2 class="t">Deine Diashows</h2></div>
+         <button class="btn" data-act="pick" data-from="lib">${icon("open")}Datei öffnen</button></div>
+       <div class="grid">${S.shows.map((s) => `<button class="show${S.fresh === s.id ? " fresh" : ""}" data-open="${s.id}"><div class="cover">${s.scenes.map(ph).join("")}</div><div class="meta"><div class="name">${esc(s.title)}</div><div class="facts"><span class="mono">${s.count} Bilder · ${s.time}</span>${s.music ? icon("music") : ""}</div></div></button>`).join("")}
+         <button class="newcard" data-act="newShow"><span>${icon("plus")}Neue Diashow</span></button></div>`;
+  return `${bar([], { right })}<div class="scroll" data-drop="lib"><div class="content">${notice("lib")}${body}</div>${S.drag === "lib" ? dropLayer() : ""}</div><div class="status"><span class="dot"></span>Offline · gespeichert auf diesem Gerät</div>`;
+}
+
+function dropLayer() {
+  return `<div class="droplayer"><span>${FILEGLYPH}Loslassen, um die Diashow zu öffnen</span></div>`;
+}
+
+function showScreen() {
+  const s = cur();
+  const exporting = S.bg && S.bg.id === s.id;
+  const other = S.bg && !exporting;
+  const menu = S.menu
+    ? `<div class="menu" role="menu">
+        <button class="item" role="menuitem" data-act="export" ${S.bg ? 'aria-disabled="true"' : ""}>${icon("download")}<span>${exporting ? `Wird exportiert … ${Math.round(S.bg.p * 100)} %` : "Exportieren"}<small>${other ? "Erst wenn der laufende Export fertig ist" : `Eine .glissando-Datei, ca. ${s.size}`}</small></span></button>
+        <hr>
+        <button class="item danger" role="menuitem">${icon("trash")}Diashow löschen …</button>
+      </div>`
+    : "";
+  const right = `<div class="more"><button class="iconbtn" aria-label="Mehr" aria-haspopup="menu" aria-expanded="${S.menu}" data-act="menu">${icon("more")}</button>${menu}</div>`;
+  const tiles = Array.from({ length: Math.min(s.count, 12) }, (_, i) => `<div class="tile">${ph(s.scenes[0] + i)}<span class="n">${i + 1}</span></div>`).join("");
+  return `${bar(["Bibliothek", s.title], { back: "lib", right })}
+    <div class="scroll"><div class="content">${notice("show")}
+      <div class="detail">
+        <div style="display:grid;gap:18px">
+          <div class="preview">${ph(s.scenes[0])}<span class="play">${icon("play")}</span><span class="tc mono">0:00 / ${s.time}</span></div>
+          <div class="eyebrow">Eigene Reihenfolge</div>
+          <div class="strip">${tiles}</div>
+        </div>
+        <aside class="panel">
+          <div style="display:flex;gap:8px;align-items:start;justify-content:space-between"><h2 class="t">${esc(s.title)}</h2><button class="iconbtn" aria-label="Titel ändern">${icon("pencil")}</button></div>
+          <button class="btn primary lg">${icon("play")}Abspielen</button>
+          <dl class="rows"><div><dt>Bilder</dt><dd class="mono">${s.count}</dd></div><div><dt>Dauer</dt><dd class="mono">${s.time}</dd></div><div><dt>Musik</dt><dd>${s.music ? "Ja" : "Keine"}</dd></div></dl>
+        </aside>
+      </div></div></div>`;
+}
+
+function wizScreen() {
+  return `${bar(["Neue Diashow", "Bilder"], { back: "lib" })}
+    <div class="scroll" data-drop="wiz"><div class="content" style="max-width:760px;width:100%;margin:0 auto">
+      <div class="steps"><div class="step on"><span class="num">1</span>Bilder</div><span class="line"></span><div class="step"><span class="num">2</span>Musik</div></div>
+      ${notice("wiz")}
+      <div><h2 class="t">Welche Bilder?</h2><p class="muted" style="margin:6px 0 0">Wähle Bilder von diesem Gerät. Sie werden verkleinert gespeichert, die Originale bleiben unverändert.</p></div>
+      <div class="drop"><span class="big">${icon("image")}</span><button class="btn primary lg">${icon("image")}Bilder auswählen</button><p class="muted">oder <a href="#" onclick="return false" style="color:inherit">einen Ordner wählen</a> · auf dem Desktop auch hierher ziehen</p><p class="muted mono" style="font-size:12px">JPEG, PNG, WebP, HEIC (wo der Browser es kann)</p></div>
+      <div class="fromfile">${FILEGLYPH}<div class="txt"><b>Diashow von einem anderen Gerät?</b><span>Eine exportierte .glissando-Datei öffnen, mit Bildern, Musik und Reihenfolge.</span></div><button class="btn" data-act="pick" data-from="wiz">${icon("open")}Datei öffnen</button></div>
+    </div>${S.drag === "wiz" ? dropLayer() : ""}</div>
+    <div class="actions"><button class="btn" disabled>Weiter</button></div>`;
+}
+
+function picker() {
+  if (!S.picker) return "";
+  return `<div class="sys" data-act="closePicker"><div class="win" role="dialog" aria-label="Datei öffnen" onclick="event.stopPropagation()">
+    <header><b>Datei öffnen</b><small>Systemdialog, simuliert</small></header>
+    <ul>${FILES.map((f, i) => `<li><button data-file="${i}">${f.name.endsWith(".glissando") ? FILEGLYPH.replace('class="fileglyph"', 'style="width:24px;height:28px"') : `<span style="color:#8a8a90">${icon("file")}</span>`}<span>${esc(f.name)}<small>${esc(f.sub)}</small></span><span class="sz">${f.size}</span></button></li>`).join("")}</ul>
+    <div class="foot"><button data-act="closePicker">Abbrechen</button></div></div></div>`;
+}
+
+function overlay() {
+  const b = S.busy;
+  if (!b) return "";
+  return `<div class="overlay"><div class="box" role="alertdialog" aria-modal="true" aria-busy="true" aria-label="Diashow wird geöffnet">
+    <h3>Diashow wird geöffnet …</h3>
+    <p>${esc(b.line)}</p>
+    <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(b.p * 100)}"><i style="width:${b.p * 100}%"></i></div>
+    <div class="row"><span class="muted mono" style="font-size:12.5px">${esc(b.file)}</span><button class="btn sm" data-act="cancelImport">Abbrechen</button></div>
+  </div></div>`;
+}
+
+function toast() {
+  const t = S.toast;
+  if (!t) return "";
+  return `<div class="toast${t.error ? " error" : ""}" role="status">${icon(t.error ? "alert" : "check")}<span>${t.text}</span>${t.action ? `<button class="act" data-act="${t.action.act}">${t.action.label}</button>` : ""}<button class="iconbtn" aria-label="Schließen" data-act="closeToast">${icon("close")}</button></div>`;
+}
+
+function render() {
+  for (const [id, on] of [["tab-try", S.tab === "try"], ["tab-concept", S.tab === "concept"], ["w-desk", S.width === "desk"], ["w-phone", S.width === "phone"], ["t-light", S.theme === "light"], ["t-dark", S.theme === "dark"], ["ex-ok", S.exportMode === "ok"], ["ex-full", S.exportMode === "full"], ["lib-full", S.lib === "full"], ["lib-empty", S.lib === "empty"]]) document.getElementById(id).setAttribute("aria-pressed", on);
+  document.getElementById("concept").hidden = S.tab !== "concept";
+  document.getElementById("sim").hidden = S.tab !== "try";
+  const stage = document.getElementById("stage");
+  stage.hidden = S.tab !== "try";
+  const screen = S.screen === "show" ? showScreen() : S.screen === "wiz" ? wizScreen() : libScreen();
+  const scrollTop = stage.querySelector(".scroll")?.scrollTop ?? 0;
+  stage.innerHTML = `<div class="app ${S.theme} ${S.width === "phone" ? "phone" : ""}" id="app">${screen}${toast()}${overlay()}${picker()}</div>`;
+  const sc = stage.querySelector(".scroll");
+  if (sc) sc.scrollTop = scrollTop;
+}
+
+function showToast(text, opts = {}) {
+  S.toast = { text, ...opts };
+  clearTimeout(timers.toast);
+  timers.toast = setTimeout(() => { S.toast = null; render(); }, 6000);
+}
+
+function fail(where, n) { S.notice = { where, ...n }; }
+
+const ERRORS = {
+  foreign: (f) => ({ tone: "error", title: `„${f.name}“ ist keine Glissando-Diashow.`, text: "Glissando öffnet hier nur .glissando-Dateien, die es selbst exportiert hat. Bilder kommen über „Neue Diashow“ hinein.", actions: [{ act: "repick", label: "Andere Datei wählen" }, { act: "newShow", label: "Neue Diashow" }] }),
+  broken: (f) => ({ tone: "error", title: `„${f.name}“ ist beschädigt.`, text: "Die Datei ist unvollständig oder Teile davon lassen sich nicht lesen, vielleicht wurde sie nicht fertig kopiert oder heruntergeladen. Exportiere die Diashow auf dem anderen Gerät noch einmal.", actions: [{ act: "repick", label: "Andere Datei wählen" }] }),
+  newer: (f) => ({ tone: "error", title: `„${f.name}“ stammt aus einer neueren Glissando-Version.`, text: "Diese Version kann die Datei noch nicht lesen. Lade die App neu, um die neueste Version zu holen, und öffne die Datei dann noch einmal.", actions: [{ act: "reload", label: "App neu laden" }] }),
+  full: (f) => ({ tone: "error", title: "Nicht genug Speicherplatz.", text: `„${esc(f.name)}“ braucht <span class="mono">2,1 GB</span>, auf diesem Gerät sind noch <span class="mono">640 MB</span> frei. Lösche alte Diashows oder schaffe Platz auf dem Gerät. Es wurde nichts gespeichert.`, actions: [{ act: "repick", label: "Andere Datei wählen" }] }),
+};
+
+function startImport(f, from) {
+  S.picker = null;
+  S.notice = null;
+  S.menu = false;
+  S.busy = { file: f.name, line: "Datei wird geprüft …", p: 0.02, from };
+  render();
+  // Checks come first; refused files fail before anything is written.
+  if (ERRORS[f.kind]) {
+    timers.busy = setTimeout(() => { S.busy = null; fail(from, ERRORS[f.kind](f)); render(); }, 900);
+    return;
+  }
+  const total = f.show.count;
+  let done = 0;
+  timers.busy = setTimeout(function tick() {
+    done = Math.min(total, done + 3);
+    S.busy.p = 0.05 + (done / total) * 0.9;
+    S.busy.line = done < total ? `Bild ${done} von ${total}` : f.show.music ? "Musik" : "Wird gespeichert";
+    render();
+    if (done < total) { timers.busy = setTimeout(tick, 110); return; }
+    timers.busy = setTimeout(() => {
+      const show = { ...f.show, id: nextId++ };
+      S.shows.push(show);
+      S.lib = "full";
+      S.busy = null;
+      S.cur = show.id;
+      S.screen = "show";
+      S.fresh = show.id;
+      showToast(f.kind === "dup" ? `Geöffnet als „${esc(show.title)}“, „Sommer am See“ bleibt unverändert.` : `„${esc(show.title)}“ geöffnet`);
+      render();
+    }, 450);
+  }, 400);
+}
+
+function startExport() {
+  const s = cur();
+  S.menu = false;
+  S.bg = { id: s.id, title: s.title, p: 0 };
+  render();
+  clearInterval(timers.bg);
+  timers.bg = setInterval(() => {
+    S.bg.p = Math.min(1, S.bg.p + 0.06);
+    if (S.exportMode === "full" && S.bg.p >= 0.6) {
+      clearInterval(timers.bg);
+      S.bg = null;
+      showToast("Export fehlgeschlagen: zu wenig Speicher auf dem Gerät.", { error: true, action: { act: "retryExport", label: "Erneut versuchen" } });
+    } else if (S.bg.p >= 1) {
+      clearInterval(timers.bg);
+      S.bg = null;
+      showToast(`„${esc(s.title)}.glissando“ heruntergeladen · <span class="mono">${s.size}</span>`);
+    }
+    render();
+  }, 300);
+}
+
+const ACTS = {
+  newShow: () => { S.screen = "wiz"; S.notice = null; },
+  pick: (el) => { S.picker = { from: el.dataset.from }; },
+  repick: () => { S.picker = { from: S.notice.where }; },
+  closePicker: () => { S.picker = null; },
+  closeNotice: () => { S.notice = null; },
+  closeToast: () => { S.toast = null; },
+  reload: () => { S.notice = null; showToast("Glissando ist auf dem neuesten Stand."); },
+  menu: () => { S.menu = !S.menu; },
+  export: () => { if (!S.bg) startExport(); },
+  retryExport: () => { S.toast = null; startExport(); },
+  cancelImport: () => { clearTimeout(timers.busy); S.busy = null; showToast("Öffnen abgebrochen, nichts gespeichert."); },
+};
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-tab],[data-width],[data-theme-set],[data-export],[data-lib],[data-go],[data-open],[data-act],[data-file]");
+  if (!t) { if (S.menu && !e.target.closest(".menu")) { S.menu = false; render(); } return; }
+  const d = t.dataset;
+  if (d.tab) S.tab = d.tab;
+  else if (d.width) S.width = d.width;
+  else if (d.themeSet) S.theme = d.themeSet;
+  else if (d.export) S.exportMode = d.export;
+  else if (d.lib) { S.lib = d.lib; S.shows = d.lib === "empty" ? [] : BASE_SHOWS.map((s) => ({ ...s })); S.screen = "lib"; S.notice = null; }
+  else if (d.go) { S.screen = d.go; S.menu = false; S.notice = S.notice && S.notice.where === d.go ? S.notice : null; }
+  else if (d.open) { S.cur = +d.open; S.screen = "show"; S.notice = null; S.fresh = null; }
+  else if (d.file) startImport(FILES[+d.file], S.picker.from);
+  else if (ACTS[d.act]) {
+    if (d.act === "menu") e.stopPropagation();
+    if (t.getAttribute("aria-disabled") === "true") return;
+    ACTS[d.act](t);
+  }
+  render();
+});
+
+// Real files dropped on the library or the picture step: .glissando opens, anything else is refused.
+document.addEventListener("dragover", (e) => {
+  const zone = e.target.closest?.("[data-drop]");
+  if (!zone || !e.dataTransfer.types.includes("Files")) return;
+  e.preventDefault();
+  if (S.drag !== zone.dataset.drop) { S.drag = zone.dataset.drop; render(); }
+});
+document.addEventListener("dragleave", (e) => { if (S.drag && !e.relatedTarget) { S.drag = false; render(); } });
+document.addEventListener("drop", (e) => {
+  const zone = e.target.closest?.("[data-drop]");
+  e.preventDefault();
+  const where = S.drag || zone?.dataset.drop;
+  S.drag = false;
+  const file = e.dataTransfer.files[0];
+  if (!file || !where) { render(); return; }
+  const glissando = file.name.toLowerCase().endsWith(".glissando");
+  if (where === "wiz" && !glissando) { render(); return; }
+  startImport(glissando ? { ...FILES[0], name: file.name, show: { ...FILES[0].show, title: file.name.replace(/\.glissando$/i, "") } } : { name: file.name, kind: "foreign" }, where);
+});
+
+render();
+</script>
+</body>
+</html>
