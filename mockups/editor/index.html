@@ -1,0 +1,642 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head><body>
+<title>Glissando Bildeditor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --peach-soft: #ffb59a; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 70ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible, .app input:focus-visible, .frame:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; text-wrap: balance; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; }
+.concept p { margin: 0; }
+.concept ul, .concept ol { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.rec { border-left: 3px solid var(--mint); }
+.card.q { border-left: 3px solid var(--lemon); }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; min-width: 640px; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-top: 1px solid var(--page-line); line-height: 1.45; }
+.tbl th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--page-muted); border-top: 0; }
+code, pre { font-family: var(--mono); font-size: 12.5px; }
+pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px; --well: #0b0a10;
+  --on-photo: #ffffff; --photo-badge: rgba(0, 0, 0, 0.5); --veil: rgba(0, 0, 0, 0.46);
+  width: 100%; max-width: 1200px; height: 760px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; container-type: inline-size; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 820px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --raised: #fbfafc; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --shadow: 0 1px 2px rgba(34, 29, 51, 0.06), 0 6px 18px rgba(34, 29, 51, 0.06);
+  --inverse-bg: #221d33; --inverse-text: #ffffff;
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --raised: #221e2d; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --inverse-bg: #edeaf3; --inverse-text: #1a1723;
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.app svg.i.fill { fill: currentColor; stroke: none; }
+
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; z-index: 3; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs .sep { color: var(--faint); }
+.spacer { flex: 1; }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.iconbtn:hover { background: var(--hover); }
+.iconbtn[aria-disabled="true"] { color: var(--faint); cursor: default; background: transparent; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--ink); background: var(--hover); }
+.btn.sm { height: 32px; padding: 0 11px; font-size: 13px; }
+.btn[aria-disabled="true"] { opacity: 0.45; cursor: default; }
+.btn[aria-disabled="true"]:hover { background: var(--surface); }
+.btn.ghost[aria-disabled="true"]:hover { background: transparent; color: var(--muted); }
+
+.scroll { flex: 1; overflow: auto; position: relative; min-height: 0; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+
+/* Slideshow screen */
+.show { padding: 24px; display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+.show .head { display: grid; gap: 4px; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tile { position: relative; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; border: 0; padding: 0; cursor: pointer; background: var(--hover); }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile .num, .tile .badge { position: absolute; background: var(--photo-badge); color: var(--on-photo); border-radius: 6px; font: 500 11px var(--mono); padding: 3px 6px; display: flex; align-items: center; gap: 4px; }
+.tile .num { left: 6px; top: 6px; }
+.tile .badge { left: 6px; bottom: 6px; font-family: var(--ui); font-weight: 600; }
+.tile .badge svg.i { width: 12px; height: 12px; }
+.tile.sel { outline: 2.5px solid var(--accent); outline-offset: 2px; }
+.info { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; display: grid; gap: 14px; }
+.info .name { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 13px; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; }
+.facts dd.own { display: flex; gap: 6px; align-items: center; }
+.selbar { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); display: flex; align-items: center; gap: 6px; padding: 8px; z-index: 4; }
+.selbar .count { padding: 0 8px; font-weight: 600; white-space: nowrap; }
+
+/* Picture editor */
+.edit { display: grid; grid-template-columns: 1fr 340px; height: 100%; min-height: 0; }
+.wellwrap { display: grid; grid-template-rows: 1fr auto; min-height: 0; padding: 18px; gap: 10px; }
+.well { background: var(--well); border-radius: var(--radius-lg); position: relative; display: grid; place-items: center; overflow: hidden; min-height: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.pic { position: relative; overflow: hidden; }
+.pic > img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.frame { position: absolute; border: 1.5px dashed rgba(255, 255, 255, 0.75); border-radius: 2px; pointer-events: none; z-index: 2; }
+.frame.active { border: 2px solid var(--on-photo); box-shadow: 0 0 0 9999px var(--veil); z-index: 1; pointer-events: auto; cursor: move; }
+.frame .chip { position: absolute; background: var(--photo-badge); color: var(--on-photo); font: 600 11px var(--ui); letter-spacing: 0.03em; padding: 3px 7px; border-radius: 5px; border: 0; white-space: nowrap; pointer-events: auto; cursor: pointer; }
+.frame.active .chip { background: var(--on-photo); color: #221d33; cursor: move; }
+.frame[data-key="from"] .chip { left: 4px; top: 4px; }
+.frame[data-key="to"] .chip { right: 4px; bottom: 4px; }
+.h { position: absolute; width: 12px; height: 12px; background: var(--on-photo); border: 1.5px solid #221d33; border-radius: 3px; }
+.h::before { content: ""; position: absolute; inset: -12px; }
+.h[data-c="nw"] { left: -7px; top: -7px; cursor: nwse-resize; }
+.h[data-c="se"] { right: -7px; bottom: -7px; cursor: nwse-resize; }
+.h[data-c="ne"] { right: -7px; top: -7px; cursor: nesw-resize; }
+.h[data-c="sw"] { left: -7px; bottom: -7px; cursor: nesw-resize; }
+.path { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; overflow: visible; }
+.playhead { position: absolute; border: 1.5px solid var(--peach-soft); border-radius: 2px; pointer-events: none; z-index: 3; }
+.hint { color: var(--muted); font-size: 12.5px; line-height: 1.45; margin: 0; text-align: center; }
+.panel { background: var(--surface); border-left: 1px solid var(--line); padding: 20px; display: grid; gap: 18px; align-content: start; overflow: auto; min-height: 0; }
+.panel .who { display: grid; gap: 3px; }
+.panel .who b { font-family: var(--display); font-size: 17px; letter-spacing: -0.01em; }
+.sec { display: grid; gap: 10px; }
+.sec .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.state { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.state.own { color: var(--ink); border-color: transparent; background: color-mix(in srgb, var(--accent) 28%, var(--surface)); }
+.keys { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--hover); border-radius: var(--radius); padding: 4px; }
+.keys button { border: 0; background: transparent; color: var(--ink); border-radius: 7px; padding: 7px 10px; cursor: pointer; display: grid; gap: 1px; text-align: left; }
+.keys button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); }
+.keys button b { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.keys button span { font-size: 12px; color: var(--muted); }
+.swatch { width: 12px; height: 8px; border-radius: 2px; border: 1.5px dashed currentColor; flex: none; }
+.keys button[aria-pressed="true"] .swatch { border-style: solid; }
+.pv { position: relative; aspect-ratio: 16 / 9; max-width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; }
+.pv img { position: absolute; display: block; max-width: none; }
+.pv .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 12px 9px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.55)); color: #fff; font: 600 13px var(--ui); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
+.pvbar { display: flex; align-items: center; gap: 10px; }
+.pvbar .track { flex: 1; height: 4px; border-radius: 2px; background: var(--hover); overflow: hidden; }
+.pvbar .track i { display: block; height: 100%; background: var(--accent); width: 0; }
+.pvbar .time { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.roundbtn { width: 32px; height: 32px; border-radius: 50%; border: 0; background: var(--inverse-bg); color: var(--inverse-text); display: grid; place-items: center; cursor: pointer; flex: none; }
+.roundbtn svg.i { width: 14px; height: 14px; }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.proposal { border: 1.5px dashed var(--lemon); border-radius: var(--radius); padding: 12px; display: grid; gap: 8px; position: relative; }
+.proposal .tag { position: absolute; top: -9px; right: 10px; background: var(--surface); padding: 0 6px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.field { height: 38px; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 11px; background: var(--raised); color: var(--ink); font: 14px var(--ui); width: 100%; }
+.small { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0; }
+
+.toast { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--inverse-bg); color: var(--inverse-text); border-radius: var(--radius); padding: 8px 8px 8px 14px; display: flex; align-items: center; gap: 12px; z-index: 6; box-shadow: var(--shadow); white-space: nowrap; font-weight: 500; }
+.toast button { border: 0; background: transparent; color: var(--accent); font-weight: 600; padding: 6px 8px; border-radius: 7px; cursor: pointer; font-size: 14px; }
+
+@container (max-width: 720px) {
+  .hide-narrow { display: none !important; }
+  .show { grid-template-columns: 1fr; padding: 16px; gap: 18px; }
+  .tiles { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .selbar { left: 8px; right: 8px; transform: none; bottom: 10px; justify-content: space-between; }
+  .edit { grid-template-columns: 1fr; height: auto; }
+  .wellwrap { padding: 0; gap: 8px; grid-template-rows: auto auto; }
+  .well { border-radius: 0; }
+  .hint { padding: 0 16px; }
+  .panel { border-left: 0; padding: 16px; overflow: visible; }
+  .toast { bottom: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Editor: Ken Burns pro Bild</h1>
+      <p>Bild in der Diashow antippen, dann „Bearbeiten“ (Desktop: Doppelklick). Den Start- und Endrahmen direkt auf dem Bild ziehen; die Vorschau rechts (am Handy darunter) spielt die Bewegung. „Zurück auf automatisch“ verwirft die eigene Bewegung. Der gestrichelte gelbe Kasten ist nur ein Vorschlag für Bildtitel, siehe Konzept.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Ansicht"><button id="tab-try" data-tab="try">Ausprobieren</button><button id="tab-concept" data-tab="concept">Konzept</button></div>
+      <div class="seg" role="group" aria-label="Breite"><button id="w-desk" data-width="desk">Desktop</button><button id="w-phone" data-width="phone">Telefon</button></div>
+      <div class="seg" role="group" aria-label="Thema"><button id="t-light" data-theme-set="light">Hell</button><button id="t-dark" data-theme-set="dark">Dunkel</button></div>
+      <div class="seg" role="group" aria-label="Bildtitel-Vorschlag"><button id="cap-off" data-captions="off">Ohne Bildtitel</button><button id="cap-on" data-captions="on">Mit Bildtitel (Vorschlag)</button></div>
+    </div>
+  </div>
+  <div class="stage" id="stage"></div>
+
+  <div class="concept" id="concept" hidden>
+    <h2>So funktioniert es</h2>
+    <div class="card">
+      <ul>
+        <li><b>Einstieg</b>: ein Bild in der Diashow antippen, in der Auswahlleiste „Bearbeiten“. Mit der Maus auch Doppelklick auf das Bild. Der Editor ist die dritte Ebene neben Import und Player: Bibliothek → Diashow → Bild. Zurück-Pfeil und Browser-Zurück führen zur Diashow, das Bild bleibt ausgewählt.</li>
+        <li><b>Zwei Rahmen auf dem Bild</b>: „Start“ und „Ende“. Der aktive Rahmen ist durchgezogen, mit vier Ecken, der Rest des Bildes abgedunkelt; der andere ist gestrichelt. Umschalten über „Start | Ende“ oder durch Antippen des Etiketts am anderen Rahmen. Eine gestrichelte Linie zeigt den Weg der Bildmitte.</li>
+        <li><b>Ziehen</b>: im Rahmen verschiebt, an einer Ecke zoomt (das Seitenverhältnis bleibt). Dazu Mausrad oder zwei Finger zum Zoomen, Pfeiltasten (mit Umschalt in größeren Schritten), <code>+</code> und <code>−</code>. Der Rahmen bleibt immer im Bild.</li>
+        <li><b>Vorschau</b> im 16:9-Bildschirmformat spielt die Bewegung in der echten Länge der Folie und wiederholt sie. Ein Pfirsich-Rahmen auf dem Bild läuft mit. Beim Ziehen hält die Vorschau an und zeigt den gezogenen Rahmen; Play spielt wieder von vorn.</li>
+        <li><b>Automatisch und eigen</b>: solange nichts geändert ist, zeigen die Rahmen die automatische Bewegung („Automatisch“). Die erste Änderung macht daraus eine eigene Bewegung, gespeichert sofort, wie jede Bearbeitung. Die Kachel trägt dann ein Rahmen-Symbol, die Infotafel zählt „automatisch, 2 eigene“.</li>
+        <li><b>Zurück auf automatisch</b> verwirft die eigene Bewegung ohne Rückfrage; ein Toast „Bewegung wieder automatisch“ bietet „Rückgängig“. Dazu „Start und Ende tauschen“, für die Umkehr einer Fahrt.</li>
+        <li><b>Blättern</b>: ‹ und › in der Kopfzeile wechseln zum vorigen und nächsten Bild, ohne zurück zur Diashow.</li>
+      </ul>
+    </div>
+
+    <h2>Regeln für den Rahmen</h2>
+    <div class="card">
+      <ul>
+        <li><b>Format</b>: der Rahmen hat 16:9, das Format des Fernsehers und der Vorschau. Gespeichert werden Zoom und Mitte (wie heute im Slideshow-JSON), unabhängig vom Bildschirm; auf einem Handy im Hochformat zeigt der Player also einen schmaleren Ausschnitt um dieselbe Mitte.</li>
+        <li><b>Zoom</b> von 1× (das ganze Bild, so weit es den Bildschirm füllt) bis 3×. Die Bilder liegen in Bildschirmauflösung vor; darüber würde es sichtbar unscharf.</li>
+        <li><b>Verlauf</b>: linear, wie die automatische Bewegung. Eine Auswahl der Beschleunigung gibt es nicht.</li>
+        <li><b>Umsortieren</b>: eine eigene Bewegung bleibt am Bild. Die automatische hängt von der Position ab (rein, raus im Wechsel) und ändert sich mit.</li>
+      </ul>
+    </div>
+
+    <h2>Speicherung: Vorschlag für den ADR</h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Variante</th><th>Gewinnt</th><th>Kostet</th></tr></thead>
+        <tbody>
+          <tr><td><b>A · Optionales Feld am Bild</b> (Empfehlung)<br><code>pictures[i].kenBurns = { from, to }</code>, fehlt = automatisch</td><td>„Zurück auf automatisch“ ist das Entfernen des Feldes. Verbesserungen der Automatik (Roadmap 2, Gesichter) erreichen jedes unbearbeitete Bild. Wandert beim Umsortieren mit; Entfernen und Rückgängig nehmen es mit.</td><td>Ein Feld mehr in der Bibliothek und in der <code>.glissando</code>-Datei; die Datei bekommt Formatversion 2, damit eine ältere App „neuere Version“ meldet statt „beschädigt“.</td></tr>
+          <tr><td><b>B · Alles beim Import festschreiben</b><br>jede Folie trägt immer ihre Rahmen, dazu ein Merker „eigen“</td><td>Die Bibliothek enthält schon das fertige JSON.</td><td>Die Automatik wird eingefroren: Umsortieren und bessere Automatik ändern nichts mehr, „zurück“ braucht die Automatik trotzdem.</td></tr>
+          <tr><td><b>C · Getrennte Tabelle an der Diashow</b><br><code>kenBurnsOverrides: { [bildId]: … }</code></td><td>Das Bild bleibt unverändert.</td><td>Zwei Stellen, die beim Entfernen, Rückgängig und Export synchron bleiben müssen; verwaiste Einträge.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Das Slideshow-JSON des Players ändert sich nicht: es trägt schon pro Folie <code>from</code> und <code>to</code>. <code>composeSlideshow</code> nimmt die eigene Bewegung, wenn sie da ist, sonst die automatische.</p>
+
+    <h2>Bildtitel: Entscheidungsvorschlag</h2>
+    <div class="card rec">
+      <p><b>Gehört zum Editor-Paket (Roadmap 1), aber in einen eigenen PR direkt nach diesem.</b> Bearbeitet würde er im selben Bildeditor, unter der Bewegung (Schalter „Mit Bildtitel (Vorschlag)“ oben zeigt den Platz): ein Feld, höchstens eine Zeile. Im Player stünde er unten links über einem leichten Verlauf, blendet mit der Folie ein und aus; leer heißt kein Titel.</p>
+      <p>Warum getrennt: der Titel ändert den Player (Text über WebGL und im DOM-Ersatz, Schrift über beliebigen Bildern, später im Video-Export eingebrannt) und das JSON-Format. Ken Burns berührt nur Bibliothek und Komposition. Zwei kleine PRs lassen sich besser prüfen als einer, der beides mischt.</p>
+      <p>Offen für dich: soll ein Titel automatisch vorbelegt werden (z. B. Ort oder Datum aus EXIF)? Mein Vorschlag: nein, leer, nur was du schreibst.</p>
+    </div>
+
+    <h2>Roadmap 1 in PRs</h2>
+    <div class="card">
+      <ol>
+        <li><b>Ken Burns pro Bild</b> (dieser PR): Bildeditor, Rahmen, Vorschau, zurück auf automatisch.</li>
+        <li><b>Bildtitel</b>: Feld im Bildeditor, Anzeige im Player.</li>
+        <li><b>Dauer und Übergang pro Bild</b>: ebenfalls im Bildeditor, unter der Bewegung.</li>
+        <li><b>Musik kürzen und ausblenden</b>: an der Musik der Diashow, nicht pro Bild.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<script>
+const ICON = {
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  left: '<path d="M14 7l-5 5 5 5"/>',
+  right: '<path d="M10 7l5 5-5 5"/>',
+  play: '<path d="M8 5.5v13l11-6.5z"/>',
+  pause: '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  trash: '<path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/>',
+  frame: '<rect x="3" y="6" width="13" height="9" rx="1"/><rect x="8" y="9" width="13" height="9" rx="1" stroke-dasharray="2 2"/>',
+  swap: '<path d="M7 7h11l-3-3M17 17H6l3 3"/>',
+  reset: '<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/>',
+  music: '<path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/>',
+};
+const icon = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+
+/* ---------- Sample pictures: drawn scenes so the frames have something to aim at ---------- */
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const PALETTES = [
+  ["#ffcfa8", "#ff8f70", "#fff1c9", "#5a3e64", "#2f2440", "#2b5d73"],
+  ["#9fd3f2", "#e7f4fb", "#fff6c2", "#5c8a6b", "#2f5a45", "#3d7fa0"],
+  ["#2a2350", "#c96b8a", "#ffd9a0", "#3a2d55", "#1d1830", "#4a3a6a"],
+  ["#b9e2f5", "#fbe9d0", "#ffe08a", "#8a9bb0", "#56677d", "#6aa0b8"],
+  ["#f6d0c4", "#f9efe4", "#fff3d6", "#b47a6a", "#7a4f48", "#a87a6e"],
+  ["#87c1e8", "#d6eef7", "#fff4b8", "#4f7d4a", "#2e5530", "#6b9c63"],
+  ["#ffb48a", "#ffe2b8", "#fff0c0", "#6a4a3a", "#3d2a24", "#8a6a5a"],
+  ["#a8c8e8", "#eef3f8", "#ffffff", "#7d8ea6", "#4a5872", "#9fb3c8"],
+];
+function scene(i, w, h) {
+  const r = rng(i * 977 + 13), [s1, s2, sun, m1, m2, water] = PALETTES[i % PALETTES.length];
+  const horizon = h * (0.55 + r() * 0.12);
+  const ridge = (base, amp, n) => { let d = `M0 ${h} L0 ${base}`; for (let k = 0; k <= n; k++) d += ` L${(w * k) / n} ${base - r() * amp}`; return d + ` L${w} ${h} Z`; };
+  const sx = w * (0.2 + r() * 0.6), sy = horizon * (0.3 + r() * 0.35), sr = Math.min(w, h) * 0.07;
+  const px = w * (0.25 + r() * 0.5), py = horizon + (h - horizon) * 0.35, ps = h * 0.11;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s1}"/><stop offset="1" stop-color="${s2}"/></linearGradient>
+<linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${water}"/><stop offset="1" stop-color="${m2}"/></linearGradient></defs>
+<rect width="${w}" height="${h}" fill="url(#s)"/><circle cx="${sx}" cy="${sy}" r="${sr}" fill="${sun}"/>
+<path d="${ridge(horizon - h * 0.04, h * 0.22, 7)}" fill="${m1}" opacity="0.75"/>
+<path d="${ridge(horizon, h * 0.12, 11)}" fill="${m2}"/>
+<rect y="${horizon}" width="${w}" height="${h - horizon}" fill="url(#w)"/>
+<g fill="#1b1622"><circle cx="${px}" cy="${py - ps * 0.82}" r="${ps * 0.17}"/><rect x="${px - ps * 0.2}" y="${py - ps * 0.62}" width="${ps * 0.4}" height="${ps * 0.62}" rx="${ps * 0.14}"/></g>
+</svg>`;
+}
+const SAMPLES = [
+  ["IMG_4102.jpg", "12. Juli 2025", 300, 200], ["IMG_4107.jpg", "12. Juli 2025", 300, 200], ["IMG_4115.jpg", "13. Juli 2025", 200, 300],
+  ["IMG_4121.jpg", "13. Juli 2025", 280, 210], ["IMG_4130.jpg", "14. Juli 2025", 300, 200], ["IMG_4133.jpg", "14. Juli 2025", 200, 300],
+  ["IMG_4140.jpg", "15. Juli 2025", 300, 169], ["IMG_4152.jpg", "16. Juli 2025", 280, 210],
+];
+const pics = SAMPLES.map(([name, date, w, h], i) => ({ id: i, name, date, w, h, src: "data:image/svg+xml;utf8," + encodeURIComponent(scene(i, w, h)), override: null, caption: "" }));
+
+/* ---------- Ken Burns geometry: a framing is zoom + centre in picture coordinates ---------- */
+const SCREEN = 16 / 9, MIN_ZOOM = 1, MAX_ZOOM = 3, AUTO_MAX = 1.2, SLIDE_MS = 5000, HOLD_MS = 700;
+function base(p) { const pa = p.w / p.h; return pa >= SCREEN ? { bw: SCREEN / pa, bh: 1 } : { bw: 1, bh: pa / SCREEN }; }
+function size(p, z) { const b = base(p); return { fw: b.bw / z, fh: b.bh / z }; }
+function clampF(p, f) {
+  const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, f.zoom)), { fw, fh } = size(p, zoom);
+  return { zoom, cx: Math.min(1 - fw / 2, Math.max(fw / 2, f.cx)), cy: Math.min(1 - fh / 2, Math.max(fh / 2, f.cy)) };
+}
+function autoKb(p, i) {
+  const zin = i % 2 === 0, cy = p.h > p.w ? 0.4 : 0.5, dx = (i % 4 < 2 ? -1 : 1) * 0.04;
+  return { from: clampF(p, { zoom: zin ? MIN_ZOOM : AUTO_MAX, cx: 0.5 - dx, cy }), to: clampF(p, { zoom: zin ? AUTO_MAX : MIN_ZOOM, cx: 0.5 + dx, cy }) };
+}
+const kbOf = (i) => S.pics[i].override ?? autoKb(S.pics[i], i);
+const lerp = (a, b, t) => a + (b - a) * t;
+const at = (kb, t) => ({ zoom: lerp(kb.from.zoom, kb.to.zoom, t), cx: lerp(kb.from.cx, kb.to.cx, t), cy: lerp(kb.from.cy, kb.to.cy, t) });
+const fmtZoom = (z) => z.toFixed(2).replace(".", ",") + "×";
+const fmtTime = (ms) => { const s = Math.max(0, ms) / 1000; return `0:${String(Math.floor(s)).padStart(2, "0")},${Math.floor((s % 1) * 10)}`; };
+const KEY_LABEL = { from: "Start", to: "Ende" };
+
+/* ---------- State ---------- */
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const S = {
+  tab: "try", width: innerWidth < 760 ? "phone" : "desk", theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+  captions: false, screen: "show", sel: null, idx: 0, active: "from", pics,
+  playing: !reduced, t0: performance.now(), pt: 0, toast: null,
+};
+const stage = document.getElementById("stage");
+let toastTimer = 0, wellObserver = null, drag = null;
+const pointers = new Map();
+
+/* ---------- Rendering ---------- */
+function ownCount() { return S.pics.filter((p) => p.override).length; }
+
+function showScreen() {
+  const own = ownCount();
+  const tiles = S.pics.map((p, i) => `<button class="tile ${S.sel === i ? "sel" : ""}" data-tile="${i}" aria-pressed="${S.sel === i}" aria-label="Bild ${i + 1}, ${p.date}${p.override ? ", eigene Bewegung" : ""}">
+      <img src="${p.src}" alt=""><span class="num">${i + 1}</span>${p.override ? `<span class="badge">${icon("frame")}eigen</span>` : ""}</button>`).join("");
+  const bar = S.sel === null ? "" : `<div class="selbar" role="toolbar" aria-label="Ausgewähltes Bild">
+      <span class="count hide-narrow" aria-live="polite">Bild ${S.sel + 1} von ${S.pics.length}</span>
+      <button class="iconbtn" data-act="earlier" aria-label="Früher" aria-disabled="${S.sel === 0}">${icon("left")}</button>
+      <button class="iconbtn" data-act="later" aria-label="Später" aria-disabled="${S.sel === S.pics.length - 1}">${icon("right")}</button>
+      <button class="btn sm" data-act="edit">${icon("edit")}Bearbeiten</button>
+      <button class="iconbtn" data-act="remove" aria-label="Entfernen">${icon("trash")}</button>
+      <button class="btn sm ghost" data-act="done">Fertig</button></div>`;
+  return `<header class="bar"><button class="iconbtn" aria-label="Zurück" data-act="noop">${icon("back")}</button>
+      <div class="crumbs"><span class="hide-narrow">Bibliothek</span><span class="sep hide-narrow">/</span><b>Sommer am See</b></div><div class="spacer"></div></header>
+    <div class="scroll"><div class="show" style="${S.sel !== null ? "padding-bottom: 90px" : ""}">
+      <div style="display:grid; gap:14px">
+        <div class="head"><span class="eyebrow">Sortiert nach Aufnahmedatum</span></div>
+        <div class="tiles">${tiles}</div>
+      </div>
+      <aside class="info">
+        <div><div class="name">Sommer am See</div><div class="muted mono" style="font-size:12.5px">12.–16. Juli 2025</div></div>
+        <dl class="facts">
+          <dt>Bilder</dt><dd class="mono">${S.pics.length}</dd>
+          <dt>Dauer</dt><dd class="mono">0:40</dd>
+          <dt>Musik</dt><dd>keine</dd>
+          <dt>Ken Burns</dt><dd class="own">${own ? `automatisch, ${own} eigene` : "automatisch"}</dd>
+          <dt>Übergänge</dt><dd>abwechselnd</dd>
+        </dl>
+      </aside>
+    </div></div>${bar}${toastHtml()}`;
+}
+
+function editScreen() {
+  const p = S.pics[S.idx], n = S.pics.length;
+  const frame = (k) => `<div class="frame" data-key="${k}" tabindex="-1" role="group">
+      <button class="chip" data-key-chip="${k}" tabindex="-1">${KEY_LABEL[k]}</button>
+      <span class="h" data-c="nw"></span><span class="h" data-c="ne"></span><span class="h" data-c="sw"></span><span class="h" data-c="se"></span></div>`;
+  const caption = !S.captions ? "" : `<div class="proposal"><span class="tag">Vorschlag · eigener PR</span>
+      <label class="eyebrow" for="caption-${p.id}">Bildtitel</label>
+      <input class="field" id="caption-${p.id}" maxlength="80" placeholder="z. B. Abends am Steg" value="${p.caption.replace(/"/g, "&quot;")}">
+      <p class="small">Steht unten im Bild und blendet mit der Folie ein und aus. Leer: kein Titel.</p></div>`;
+  return `<header class="bar"><button class="iconbtn" aria-label="Zurück zur Diashow" data-act="back">${icon("back")}</button>
+      <div class="crumbs"><span class="hide-narrow">Bibliothek</span><span class="sep hide-narrow">/</span><span class="hide-narrow">Sommer am See</span><span class="sep hide-narrow">/</span><b>Bild ${S.idx + 1}</b></div>
+      <div class="spacer"></div>
+      <button class="iconbtn" data-act="prevpic" aria-label="Vorheriges Bild" aria-disabled="${S.idx === 0}">${icon("left")}</button>
+      <span class="mono muted hide-narrow" style="font-size:12.5px">${S.idx + 1} / ${n}</span>
+      <button class="iconbtn" data-act="nextpic" aria-label="Nächstes Bild" aria-disabled="${S.idx === n - 1}">${icon("right")}</button></header>
+    <div class="scroll"><div class="edit">
+      <div class="wellwrap">
+        <div class="well" id="well"><div class="pic" id="pic"><img src="${p.src}" alt="Bild ${S.idx + 1}">
+          ${frame("from")}${frame("to")}
+          <svg class="path" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line id="pathline" stroke="#fff" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" opacity="0.85"/></svg>
+          <div class="playhead" id="playhead"></div>
+        </div></div>
+        <p class="hint"><span class="hide-narrow">Im Rahmen ziehen verschiebt, an den Ecken ziehen zoomt · Mausrad zoomt · Pfeiltasten, + und −</span></p>
+      </div>
+      <aside class="panel">
+        <div class="who"><b>Bild ${S.idx + 1} von ${n}</b><span class="muted mono" style="font-size:12.5px">${p.name} · ${p.date}</span></div>
+        <section class="sec" aria-label="Ken Burns">
+          <div class="row"><span class="eyebrow">Ken Burns</span><span class="state" id="kbstate"></span></div>
+          <div class="keys" role="group" aria-label="Rahmen">
+            <button data-k="from"><b><i class="swatch"></i>Start</b><span class="mono" id="z-from"></span></button>
+            <button data-k="to"><b><i class="swatch"></i>Ende</b><span class="mono" id="z-to"></span></button>
+          </div>
+          <p class="small" style="display:var(--narrow-hint, none)" id="touchhint">Rahmen ziehen verschiebt, Ecken oder zwei Finger zoomen.</p>
+          <div class="pv" id="pv"><img id="pvimg" src="${p.src}" alt="">${S.captions && p.caption ? `<div class="cap" id="pvcap">${escapeHtml(p.caption)}</div>` : S.captions ? `<div class="cap" id="pvcap" hidden></div>` : ""}</div>
+          <div class="pvbar"><button class="roundbtn" data-act="play" id="playbtn" aria-label="Vorschau abspielen"></button>
+            <div class="track"><i id="pvtrack"></i></div><span class="time mono" id="pvtime"></span></div>
+          <div class="acts">
+            <button class="btn sm" data-act="swap">${icon("swap")}Start und Ende tauschen</button>
+            <button class="btn sm ghost" data-act="reset" id="resetbtn">${icon("reset")}Zurück auf automatisch</button>
+          </div>
+        </section>
+        ${caption}
+      </aside>
+    </div></div>${toastHtml()}`;
+}
+function escapeHtml(s) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
+function toastHtml() { return S.toast ? `<div class="toast" role="status"><span>${S.toast.text}</span>${S.toast.undo ? `<button data-act="undo">Rückgängig</button>` : ""}</div>` : ""; }
+
+function render() {
+  for (const [id, on] of [["tab-try", S.tab === "try"], ["tab-concept", S.tab === "concept"], ["w-desk", S.width === "desk"], ["w-phone", S.width === "phone"], ["t-light", S.theme === "light"], ["t-dark", S.theme === "dark"], ["cap-off", !S.captions], ["cap-on", S.captions]])
+    document.getElementById(id).setAttribute("aria-pressed", on);
+  document.getElementById("concept").hidden = S.tab !== "concept";
+  stage.hidden = S.tab !== "try";
+  stage.innerHTML = `<div class="app ${S.width} ${S.theme}" id="app">${S.screen === "edit" ? editScreen() : showScreen()}</div>`;
+  if (wellObserver) wellObserver.disconnect();
+  if (S.screen === "edit") {
+    const well = document.getElementById("well");
+    wellObserver = new ResizeObserver(layoutWell);
+    wellObserver.observe(well);
+    layoutWell();
+  }
+}
+
+function narrow() { return document.getElementById("app").clientWidth <= 720; }
+
+/* Fits the picture into the well; on a narrow screen the well takes the picture's height. */
+function layoutWell() {
+  const well = document.getElementById("well"), pic = document.getElementById("pic");
+  if (!well || !pic) return;
+  const p = S.pics[S.idx], pa = p.w / p.h;
+  document.getElementById("touchhint").style.display = narrow() ? "block" : "none";
+  if (narrow()) {
+    const w = well.clientWidth, h = Math.min(w / pa, 440);
+    well.style.height = h + "px";
+    const pw = Math.min(w, h * pa);
+    pic.style.width = pw + "px"; pic.style.height = pw / pa + "px";
+  } else {
+    well.style.height = "";
+    const W = well.clientWidth - 40, H = well.clientHeight - 40;
+    const pw = Math.min(W, H * pa);
+    pic.style.width = pw + "px"; pic.style.height = pw / pa + "px";
+  }
+  updateEditor();
+}
+
+function placeBox(el, p, f) {
+  const { fw, fh } = size(p, f.zoom);
+  el.style.left = (f.cx - fw / 2) * 100 + "%"; el.style.top = (f.cy - fh / 2) * 100 + "%";
+  el.style.width = fw * 100 + "%"; el.style.height = fh * 100 + "%";
+}
+
+function updateEditor() {
+  if (S.screen !== "edit") return;
+  const p = S.pics[S.idx], kb = kbOf(S.idx);
+  for (const k of ["from", "to"]) {
+    const el = document.querySelector(`.frame[data-key="${k}"]`), on = S.active === k;
+    placeBox(el, p, kb[k]);
+    el.classList.toggle("active", on);
+    el.tabIndex = on ? 0 : -1;
+    el.setAttribute("aria-label", `${KEY_LABEL[k]}rahmen, Zoom ${fmtZoom(kb[k].zoom)}`);
+    el.querySelector(".chip").setAttribute("aria-label", on ? KEY_LABEL[k] : `${KEY_LABEL[k]}rahmen bearbeiten`);
+    document.getElementById("z-" + k).textContent = "Zoom " + fmtZoom(kb[k].zoom);
+    document.querySelector(`.keys [data-k="${k}"]`).setAttribute("aria-pressed", on);
+  }
+  const line = document.getElementById("pathline");
+  line.setAttribute("x1", kb.from.cx * 100); line.setAttribute("y1", kb.from.cy * 100);
+  line.setAttribute("x2", kb.to.cx * 100); line.setAttribute("y2", kb.to.cy * 100);
+  const st = document.getElementById("kbstate");
+  st.textContent = p.override ? "Eigene Bewegung" : "Automatisch";
+  st.classList.toggle("own", !!p.override);
+  const rb = document.getElementById("resetbtn");
+  rb.setAttribute("aria-disabled", !p.override);
+  rb.title = p.override ? "" : "Die Bewegung ist schon automatisch";
+  document.getElementById("playbtn").innerHTML = icon(S.playing ? "pause" : "play", "fill");
+  document.getElementById("playbtn").setAttribute("aria-label", S.playing ? "Vorschau anhalten" : "Vorschau abspielen");
+  if (!S.playing) setPreview(S.pt);
+}
+
+/* Shows the framing at t (0..1) in the 16:9 preview and as the peach playhead on the picture. */
+function setPreview(t) {
+  const pv = document.getElementById("pv"), img = document.getElementById("pvimg");
+  if (!pv || !img) return;
+  const p = S.pics[S.idx], f = at(kbOf(S.idx), t), { fw, fh } = size(p, f.zoom);
+  const W = pv.clientWidth, H = pv.clientHeight, iw = W / fw, ih = H / fh;
+  img.style.width = iw + "px"; img.style.height = ih + "px";
+  img.style.left = -(f.cx - fw / 2) * iw + "px"; img.style.top = -(f.cy - fh / 2) * ih + "px";
+  placeBox(document.getElementById("playhead"), p, f);
+  document.getElementById("pvtrack").style.width = t * 100 + "%";
+  document.getElementById("pvtime").textContent = `${fmtTime(t * SLIDE_MS)} / ${fmtTime(SLIDE_MS)}`;
+}
+
+function tick(now) {
+  if (S.screen === "edit" && S.playing && S.tab === "try") {
+    const cycle = (now - S.t0) % (SLIDE_MS + HOLD_MS);
+    S.pt = Math.min(1, cycle / SLIDE_MS);
+    setPreview(S.pt);
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+/* ---------- Editing ---------- */
+function own() {
+  const p = S.pics[S.idx];
+  if (!p.override) p.override = structuredClone(autoKb(p, S.idx));
+  return p.override;
+}
+function holdPreviewAt(key) { S.playing = false; S.pt = key === "from" ? 0 : 1; }
+function setFraming(key, f) {
+  const kb = own();
+  kb[key] = clampF(S.pics[S.idx], f);
+  holdPreviewAt(key);
+  updateEditor();
+}
+function showToast(text, undo) {
+  clearTimeout(toastTimer);
+  S.toast = { text, undo };
+  toastTimer = setTimeout(() => { S.toast = null; render(); }, 6000);
+}
+function openEditor(i) { S.screen = "edit"; S.idx = i; S.active = "from"; S.playing = !reduced; S.t0 = performance.now(); S.pt = 0; S.toast = null; render(); }
+
+stage.addEventListener("pointerdown", (e) => {
+  const pic = e.target.closest("#pic");
+  if (!pic) return;
+  const chip = e.target.closest("[data-key-chip]");
+  if (chip && chip.dataset.keyChip !== S.active) { S.active = chip.dataset.keyChip; holdPreviewAt(S.active); updateEditor(); e.preventDefault(); return; }
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const rect = pic.getBoundingClientRect(), p = S.pics[S.idx], start = { ...kbOf(S.idx)[S.active] };
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    drag = { type: "pinch", rect, start, dist: Math.hypot(a.x - b.x, a.y - b.y) };
+  } else if (e.target.closest(".h")) {
+    const c = e.target.closest(".h").dataset.c, sx = c.includes("e") ? 1 : -1, sy = c.includes("s") ? 1 : -1, { fw, fh } = size(p, start.zoom);
+    drag = { type: "resize", rect, sx, sy, ax: start.cx - (sx * fw) / 2, ay: start.cy - (sy * fh) / 2 };
+  } else if (e.target.closest(".frame.active")) {
+    drag = { type: "move", rect, start, x0: e.clientX, y0: e.clientY };
+  } else return;
+  e.preventDefault();
+});
+addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const p = S.pics[S.idx], b = base(p), r = drag.rect;
+  if (drag.type === "move") {
+    setFraming(S.active, { ...drag.start, cx: drag.start.cx + (e.clientX - drag.x0) / r.width, cy: drag.start.cy + (e.clientY - drag.y0) / r.height });
+  } else if (drag.type === "resize") {
+    const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+    const fw = Math.max(Math.abs(px - drag.ax), Math.abs(py - drag.ay) * (b.bw / b.bh));
+    const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, b.bw / fw)), s = size(p, zoom);
+    setFraming(S.active, { zoom, cx: drag.ax + (drag.sx * s.fw) / 2, cy: drag.ay + (drag.sy * s.fh) / 2 });
+  } else if (drag.type === "pinch" && pointers.size === 2) {
+    const [a, c] = [...pointers.values()];
+    setFraming(S.active, { ...drag.start, zoom: drag.start.zoom * (Math.hypot(a.x - c.x, a.y - c.y) / drag.dist) });
+  }
+});
+const endPointer = (e) => { pointers.delete(e.pointerId); if (pointers.size === 0) drag = null; };
+addEventListener("pointerup", endPointer);
+addEventListener("pointercancel", endPointer);
+stage.addEventListener("wheel", (e) => {
+  if (!e.target.closest("#pic")) return;
+  e.preventDefault();
+  const f = kbOf(S.idx)[S.active];
+  setFraming(S.active, { ...f, zoom: f.zoom * Math.exp(-e.deltaY * 0.0015) });
+}, { passive: false });
+stage.addEventListener("keydown", (e) => {
+  if (!e.target.closest(".frame.active")) return;
+  const f = kbOf(S.idx)[S.active], step = e.shiftKey ? 0.05 : 0.01;
+  const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+  if (moves[e.key]) setFraming(S.active, { ...f, cx: f.cx + moves[e.key][0], cy: f.cy + moves[e.key][1] });
+  else if (e.key === "+" || e.key === "=") setFraming(S.active, { ...f, zoom: f.zoom + 0.05 });
+  else if (e.key === "-") setFraming(S.active, { ...f, zoom: f.zoom - 0.05 });
+  else return;
+  e.preventDefault();
+});
+stage.addEventListener("input", (e) => {
+  if (!e.target.matches(".field")) return;
+  S.pics[S.idx].caption = e.target.value;
+  const cap = document.getElementById("pvcap");
+  if (cap) { cap.textContent = e.target.value; cap.hidden = !e.target.value; }
+});
+stage.addEventListener("dblclick", (e) => { const t = e.target.closest("[data-tile]"); if (t) openEditor(+t.dataset.tile); });
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-tab],[data-width],[data-theme-set],[data-captions],[data-tile],[data-act],[data-k]");
+  if (!t) return;
+  const d = t.dataset;
+  if (t.getAttribute("aria-disabled") === "true") return;
+  if (d.tab) S.tab = d.tab;
+  else if (d.width) S.width = d.width;
+  else if (d.themeSet) S.theme = d.themeSet;
+  else if (d.captions) S.captions = d.captions === "on";
+  else if (d.tile !== undefined) { const i = +d.tile; S.sel = S.sel === i ? null : i; }
+  else if (d.k) { S.active = d.k; holdPreviewAt(d.k); updateEditor(); return; }
+  else switch (d.act) {
+    case "edit": openEditor(S.sel); return;
+    case "done": S.sel = null; break;
+    case "earlier": case "later": {
+      const j = S.sel + (d.act === "earlier" ? -1 : 1);
+      [S.pics[S.sel], S.pics[j]] = [S.pics[j], S.pics[S.sel]]; S.sel = j; break;
+    }
+    case "remove": showToast("Entfernen ist in diesem Mockup aus.", false); break;
+    case "back": S.screen = "show"; S.sel = S.idx; S.toast = null; break;
+    case "prevpic": case "nextpic": openEditor(S.idx + (d.act === "prevpic" ? -1 : 1)); return;
+    case "play":
+      S.playing = !S.playing;
+      if (S.playing) { if (S.pt >= 1) S.pt = 0; S.t0 = performance.now() - S.pt * SLIDE_MS; }
+      updateEditor(); return;
+    case "swap": { const kb = own(); [kb.from, kb.to] = [kb.to, kb.from]; S.playing = !reduced; S.t0 = performance.now(); updateEditor(); return; }
+    case "reset": {
+      const p = S.pics[S.idx], before = p.override, idx = S.idx;
+      p.override = null; S.playing = !reduced; S.t0 = performance.now();
+      showToast("Bewegung wieder automatisch", { idx, before }); break;
+    }
+    case "undo": { const u = S.toast.undo; S.pics[u.idx].override = u.before; clearTimeout(toastTimer); S.toast = null; break; }
+    default: return;
+  }
+  render();
+});
+addEventListener("resize", () => { if (S.screen === "edit") layoutWell(); });
+render();
+</script>
+</body></html>
