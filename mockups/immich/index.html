@@ -258,59 +258,51 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
   </div>
   <div class="stage" id="stage"></div>
   <div class="concept" id="concept" hidden>
-    <h2>Gemessen an einem echten Immich (v3.3.1, Standard-Installation)</h2>
-<div class="card">
-  <ul>
-    <li><b>Kein CORS.</b> Immich beantwortet die Vorab-Anfrage des Browsers mit 404 und schickt keine CORS-Header; eine Einstellung dafür gibt es nicht. Ein Browser auf einer anderen Adresse bekommt nur „Failed to fetch“, mit dem Schlüssel im Header genauso wie in der URL.</li>
-    <li><b>Unter derselben Adresse klappt alles.</b> Leitet der Reverse-Proxy <code>…/immich/</code> zu Immich, laufen Alben, Vorschau und Originale im Browser ohne Fehler. Gemischte Inhalte (https-App, http-Immich) entfallen damit auch.</li>
-    <li><b>Fehler lassen sich unterscheiden.</b> Eine <code>no-cors</code>-Probe zeigt „Server antwortet, Browser darf nicht“ getrennt von „nichts erreichbar“. 401 heißt „Schlüssel falsch“, 403 „Recht fehlt“.</li>
-    <li><b>Gesichter:</b> Boxen in Pixeln von Immichs Vorschaubild, schon richtig gedreht (mit einem EXIF-gedrehten Foto geprüft). Keine Trefferwertung. Ein Gruppenfoto lieferte 29 Gesichter, Landschaften <code>[]</code>, aber <b>auch ein noch nicht untersuchtes Foto liefert <code>[]</code></b>.</li>
-    <li><b>Bildgrößen:</b> Vorschaubild ≈ 250 px (WebP), Vorschau höchstens 1440 px (JPEG), Original. Das Aufnahmedatum ist Immichs <code>localDateTime</code>.</li>
-    <li><b>Fünf Leserechte genügen:</b> album.read, asset.read, asset.view, asset.download, face.read.</li>
-  </ul>
-</div>
-<h2>Konzept: Offline-Client und Immich</h2>
+    <h2>Konzept: eine App, Immich nur selbst gehostet</h2>
 <div class="card rec">
-  <p><b>Eine App, kein zweites Programm. Wo du sie installierst, entscheidet, ob Immich dazukommt.</b> Glissando ist immer eine Sammlung statischer Dateien. Einmal installiert, läuft sie aus dem Cache des Geräts, mit oder ohne Netz. Immich ist <b>nur beim Auswählen</b> eine Quelle. Was du einmal gewählt hast, liegt auf dem Gerät, und keine Diashow hängt danach noch an Immich.</p>
+  <p><b>Glissando bleibt eine App, und wo sie installiert ist, entscheidet über Immich.</b> Einmal installiert, läuft sie immer aus dem Cache des Geräts, mit oder ohne Netz. Immich ist <b>nur beim Auswählen</b> eine Quelle. Was gewählt ist, liegt auf dem Gerät, und keine Diashow hängt danach noch an Immich.</p>
   <table style="border-collapse:collapse;width:100%;font-size:13.5px">
-    <tr style="text-align:left;border-bottom:1px solid var(--page-line)"><th style="padding:6px 8px">Installiert von …</th><th style="padding:6px 8px">ohne Netz</th><th style="padding:6px 8px">im Netz, Immich erreichbar</th></tr>
-    <tr style="border-bottom:1px solid var(--page-line)"><td style="padding:6px 8px"><b>öffentlicher Adresse</b><br><span style="color:var(--page-muted)">z. B. GitHub Pages</span></td><td style="padding:6px 8px">alles mit Bildern vom Gerät</td><td style="padding:6px 8px">dasselbe; kein Immich, denn ein Standard-Immich lässt fremde Adressen nicht zu</td></tr>
-    <tr><td style="padding:6px 8px"><b>deinem eigenen Host</b><br><span style="color:var(--page-muted)">z. B. https://glissando.home, Caddy neben Immich</span></td><td style="padding:6px 8px">alles mit Bildern vom Gerät <b>und mit allen schon gewählten Immich-Fotos</b>; die Immich-Kachel ist ausgegraut (H)</td><td style="padding:6px 8px">dazu Alben und Fotos aus Immich wählen; Caddy leitet <code>/immich/</code> weiter</td></tr>
+    <tr style="text-align:left;border-bottom:1px solid var(--page-line)"><th style="padding:6px 8px">Installiert von …</th><th style="padding:6px 8px">ohne Netz</th><th style="padding:6px 8px">mit Verbindung zum Server</th></tr>
+    <tr style="border-bottom:1px solid var(--page-line)"><td style="padding:6px 8px"><b>öffentlicher Adresse</b><br><span style="color:var(--page-muted)">z. B. GitHub Pages</span></td><td style="padding:6px 8px">alles mit Bildern vom Gerät</td><td style="padding:6px 8px">dasselbe; Immich erscheint gar nicht</td></tr>
+    <tr><td style="padding:6px 8px"><b>deinem Glissando-Container</b><br><span style="color:var(--page-muted)">neben Immich, im selben Docker-Netz</span></td><td style="padding:6px 8px">alles mit Bildern vom Gerät <b>und allen schon gewählten Immich-Fotos</b>; die Immich-Kachel ist ausgegraut (H)</td><td style="padding:6px 8px">dazu Alben und Fotos aus Immich wählen</td></tr>
   </table>
-  <ul>
-    <li><b>„Server“ heißt hier: statische Dateien plus eine Weiterleitung im Reverse-Proxy</b>, den du für Immich ohnehin hast. Kein Glissando-Programm läuft dort, nichts rendert, nichts speichert. Ein echter Glissando-Server (Sync, TV-Steuerung) bleibt ein späterer, eigener Schritt.</li>
-    <li><b>Die eigene Installation ist ebenfalls offline-fähig.</b> Das Handy mit dem von glissando.home installierten Glissando spielt unterwegs jede Diashow, auch die mit Immich-Fotos. Nur neue Fotos aus Immich wählen geht erst wieder zu Hause, oder über VPN bzw. Tailscale.</li>
-    <li>Die Version „immer ohne Immich“ gibt es trotzdem, nämlich die öffentliche Installation. Dafür braucht es keinen Schalter und keinen eigenen Build.</li>
-  </ul>
 </div>
-<h2>Vorschlag (ADR-0013)</h2>
+<h2>Der Glissando-Container</h2>
 <div class="card rec">
   <ul>
-    <li><b>Der Browser fragt Immich selbst</b>, unter der Adresse aus den Einstellungen. Empfohlen und beschrieben ist der Weg über deinen Reverse-Proxy unter der Adresse von Glissando, z. B. <code>https://glissando.home/immich</code>. Es gibt keinen Glissando-Server, und der Schlüssel läuft durch keinen Prozess von uns. Ein Immich mit eigenen CORS-Headern geht genauso.</li>
-    <li><b>Der Schlüssel bleibt in IndexedDB auf diesem Gerät.</b> Er steht nie in einer URL, nie im Log und nie in einer .glissando-Datei. „Trennen“ löscht ihn.</li>
-    <li><b>Gewählte Fotos werden heruntergeladen und gespeichert</b> wie Bilder von der Platte: Original laden, auf dem Gerät auf 4K und das 480-px-Vorschaubild verkleinern. Danach braucht die Diashow Immich nie wieder, auch nicht offline, beim Export oder auf dem Fernseher. Nur wenn der Browser das Original nicht lesen kann (HEIC außerhalb von Safari), nimmt Glissando Immichs 1440-px-Vorschau.</li>
-    <li><b>Immichs Gesichter werden beim Hinzufügen zum Fokus</b> (das größte Gesicht), damit die Erkennung auf dem Gerät diese Bilder überspringt. <b>Keine Gesichter → nichts speichern</b>, dann schaut pico auf dem Gerät nach: „leer“ kann bei Immich auch „noch nicht untersucht“ heißen, und pico kostet pro Bild nur Millisekunden.</li>
-    <li><b>Ein Import, zwei Quellen:</b> Dateien und Immich laufen durch denselben Import (Sortierung, Verkleinern, Speicherplatz, Fehler).</li>
-    <li><b>Offline</b> ist die Immich-Kachel ausgegraut; alles andere läuft weiter.</li>
+    <li><b>Ein fertiges Image, keine eigene Server-Logik.</b> Ein gepinntes Caddy liefert die App aus und leitet <code>/immich/</code> zu Immich weiter, <b>direkt im Docker-Netz</b>: <code>IMMICH_URL=http://immich-server:2283</code>. Authelia und CrowdSec bleiben vor Immich unberührt, Glissando geht nicht durch sie hindurch.</li>
+    <li><b>Der API-Schlüssel steht nur im Container</b>, als <code>IMMICH_API_KEY</code> oder Docker-Secret. Caddy setzt ihn auf dem Weg zu Immich ein. Der Browser sieht ihn nie, es gibt kein Schlüsselfeld in der App, und er landet nie in einer .glissando-Datei.</li>
+    <li><b>Nur lesende Aufrufe kommen durch:</b> Alben, Album-Suche, Vorschaubilder, Originale und Gesichter. Alles andere bekommt 403. Der Schlüssel selbst hat auch nur fünf Leserechte, die Sicherung ist also doppelt.</li>
+    <li><b>Der Zugang zu Glissando ist der Zugang zu den Fotos.</b> Deshalb steht Glissando hinter deinem Proxy mit Authelia, wie deine anderen Dienste, oder ist nur im Heimnetz bzw. über Tailscale erreichbar.</li>
+    <li><b>Ein Schlüssel bedeutet eine Bibliothek:</b> Alle Nutzer dieser Installation sehen die Alben dieses Immich-Benutzers, samt der mit ihm geteilten Alben.</li>
   </ul>
+  <pre style="margin:0;padding:10px 12px;border-radius:8px;background:var(--chip);font:12.5px/1.5 var(--mono);overflow:auto">  glissando:
+    image: ghcr.io/polandy/glissando:&lt;version&gt;@sha256:…
+    environment:
+      IMMICH_URL: http://immich-server:2283
+      IMMICH_API_KEY_FILE: /run/secrets/immich_api_key
+    secrets: [immich_api_key]
+    # im Netz von immich-server; HTTPS + Authelia macht dein Proxy</pre>
 </div>
-<h2>Was du im Mockup siehst</h2>
+<h2>In der App</h2>
 <div class="card">
   <ul>
-    <li><b>A–C Einstellungen:</b> neuer Abschnitt „Immich“ mit Adresse und Schlüssel. Beim Verbinden gibt es fünf Fehler, jeder mit Abhilfe; oben über „Verbinden endet mit“ durchklickbar.</li>
-    <li><b>D Bilder-Schritt:</b> unter der Ablagefläche eine zweite Quelle „Aus Immich“ im Stil von „Diashow von einem anderen Gerät?“. Solange nichts verbunden ist, führt sie in die Einstellungen.</li>
-    <li><b>E Alben:</b> Raster mit Titelbild, Anzahl und Zeitraum, dazu ein Filter. Der Kreis oben links wählt das ganze Album.</li>
-    <li><b>F Album:</b> Fotos nach Tagen, „Tag wählen“ und „Alle wählen“. Die Auswahl gilt über mehrere Alben hinweg, unten stehen Zähler und „N hinzufügen“. Videos sind ausgeblendet und gezählt; Videos als Folien kommen erst mit Schritt 11. Die kleine Gesichterzahl ist nur auf dem Desktop zu sehen.</li>
-    <li><b>G Laden:</b> derselbe Fortschritt und dieselben Kacheln wie beim Import von der Platte, mit „aus Immich“ im Text. Danach gibt es „Mehr aus Immich“.</li>
-    <li><b>H Offline.</b></li>
+    <li><b>Nichts einzurichten.</b> Glissando fragt beim Start den eigenen Server, ob Immich dahinter steht. Die Einstellungen zeigen nur den Zustand: A „Nicht eingerichtet“, B „Über diesen Glissando-Server“, C Fehler. Jeder Fehler nennt die Abhilfe für den, der den Server betreibt: Immich nicht erreichbar, Schlüssel abgelehnt, Recht fehlt. Läuft die Anmeldung bei Authelia ab, heißt es „Neu laden“.</li>
+    <li><b>D Bilder-Schritt:</b> Die Quelle „Aus Immich“ erscheint nur, wenn der Server Immich anbietet. Über „Öffentliche Installation“ oben siehst du den Schritt ohne sie.</li>
+    <li><b>E/F Alben und Fotos:</b> Album-Raster mit Filter, der Kreis wählt ein ganzes Album. Die Fotos sind nach Tagen gruppiert, es gibt „Tag wählen“ und „Alle wählen“, und die Auswahl gilt über mehrere Alben. Videos werden ausgeblendet und gezählt.</li>
+    <li><b>G Laden:</b> Glissando lädt das Original und verkleinert es auf dem Gerät auf 4K und das 480-px-Vorschaubild, wie bei Bildern von der Platte. Kann der Browser das Original nicht lesen (HEIC außerhalb von Safari), nimmt es Immichs 1440-px-Vorschau. Das Aufnahmedatum kommt von Immich.</li>
+    <li><b>Gesichter:</b> Das größte Gesicht aus Immich wird beim Hinzufügen zum Fokus, und die Erkennung auf dem Gerät überspringt das Bild. Liefert Immich keine Gesichter, wird nichts gespeichert und pico schaut nach, denn „leer“ heißt bei Immich auch „noch nicht untersucht“.</li>
+    <li><b>H Offline:</b> Die Immich-Kachel ist ausgegraut, alles andere läuft weiter.</li>
   </ul>
 </div>
-<h2>Offene Fragen an dich</h2>
-<div class="card q">
+<h2>Gemessen an einem echten Immich (v3.3.1, Standard-Installation)</h2>
+<div class="card">
   <ul>
-    <li>Ist der Weg „Immich unter der Adresse von Glissando über den Reverse-Proxy“ für deine Installation in Ordnung? Glissando von einer öffentlichen Adresse (z. B. GitHub Pages) erreicht ein Standard-Immich sonst nicht.</li>
-    <li>Gesichterzahl auf den Fotos (F): behalten oder weglassen?</li>
-    <li>„Ganzes Album“ per Kreis auf dem Albumbild (E): reicht das, oder soll es zusätzlich „Album übernehmen“ als Knopf im Album geben?</li>
+    <li><b>Kein CORS:</b> Die Vorab-Anfrage ergibt 404, CORS-Header gibt es keine, und einstellen lässt sich das auch nicht. Aufrufe direkt aus dem Browser scheitern immer.</li>
+    <li><b>Kein OAuth-Anbieter:</b> Immich meldet nur selbst über OAuth an. Der Anmeldeweg ist genauso CORS-gesperrt und gäbe volle Rechte statt fünf Leserechten.</li>
+    <li><b>Unter derselben Adresse klappt alles:</b> Alben, Vorschau und Originale kommen jeweils mit 200.</li>
+    <li><b>Gesichter:</b> Die Boxen beziehen sich auf Immichs Vorschaubild und sind schon richtig gedreht (mit EXIF-gedrehtem Foto geprüft). Eine Trefferwertung gibt es nicht. Ein noch nicht untersuchtes Foto liefert <code>[]</code>, genau wie eines ohne Gesichter.</li>
+    <li><b>Fünf Leserechte genügen:</b> album.read, asset.read, asset.view, asset.download, face.read.</li>
   </ul>
 </div>
 
@@ -405,18 +397,17 @@ const q = new URLSearchParams(location.search);
 const S = {
   tab: "try", width: q.get("w") === "phone" ? "phone" : "desk", theme: q.get("t") === "dark" ? "dark" : "light",
   screen: "start", settings: false,
-  conn: "none",        // none | checking | connected | error
-  connError: "cors",   // cors | unreachable | key | permission | notImmich
-  url: "", key: "", showKey: false,
+  conn: "none",        // none (not set up) | connected | error
+  connError: "unreachable",   // unreachable (502) | key (401) | permission (403) | signin (redirect)
   online: true,
   album: null, filter: "", picked: new Set(), loading: false, browseError: null,
   importing: null, imported: [],
   toast: null,
 };
 const JUMPS = [
-  ["A", "Nicht verbunden", () => Object.assign(S, { screen: "start", settings: true, conn: "none", url: "", key: "" })],
-  ["B", "Verbunden", () => Object.assign(S, { screen: "start", settings: true, conn: "connected", url: "https://glissando.home/immich", key: "••••" })],
-  ["C", "Fehler", () => Object.assign(S, { screen: "start", settings: true, conn: "error", url: "https://glissando.home/immich", key: "abc" })],
+  ["A", "Nicht eingerichtet", () => Object.assign(S, { screen: "start", settings: true, conn: "none" })],
+  ["B", "Eingerichtet", () => Object.assign(S, { screen: "start", settings: true, conn: "connected" })],
+  ["C", "Fehler", () => Object.assign(S, { screen: "start", settings: true, conn: "error", connError: "unreachable" })],
   ["D", "Bilder-Schritt", () => Object.assign(S, { screen: "pictures", settings: false, conn: "connected", importing: null, imported: [] })],
   ["E", "Alben", () => Object.assign(S, { screen: "browse", settings: false, conn: "connected", album: null })],
   ["F", "Album, Auswahl", () => { Object.assign(S, { screen: "browse", settings: false, conn: "connected", album: "see" }); S.picked = new Set(ALBUMS[0].all.slice(2, 14).map((p) => p.id)); }],
@@ -445,9 +436,11 @@ function viewStart() {
     <button class="btn primary" data-act="new">${icon("plus")}Neue Diashow</button></div></div>`;
 }
 function immichSource() {
-  if (!S.online) return `<div class="source"><span class="glyph" style="opacity:.5">${IMMICH}</span><div class="txt"><b>Aus Immich</b><span><span class="offline-dot"></span>Offline – Immich braucht eine Verbindung zum Server. Bilder von diesem Gerät gehen weiter.</span></div><button class="btn" disabled>${icon("cloudOff")}Immich öffnen</button></div>`;
-  if (S.conn !== "connected") return `<div class="source"><span class="glyph">${IMMICH}</span><div class="txt"><b>Fotos in Immich?</b><span>Verbinde deinen Immich-Server einmal in den Einstellungen, dann wählst du hier Alben und Fotos.</span></div><button class="btn" data-act="settings">${icon("gear")}Immich verbinden</button></div>`;
-  return `<div class="source"><span class="glyph">${IMMICH}</span><div class="txt"><b>Aus Immich</b><span>Alben und Fotos von deinem Immich-Server. Sie werden heruntergeladen und bleiben auf dem Gerät.</span></div><button class="btn" data-act="browse">Immich öffnen${icon("right")}</button></div>`;
+  if (S.conn === "none") return "";
+  const glyph = (off) => `<span class="glyph" ${off ? 'style="opacity:.5"' : ""}>${IMMICH}</span>`;
+  if (!S.online) return `<div class="source">${glyph(true)}<div class="txt"><b>Aus Immich</b><span><span class="offline-dot"></span>Offline – Immich geht nur mit Verbindung zu deinem Glissando-Server. Bilder von diesem Gerät gehen weiter.</span></div><button class="btn" disabled>${icon("cloudOff")}Immich öffnen</button></div>`;
+  if (S.conn === "error") return `<div class="source">${glyph(true)}<div class="txt"><b>Aus Immich</b><span>${ERRORS[S.connError][0]} Details in den Einstellungen.</span></div><button class="btn" data-act="settings">${icon("gear")}Einstellungen</button></div>`;
+  return `<div class="source">${glyph(false)}<div class="txt"><b>Aus Immich</b><span>Alben und Fotos aus deinem Immich. Sie werden heruntergeladen und bleiben auf dem Gerät.</span></div><button class="btn" data-act="browse">Immich öffnen${icon("right")}</button></div>`;
 }
 function viewPictures() {
   const I = S.importing, has = S.imported.length > 0 || I;
@@ -511,23 +504,20 @@ function viewBrowse() {
       ${total ? `<button class="btn ghost" data-act="clear">Auswahl leeren</button>` : ""}
       <button class="btn primary" ${total ? "" : "disabled"} data-act="add">${total ? `${fmt(total)} hinzufügen` : "Hinzufügen"}</button></div>`;
 }
+const ERRORS = {
+  unreachable: ["Der Glissando-Server erreicht Immich nicht.", "Wer den Server betreibt: Läuft Immich, und hängt der Glissando-Container im selben Docker-Netz? Stimmt IMMICH_URL?"],
+  key: ["Immich lehnt den Schlüssel des Servers ab.", "Wer den Server betreibt: In Immich einen neuen API-Schlüssel anlegen und als IMMICH_API_KEY im Glissando-Container setzen."],
+  permission: ["Dem Schlüssel des Servers fehlen Rechte.", "Wer den Server betreibt: Am Schlüssel in Immich album.read, asset.read, asset.view, asset.download und face.read erlauben."],
+  signin: ["Deine Anmeldung ist abgelaufen.", "Dein Proxy möchte, dass du dich neu anmeldest. Lade Glissando neu, um dich anzumelden."],
+};
 function immichGroup() {
-  if (S.conn === "connected") return `<div class="box"><div class="conn"><span class="glyph">${IMMICH}</span><div class="txt"><b class="mono">glissando.home/immich</b><span>Verbunden · Immich 3.3.1 · 41 Alben</span></div></div>
-    <div class="row"><button class="btn sm danger" data-act="disconnect">Trennen</button></div></div>`;
-  const checking = S.conn === "checking";
-  const err = S.conn === "error" ? {
-    cors: ["Immich antwortet, aber der Browser darf nicht fragen.", "Immich erlaubt keine Anfragen von anderen Adressen (CORS). Leite Immich über die Adresse von Glissando, z. B. …/immich – <u>so geht’s</u>."],
-    unreachable: ["Server nicht erreichbar.", "Unter dieser Adresse antwortet nichts. Stimmt sie, und ist das Gerät im selben Netz?"],
-    key: ["Schlüssel abgelehnt.", "Immich kennt diesen API-Schlüssel nicht. Lege in Immich einen neuen an und füge ihn hier ein."],
-    permission: ["Dem Schlüssel fehlen Rechte.", "Glissando braucht album.read, asset.read, asset.view, asset.download und face.read. Ergänze sie am Schlüssel in Immich."],
-    notImmich: ["Das ist kein Immich-Server.", "Unter dieser Adresse antwortet etwas anderes. Gib die Adresse ein, unter der du Immich im Browser öffnest."],
-  }[S.connError] : null;
-  return `<div class="box">
-    <label>Server-Adresse<span class="small">Am einfachsten unter derselben Adresse wie Glissando, über deinen Reverse-Proxy.</span><input class="field ${err && S.connError !== "key" && S.connError !== "permission" ? "bad" : ""}" placeholder="https://glissando.home/immich" value="${S.url}" data-input="url" inputmode="url" autocomplete="url"></label>
-    <label>API-Schlüssel<span class="keywrap"><input class="field ${err && (S.connError === "key" || S.connError === "permission") ? "bad" : ""}" type="${S.showKey ? "text" : "password"}" value="${S.key}" data-input="key" autocomplete="off" spellcheck="false"><button class="iconbtn" data-act="showKey" aria-label="Schlüssel zeigen">${icon("eye")}</button></span>
-      <span class="small">In Immich unter Kontoeinstellungen → API-Schlüssel anlegen, nur mit Leserechten: album.read, asset.read, asset.view, asset.download, face.read.</span></label>
-    ${err ? `<div class="notice error"><b>${err[0]}</b> ${err[1]}</div>` : ""}
-    <div class="row"><button class="btn primary sm" data-act="connect" ${checking || !S.url || !S.key ? "disabled" : ""}>${checking ? `<span class="spin"></span>Prüfe …` : "Verbinden"}</button></div></div>`;
+  if (S.conn === "connected") return `<div class="box"><div class="conn"><span class="glyph">${IMMICH}</span><div class="txt"><b>Über diesen Glissando-Server</b><span>Immich 3.3.1 · 41 Alben · Schlüssel liegt auf dem Server</span></div></div></div>`;
+  if (S.conn === "none") return `<div class="box"><div class="conn"><span class="glyph" style="opacity:.5">${IMMICH}</span><div class="txt"><b>Nicht eingerichtet</b><span>Immich gibt es, wenn Glissando selbst gehostet neben Immich läuft. Den Schlüssel trägt man dort ein, nicht hier.</span></div></div>
+    <div class="row"><button class="btn sm" data-act="noop">So richtest du es ein</button></div></div>`;
+  const e = ERRORS[S.connError];
+  return `<div class="box"><div class="conn"><span class="glyph">${IMMICH}</span><div class="txt"><b>Über diesen Glissando-Server</b><span>Immich gerade nicht nutzbar</span></div></div>
+    <div class="notice error"><b>${e[0]}</b> ${e[1]}</div>
+    <div class="row"><button class="btn sm" data-act="${S.connError === "signin" ? "noop" : "recheck"}">${S.connError === "signin" ? "Neu laden" : "Erneut prüfen"}</button></div></div>`;
 }
 function viewSheet() {
   return `<div class="backdrop" data-act="closeSettings"></div><section class="sheet" role="dialog" aria-label="Einstellungen">
@@ -535,7 +525,7 @@ function viewSheet() {
     <section class="group"><p class="eyebrow">Darstellung</p><div class="radios"><div class="sel">${icon("monitor")}<span>Wie das Gerät<small>Hell oder dunkel, nach der Systemeinstellung</small></span></div><div>${icon("sun")}Hell</div><div>${icon("moon")}Dunkel</div></div></section>
     <section class="group"><p class="eyebrow">Sprache</p><div class="radios"><div class="sel"><span>Wie der Browser<small>Gerade Deutsch</small></span></div><div>Deutsch</div><div>English</div></div></section>
     <section class="group"><p class="eyebrow">Immich</p>${immichGroup()}
-      <p class="footnote">Der Schlüssel bleibt auf diesem Gerät und kommt nie in eine .glissando-Datei.</p></section>
+      </section>
     <p class="footnote">Gilt sofort und wird auf diesem Gerät gespeichert.</p></section>`;
 }
 function render() {
@@ -551,20 +541,15 @@ function render() {
 }
 function demo() {
   const d = document.getElementById("demo"), parts = [];
-  if (S.settings && S.conn !== "connected") {
-    parts.push("Verbinden endet mit:", ...["cors:CORS fehlt", "unreachable:Nicht erreichbar", "key:Schlüssel falsch", "permission:Rechte fehlen", "notImmich:Kein Immich"].map((s) => { const [k, l] = s.split(":"); return `<button data-demo="err" data-v="${k}">${l}</button>`; }), `<button data-demo="err" data-v="ok">Erfolg</button>`);
+  if (S.settings && S.conn === "error") {
+    parts.push("Fehler:", ...["unreachable:Immich nicht erreichbar (502)", "key:Schlüssel abgelehnt (401)", "permission:Recht fehlt (403)", "signin:Anmeldung abgelaufen"].map((s) => { const [k, l] = s.split(":"); return `<button data-demo="err" data-v="${k}">${l}</button>`; }));
   }
   if (S.screen === "browse") parts.push(`<button data-demo="loading">Alben laden (Schimmer)</button>`, `<button data-demo="browseError">Server antwortet nicht</button>`, `<button data-demo="empty">Leeres Album</button>`);
-  if (S.screen === "pictures") parts.push(`<button data-demo="online">${S.online ? "Offline gehen" : "Wieder online"}</button>`, `<button data-demo="fail">Mit 2 unlesbaren HEIC</button>`);
+  if (S.screen === "pictures") parts.push(`<button data-demo="setup">${S.conn === "none" ? "Server mit Immich" : "Öffentliche Installation (ohne Immich)"}</button>`, `<button data-demo="online">${S.online ? "Offline gehen" : "Wieder online"}</button>`, `<button data-demo="fail">Mit 2 unlesbaren HEIC</button>`);
   d.innerHTML = parts.join(" ");
 }
 
 /* ---------- Behaviour ---------- */
-let pendingResult = "ok";
-function connect() {
-  S.conn = "checking"; render();
-  setTimeout(() => { S.conn = pendingResult === "ok" ? "connected" : "error"; if (pendingResult !== "ok") S.connError = pendingResult; render(); if (S.conn === "connected") toast("Mit Immich verbunden"); else stage.querySelector(".sheet .notice")?.scrollIntoView({ block: "nearest" }); }, 900);
-}
 function startImport(instant) {
   clearInterval(timer);
   S.screen = "pictures"; S.imported = []; S.importing = { total: S.picked.size, done: instant ? Math.round(S.picked.size * 0.45) : 0 };
@@ -595,19 +580,18 @@ stage.addEventListener("click", (ev) => {
     case "clear": S.picked.clear(); break;
     case "add": startImport(false); return;
     case "cancelImport": clearInterval(timer); S.importing = null; S.imported = []; break;
-    case "connect": connect(); return;
-    case "disconnect": S.conn = "none"; S.key = ""; toast("Verbindung getrennt, Schlüssel gelöscht"); return;
-    case "showKey": S.showKey = !S.showKey; break;
+    case "recheck": S.conn = "connected"; toast("Immich ist wieder da"); return;
     case "retry": S.browseError = null; break;
   }
   render();
 });
 stage.addEventListener("keydown", (ev) => { if ((ev.key === "Enter" || ev.key === " ") && ev.target.dataset?.act === "open") { ev.preventDefault(); ev.target.click(); } });
-stage.addEventListener("input", (ev) => { const k = ev.target.dataset.input; if (k) { S[k] = ev.target.value; if (k !== "filter" && S.conn === "error") S.conn = "none"; render(); } });
+stage.addEventListener("input", (ev) => { const k = ev.target.dataset.input; if (k) { S[k] = ev.target.value; render(); } });
 document.getElementById("demo").addEventListener("click", (ev) => {
   const b = ev.target.closest("[data-demo]"); if (!b) return;
   const d = b.dataset.demo;
-  if (d === "err") { pendingResult = b.dataset.v; if (!S.url) S.url = "https://glissando.home/immich"; if (!S.key) S.key = "k3y"; connect(); return; }
+  if (d === "err") S.connError = b.dataset.v;
+  if (d === "setup") S.conn = S.conn === "none" ? "connected" : "none";
   if (d === "loading") { S.album = null; S.loading = true; render(); setTimeout(() => { S.loading = false; render(); }, 1500); return; }
   if (d === "browseError") S.browseError = true;
   if (d === "empty") S.album = "leer";
