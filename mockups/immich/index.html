@@ -180,6 +180,10 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 .check svg { width: 15px; height: 15px; stroke-width: 2.4; }
 .on > .check, .on .check, .check.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .check.partial { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tabs { display: inline-flex; background: var(--hover); border-radius: var(--radius); padding: 3px; gap: 2px; }
+.tabs button { border: 0; background: transparent; color: var(--muted); font: 600 14px var(--ui); padding: 7px 14px; border-radius: 8px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.ph.tile { display: block; aspect-ratio: 1; border-radius: 4px; }
 .day { display: grid; gap: 8px; }
 .day-head { display: flex; align-items: center; gap: 10px; }
 .day-head .d { font-weight: 600; }
@@ -264,7 +268,7 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
   <table style="border-collapse:collapse;width:100%;font-size:13.5px">
     <tr style="text-align:left;border-bottom:1px solid var(--page-line)"><th style="padding:6px 8px">Installiert von …</th><th style="padding:6px 8px">ohne Netz</th><th style="padding:6px 8px">mit Verbindung zum Server</th></tr>
     <tr style="border-bottom:1px solid var(--page-line)"><td style="padding:6px 8px"><b>öffentlicher Adresse</b><br><span style="color:var(--page-muted)">z. B. GitHub Pages</span></td><td style="padding:6px 8px">alles mit Bildern vom Gerät</td><td style="padding:6px 8px">dasselbe; Immich erscheint gar nicht</td></tr>
-    <tr><td style="padding:6px 8px"><b>deinem Glissando-Container</b><br><span style="color:var(--page-muted)">neben Immich, im selben Docker-Netz</span></td><td style="padding:6px 8px">alles mit Bildern vom Gerät <b>und allen schon gewählten Immich-Fotos</b>; die Immich-Kachel ist ausgegraut (H)</td><td style="padding:6px 8px">dazu Alben und Fotos aus Immich wählen</td></tr>
+    <tr><td style="padding:6px 8px"><b>deinem Glissando-Container</b><br><span style="color:var(--page-muted)">neben Immich, im selben Docker-Netz</span></td><td style="padding:6px 8px">alles mit Bildern vom Gerät <b>und allen schon gewählten Immich-Fotos</b>; die Immich-Kachel ist ausgegraut (I)</td><td style="padding:6px 8px">dazu Alben und Fotos aus Immich wählen</td></tr>
   </table>
 </div>
 <h2>Der Glissando-Container</h2>
@@ -287,12 +291,13 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 <h2>In der App</h2>
 <div class="card">
   <ul>
-    <li><b>Nichts einzurichten.</b> Glissando fragt beim Start den eigenen Server, ob Immich dahinter steht. Die Einstellungen zeigen nur den Zustand: A „Nicht eingerichtet“, B „Über diesen Glissando-Server“, C Fehler. Jeder Fehler nennt die Abhilfe für den, der den Server betreibt: Immich nicht erreichbar, Schlüssel abgelehnt, Recht fehlt. Läuft die Anmeldung bei Authelia ab, heißt es „Neu laden“.</li>
+    <li><b>Nichts einzurichten.</b> Glissando fragt beim Start den eigenen Server, ob Immich dahinter steht. Die Einstellungen zeigen nur den Zustand: A „Nicht eingerichtet“, B „Über diesen Glissando-Server“, C Fehler. Jeder Fehler sagt knapp, was los ist: Immich nicht erreichbar (Details stehen in den Logs des Backends), Schlüssel abgelehnt, Recht fehlt. Läuft die Anmeldung bei Authelia ab, heißt es „Neu laden“.</li>
     <li><b>D Bilder-Schritt:</b> Die Quelle „Aus Immich“ erscheint nur, wenn der Server Immich anbietet. Über „Öffentliche Installation“ oben siehst du den Schritt ohne sie.</li>
-    <li><b>E/F Alben und Fotos:</b> Album-Raster mit Filter, der Kreis wählt ein ganzes Album. Die Fotos sind nach Tagen gruppiert, es gibt „Tag wählen“ und „Alle wählen“, und die Auswahl gilt über mehrere Alben. Videos werden ausgeblendet und gezählt.</li>
-    <li><b>G Laden:</b> Glissando lädt das Original und verkleinert es auf dem Gerät auf 4K und das 480-px-Vorschaubild, wie bei Bildern von der Platte. Kann der Browser das Original nicht lesen (HEIC außerhalb von Safari), nimmt es Immichs 1440-px-Vorschau. Das Aufnahmedatum kommt von Immich.</li>
+    <li><b>E Alle Fotos:</b> Immich öffnet mit „Alle Fotos“, die neuesten zuerst und nach Tagen gruppiert, auch ohne Album. Beim Scrollen lädt Glissando je 60 weitere nach; Immich liefert dafür Seiten (gemessen). Am Ende steht „Das war alles“.</li>
+    <li><b>F/G Alben:</b> Album-Raster mit Filter, der Kreis wählt ein ganzes Album. Im Album gibt es „Tag wählen“ und „Alle wählen“. Die Auswahl gilt über „Alle Fotos“ und mehrere Alben hinweg. Videos werden ausgeblendet und gezählt.</li>
+    <li><b>H Laden:</b> Glissando lädt das Original und verkleinert es auf dem Gerät auf 4K und das 480-px-Vorschaubild, wie bei Bildern von der Platte. Kann der Browser das Original nicht lesen (HEIC außerhalb von Safari), nimmt es Immichs 1440-px-Vorschau. Das Aufnahmedatum kommt von Immich.</li>
     <li><b>Gesichter:</b> Das größte Gesicht aus Immich wird beim Hinzufügen zum Fokus, und die Erkennung auf dem Gerät überspringt das Bild. Liefert Immich keine Gesichter, wird nichts gespeichert und pico schaut nach, denn „leer“ heißt bei Immich auch „noch nicht untersucht“.</li>
-    <li><b>H Offline:</b> Die Immich-Kachel ist ausgegraut, alles andere läuft weiter.</li>
+    <li><b>I Offline:</b> Die Immich-Kachel ist ausgegraut, alles andere läuft weiter.</li>
   </ul>
 </div>
 <h2>Gemessen an einem echten Immich (v3.3.1, Standard-Installation)</h2>
@@ -389,7 +394,20 @@ const ALBUMS = [
   { id: "leer", name: "Neues Album", range: "–", videos: 0, days: [] },
 ];
 for (const a of ALBUMS) { a.all = a.days.flatMap((d) => d.photos); a.cover = a.all[0]?.src ?? null; }
-const byId = new Map(ALBUMS.flatMap((a) => a.all.map((p) => [p.id, p])));
+/* All photos, newest first, as Immich pages them (POST /api/search/metadata, order desc). */
+const PAGE_SIZE = 60;
+const TIMELINE = (() => {
+  const r = rng(99), days = [], fmtDay = new Intl.DateTimeFormat("de-DE", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+  let date = new Date(2026, 9, 8);
+  for (let d = 0; d < 46; d++) {
+    const n = 2 + Math.floor(r() * 13);
+    days.push({ label: fmtDay.format(date).replace(".,", ","), photos: Array.from({ length: n }, (_, k) => photo(9000 + d * 20 + k)) });
+    date = new Date(date.getTime() - (1 + Math.floor(r() * 9)) * 86400000);
+  }
+  return days;
+})();
+const TIMELINE_TOTAL = TIMELINE.reduce((n, d) => n + d.photos.length, 0);
+const byId = new Map([...ALBUMS.flatMap((a) => a.all.map((p) => [p.id, p])), ...TIMELINE.flatMap((d) => d.photos.map((p) => [p.id, p]))]);
 const fmt = (n) => n.toLocaleString("de-DE");
 
 /* ---------- State ---------- */
@@ -400,6 +418,7 @@ const S = {
   conn: "none",        // none (not set up) | connected | error
   connError: "unreachable",   // unreachable (502) | key (401) | permission (403) | signin (redirect)
   online: true,
+  view: "photos", loaded: PAGE_SIZE, tlLoading: false,
   album: null, filter: "", picked: new Set(), loading: false, browseError: null,
   importing: null, imported: [],
   toast: null,
@@ -409,12 +428,23 @@ const JUMPS = [
   ["B", "Eingerichtet", () => Object.assign(S, { screen: "start", settings: true, conn: "connected" })],
   ["C", "Fehler", () => Object.assign(S, { screen: "start", settings: true, conn: "error", connError: "unreachable" })],
   ["D", "Bilder-Schritt", () => Object.assign(S, { screen: "pictures", settings: false, conn: "connected", importing: null, imported: [] })],
-  ["E", "Alben", () => Object.assign(S, { screen: "browse", settings: false, conn: "connected", album: null })],
-  ["F", "Album, Auswahl", () => { Object.assign(S, { screen: "browse", settings: false, conn: "connected", album: "see" }); S.picked = new Set(ALBUMS[0].all.slice(2, 14).map((p) => p.id)); }],
-  ["G", "Lädt herunter", () => { Object.assign(S, { screen: "pictures", settings: false, conn: "connected" }); S.picked = new Set(ALBUMS[0].all.slice(0, 18).map((p) => p.id)); startImport(true); }],
-  ["H", "Offline", () => Object.assign(S, { screen: "pictures", settings: false, conn: "connected", online: false, importing: null, imported: [] })],
+  ["E", "Alle Fotos", () => Object.assign(S, { screen: "browse", settings: false, conn: "connected", album: null, view: "photos", loaded: PAGE_SIZE })],
+  ["F", "Alben", () => Object.assign(S, { screen: "browse", settings: false, conn: "connected", album: null, view: "albums" })],
+  ["G", "Album, Auswahl", () => { Object.assign(S, { screen: "browse", settings: false, conn: "connected", album: "see" }); S.picked = new Set(ALBUMS[0].all.slice(2, 14).map((p) => p.id)); }],
+  ["H", "Lädt herunter", () => { Object.assign(S, { screen: "pictures", settings: false, conn: "connected" }); S.picked = new Set(ALBUMS[0].all.slice(0, 18).map((p) => p.id)); startImport(true); }],
+  ["I", "Offline", () => Object.assign(S, { screen: "pictures", settings: false, conn: "connected", online: false, importing: null, imported: [] })],
 ];
-let current = "A";
+let current = "A", lastViewKey = "", sentinelObserver = null;
+function observeSentinel() {
+  sentinelObserver?.disconnect();
+  const el = stage.querySelector(".sentinel"); if (!el) return;
+  sentinelObserver = new IntersectionObserver((entries) => {
+    if (!entries[0].isIntersecting || S.tlLoading) return;
+    S.tlLoading = true;
+    setTimeout(() => { S.loaded = Math.min(TIMELINE_TOTAL, S.loaded + PAGE_SIZE); S.tlLoading = false; render(); }, 650);
+  }, { root: stage.querySelector(".scroll"), rootMargin: "0px 0px 400px 0px" });
+  sentinelObserver.observe(el);
+}
 const stage = document.getElementById("stage");
 let timer = 0, toastTimer = 0;
 
@@ -467,14 +497,30 @@ function viewPictures() {
     <div class="footer"><button class="btn ghost" data-act="back">Abbrechen</button><button class="btn primary" ${S.imported.length && !I ? "" : "disabled"} data-act="noop">Weiter</button></div>`;
 }
 const album = () => ALBUMS.find((a) => a.id === S.album);
+const tabs = () => `<div class="tabs" role="tablist"><button role="tab" aria-selected="${S.view === "photos"}" data-act="view" data-v="photos">Alle Fotos</button><button role="tab" aria-selected="${S.view === "albums"}" data-act="view" data-v="albums">Alben</button></div>`;
+function dayHtml(d, i, src) {
+  const dn = d.photos.filter((p) => S.picked.has(p.id)).length;
+  return `<section class="day"><div class="day-head"><span class="d">${d.label}</span><span class="muted mono" style="font-size:12px">${d.photos.length}</span>
+    <button class="btn ghost sm" data-act="day" data-src="${src}" data-i="${i}">${dn === d.photos.length ? "Tag abwählen" : "Tag wählen"}</button></div>
+    <ul class="grid ${S.picked.size ? "selecting" : ""}">${d.photos.map((p) => `<li><button class="ph ${S.picked.has(p.id) ? "on" : ""}" data-act="pick" data-id="${p.id}" aria-pressed="${S.picked.has(p.id)}" aria-label="Foto"><img src="${p.src}" alt=""><span class="check">${icon("check")}</span></button></li>`).join("")}</ul></section>`;
+}
 const pickedIn = (a) => a.all.filter((p) => S.picked.has(p.id)).length;
 function viewBrowse() {
   let body;
   if (S.browseError) {
     body = `<div class="state">${icon("warn")}<b>Immich antwortet nicht</b><span>Der Server ist gerade nicht erreichbar. Bist du im selben Netz? Schon gewählte Fotos bleiben gewählt.</span><button class="btn" data-act="retry">Erneut versuchen</button></div>`;
+  } else if (!S.album && S.view === "photos") {
+    let left = S.loaded;
+    const shown = [];
+    for (const d of TIMELINE) { if (left <= 0) break; shown.push({ ...d, photos: d.photos.slice(0, left) }); left -= d.photos.length; }
+    const done = S.loaded >= TIMELINE_TOTAL;
+    body = `<div class="browse-head">${tabs()}<span class="spacer"></span><span class="server">neueste zuerst</span></div>
+      ${shown.map((d, i) => dayHtml(d, i, "tl")).join("")}
+      ${done ? `<p class="small" style="text-align:center;padding:12px 0">Das war alles · <span class="mono">${fmt(TIMELINE_TOTAL)}</span> Fotos</p>`
+        : `<ul class="grid sentinel">${Array.from({ length: 8 }, () => `<li><span class="ph tile pending"></span></li>`).join("")}</ul>`}`;
   } else if (!S.album) {
     const list = ALBUMS.filter((a) => a.name.toLowerCase().includes(S.filter.toLowerCase()));
-    body = `<div class="browse-head"><h1>Alben</h1><span class="server"><span class="dot"></span>glissando.home/immich</span>
+    body = `<div class="browse-head">${tabs()}<span class="spacer"></span>
       <label class="filter">${icon("search")}<input class="field" placeholder="Alben filtern" value="${S.filter}" data-input="filter" aria-label="Alben filtern"></label></div>
       ${S.loading ? `<ul class="albums">${Array.from({ length: 6 }, () => `<li class="album"><div class="cover tile pending"></div><span class="name" style="color:transparent">.</span></li>`).join("")}</ul>`
       : list.length ? `<ul class="albums">${list.map((a) => {
@@ -491,12 +537,7 @@ function viewBrowse() {
     else body = `<div class="browse-head"><h1>${a.name}</h1></div>
       <div class="selbar"><span class="grow"><span class="mono">${fmt(a.all.length)}</span> Fotos${a.videos ? ` · ${a.videos} Videos ausgeblendet` : ""}</span>
         <button class="btn sm" data-act="${n === a.all.length ? "noneIn" : "allIn"}">${n === a.all.length ? "Keins wählen" : `Alle ${fmt(a.all.length)} wählen`}</button></div>
-      ${a.days.map((d, i) => {
-        const dn = d.photos.filter((p) => S.picked.has(p.id)).length;
-        return `<section class="day"><div class="day-head"><span class="d">${d.label}</span><span class="muted mono" style="font-size:12px">${d.photos.length}</span>
-          <button class="btn ghost sm" data-act="day" data-i="${i}">${dn === d.photos.length ? "Tag abwählen" : "Tag wählen"}</button></div>
-          <ul class="grid ${n ? "selecting" : ""}">${d.photos.map((p) => `<li><button class="ph ${S.picked.has(p.id) ? "on" : ""}" data-act="pick" data-id="${p.id}" aria-pressed="${S.picked.has(p.id)}" aria-label="Foto"><img src="${p.src}" alt=""><span class="check">${icon("check")}</span>${p.faces ? `<span class="faces">${icon("face")}${p.faces}</span>` : ""}</button></li>`).join("")}</ul></section>`;
-      }).join("")}`;
+      ${a.days.map((d, i) => dayHtml(d, i, "album")).join("")}`;
   }
   const total = S.picked.size, albums = ALBUMS.filter((a) => pickedIn(a)).length;
   return `<div class="scroll"><main class="browse">${body}</main></div>
@@ -505,7 +546,7 @@ function viewBrowse() {
       <button class="btn primary" ${total ? "" : "disabled"} data-act="add">${total ? `${fmt(total)} hinzufügen` : "Hinzufügen"}</button></div>`;
 }
 const ERRORS = {
-  unreachable: ["Der Glissando-Server erreicht Immich nicht.", "Wer den Server betreibt: Läuft Immich, und hängt der Glissando-Container im selben Docker-Netz? Stimmt IMMICH_URL?"],
+  unreachable: ["Das Glissando-Backend erreicht den Immich-Server nicht.", "Wer den Server betreibt, findet die Ursache in den Logs des Backends."],
   key: ["Immich lehnt den Schlüssel des Servers ab.", "Wer den Server betreibt: In Immich einen neuen API-Schlüssel anlegen und als IMMICH_API_KEY im Glissando-Container setzen."],
   permission: ["Dem Schlüssel des Servers fehlen Rechte.", "Wer den Server betreibt: Am Schlüssel in Immich album.read, asset.read, asset.view, asset.download und face.read erlauben."],
   signin: ["Deine Anmeldung ist abgelaufen.", "Dein Proxy möchte, dass du dich neu anmeldest. Lade Glissando neu, um dich anzumelden."],
@@ -535,7 +576,11 @@ function render() {
   stage.hidden = S.tab !== "try";
   const view = S.screen === "start" ? viewStart() : S.screen === "pictures" ? viewPictures() : viewBrowse();
   const focused = document.activeElement?.dataset?.input, caret = document.activeElement?.selectionStart;
+  const viewKey = `${S.screen}|${S.album}|${S.view}|${S.width}`, top = stage.querySelector(".scroll")?.scrollTop ?? 0;
   stage.innerHTML = `<div class="app ${S.theme} ${S.width === "phone" ? "phone" : ""}" id="app">${bar()}${view}${S.settings ? viewSheet() : ""}${S.toast ? `<div class="toast" role="status">${S.toast}</div>` : ""}</div>`;
+  if (viewKey === lastViewKey) { const sc = stage.querySelector(".scroll"); if (sc) sc.scrollTop = top; }
+  lastViewKey = viewKey;
+  observeSentinel();
   if (focused) { const el = stage.querySelector(`[data-input="${focused}"]`); if (el) { el.focus(); try { el.setSelectionRange(caret, caret); } catch {} } }
   demo();
 }
@@ -576,7 +621,8 @@ stage.addEventListener("click", (ev) => {
     case "pick": S.picked.has(t.dataset.id) ? S.picked.delete(t.dataset.id) : S.picked.add(t.dataset.id); break;
     case "allIn": album().all.forEach((p) => S.picked.add(p.id)); break;
     case "noneIn": album().all.forEach((p) => S.picked.delete(p.id)); break;
-    case "day": { const d = album().days[+t.dataset.i], all = d.photos.every((p) => S.picked.has(p.id)); d.photos.forEach((p) => all ? S.picked.delete(p.id) : S.picked.add(p.id)); break; }
+    case "view": S.view = t.dataset.v; break;
+    case "day": { const d = (t.dataset.src === "tl" ? TIMELINE : album().days)[+t.dataset.i], all = d.photos.every((p) => S.picked.has(p.id)); d.photos.forEach((p) => all ? S.picked.delete(p.id) : S.picked.add(p.id)); break; }
     case "clear": S.picked.clear(); break;
     case "add": startImport(false); return;
     case "cancelImport": clearInterval(timer); S.importing = null; S.imported = []; break;
@@ -601,7 +647,7 @@ document.getElementById("demo").addEventListener("click", (ev) => {
 });
 document.querySelector(".controls").addEventListener("click", (ev) => {
   const b = ev.target.closest(".seg button"); if (!b) return;
-  if (b.dataset.k === "jump") { current = b.dataset.v; clearInterval(timer); Object.assign(S, { online: true, importing: null, imported: [], browseError: null, importFailed: false, picked: new Set(), filter: "", settings: false, album: null }); JUMPS.find((j) => j[0] === current)[2](); render(); return; }
+  if (b.dataset.k === "jump") { current = b.dataset.v; clearInterval(timer); Object.assign(S, { view: "photos", loaded: PAGE_SIZE, online: true, importing: null, imported: [], browseError: null, importFailed: false, picked: new Set(), filter: "", settings: false, album: null }); JUMPS.find((j) => j[0] === current)[2](); render(); return; }
   S[b.dataset.k] = b.dataset.v; render();
 });
 document.getElementById("jump").innerHTML = JUMPS.map(([k, l]) => `<button data-k="jump" data-v="${k}"><b>${k}</b>${l}</button>`).join("");
