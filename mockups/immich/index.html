@@ -269,6 +269,20 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
     <li><b>Fünf Leserechte genügen:</b> album.read, asset.read, asset.view, asset.download, face.read.</li>
   </ul>
 </div>
+<h2>Konzept: Offline-Client und Immich</h2>
+<div class="card rec">
+  <p><b>Eine App, kein zweites Programm. Wo du sie installierst, entscheidet, ob Immich dazukommt.</b> Glissando ist immer eine Sammlung statischer Dateien. Einmal installiert, läuft sie aus dem Cache des Geräts, mit oder ohne Netz. Immich ist <b>nur beim Auswählen</b> eine Quelle. Was du einmal gewählt hast, liegt auf dem Gerät, und keine Diashow hängt danach noch an Immich.</p>
+  <table style="border-collapse:collapse;width:100%;font-size:13.5px">
+    <tr style="text-align:left;border-bottom:1px solid var(--page-line)"><th style="padding:6px 8px">Installiert von …</th><th style="padding:6px 8px">ohne Netz</th><th style="padding:6px 8px">im Netz, Immich erreichbar</th></tr>
+    <tr style="border-bottom:1px solid var(--page-line)"><td style="padding:6px 8px"><b>öffentlicher Adresse</b><br><span style="color:var(--page-muted)">z. B. GitHub Pages</span></td><td style="padding:6px 8px">alles mit Bildern vom Gerät</td><td style="padding:6px 8px">dasselbe; kein Immich, denn ein Standard-Immich lässt fremde Adressen nicht zu</td></tr>
+    <tr><td style="padding:6px 8px"><b>deinem eigenen Host</b><br><span style="color:var(--page-muted)">z. B. https://glissando.home, Caddy neben Immich</span></td><td style="padding:6px 8px">alles mit Bildern vom Gerät <b>und mit allen schon gewählten Immich-Fotos</b>; die Immich-Kachel ist ausgegraut (H)</td><td style="padding:6px 8px">dazu Alben und Fotos aus Immich wählen; Caddy leitet <code>/immich/</code> weiter</td></tr>
+  </table>
+  <ul>
+    <li><b>„Server“ heißt hier: statische Dateien plus eine Weiterleitung im Reverse-Proxy</b>, den du für Immich ohnehin hast. Kein Glissando-Programm läuft dort, nichts rendert, nichts speichert. Ein echter Glissando-Server (Sync, TV-Steuerung) bleibt ein späterer, eigener Schritt.</li>
+    <li><b>Die eigene Installation ist ebenfalls offline-fähig.</b> Das Handy mit dem von glissando.home installierten Glissando spielt unterwegs jede Diashow, auch die mit Immich-Fotos. Nur neue Fotos aus Immich wählen geht erst wieder zu Hause, oder über VPN bzw. Tailscale.</li>
+    <li>Die Version „immer ohne Immich“ gibt es trotzdem, nämlich die öffentliche Installation. Dafür braucht es keinen Schalter und keinen eigenen Build.</li>
+  </ul>
+</div>
 <h2>Vorschlag (ADR-0013)</h2>
 <div class="card rec">
   <ul>
