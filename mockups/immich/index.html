@@ -291,7 +291,7 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 <h2>In der App</h2>
 <div class="card">
   <ul>
-    <li><b>Nichts einzurichten.</b> Glissando fragt beim Start den eigenen Server, ob Immich dahinter steht. Die Einstellungen zeigen nur den Zustand: A „Nicht eingerichtet“, B „Über diesen Glissando-Server“, C Fehler. Jeder Fehler sagt knapp, was los ist: Immich nicht erreichbar (Details stehen in den Logs des Backends), Schlüssel abgelehnt, Recht fehlt. Läuft die Anmeldung bei Authelia ab, heißt es „Neu laden“.</li>
+    <li><b>Nichts einzurichten.</b> Glissando fragt beim Start den eigenen Server, ob Immich dahinter steht. Die Einstellungen zeigen nur den Zustand: A „Nicht eingerichtet“, B „Über diesen Glissando-Server“, C Fehler. Jeder Fehler sagt knapp, was los ist: Immich nicht erreichbar, Schlüssel abgelehnt, Recht fehlt. Läuft die Anmeldung bei Authelia ab, heißt es „Neu laden“.</li>
     <li><b>D Bilder-Schritt:</b> Die Quelle „Aus Immich“ erscheint nur, wenn der Server Immich anbietet. Über „Öffentliche Installation“ oben siehst du den Schritt ohne sie.</li>
     <li><b>E Alle Fotos:</b> Immich öffnet mit „Alle Fotos“, die neuesten zuerst und nach Tagen gruppiert, auch ohne Album. Beim Scrollen lädt Glissando je 60 weitere nach; Immich liefert dafür Seiten (gemessen). Am Ende steht „Das war alles“.</li>
     <li><b>F/G Alben:</b> Album-Raster mit Filter, der Kreis wählt ein ganzes Album. Im Album gibt es „Tag wählen“ und „Alle wählen“. Die Auswahl gilt über „Alle Fotos“ und mehrere Alben hinweg. Videos werden ausgeblendet und gezählt.</li>
@@ -546,7 +546,7 @@ function viewBrowse() {
       <button class="btn primary" ${total ? "" : "disabled"} data-act="add">${total ? `${fmt(total)} hinzufügen` : "Hinzufügen"}</button></div>`;
 }
 const ERRORS = {
-  unreachable: ["Das Glissando-Backend erreicht den Immich-Server nicht.", "Wer den Server betreibt, findet die Ursache in den Logs des Backends."],
+  unreachable: ["Das Glissando-Backend erreicht den Immich-Server nicht.", ""],
   key: ["Immich lehnt den Schlüssel des Servers ab.", "Wer den Server betreibt: In Immich einen neuen API-Schlüssel anlegen und als IMMICH_API_KEY im Glissando-Container setzen."],
   permission: ["Dem Schlüssel des Servers fehlen Rechte.", "Wer den Server betreibt: Am Schlüssel in Immich album.read, asset.read, asset.view, asset.download und face.read erlauben."],
   signin: ["Deine Anmeldung ist abgelaufen.", "Dein Proxy möchte, dass du dich neu anmeldest. Lade Glissando neu, um dich anzumelden."],
