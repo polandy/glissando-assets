@@ -1,0 +1,650 @@
+<title>Glissando Video sichern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --peach-soft: #ffb59a; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 70ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible, .app input:focus-visible, .frame:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; text-wrap: balance; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; }
+.concept p { margin: 0; }
+.concept ul, .concept ol { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.rec { border-left: 3px solid var(--mint); }
+.card.q { border-left: 3px solid var(--lemon); }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; min-width: 640px; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-top: 1px solid var(--page-line); line-height: 1.45; }
+.tbl th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--page-muted); border-top: 0; }
+code, pre { font-family: var(--mono); font-size: 12.5px; }
+pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px; --well: #0b0a10;
+  --on-photo: #ffffff; --photo-badge: rgba(0, 0, 0, 0.5); --veil: rgba(0, 0, 0, 0.46);
+  width: 100%; max-width: 1200px; height: 760px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; container-type: inline-size; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 820px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --raised: #fbfafc; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --shadow: 0 1px 2px rgba(34, 29, 51, 0.06), 0 6px 18px rgba(34, 29, 51, 0.06);
+  --inverse-bg: #221d33; --inverse-text: #ffffff;
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --raised: #221e2d; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --inverse-bg: #edeaf3; --inverse-text: #1a1723;
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.app svg.i.fill { fill: currentColor; stroke: none; }
+
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; z-index: 3; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs .sep { color: var(--faint); }
+.spacer { flex: 1; }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.iconbtn:hover { background: var(--hover); }
+.iconbtn[aria-disabled="true"] { color: var(--faint); cursor: default; background: transparent; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--ink); background: var(--hover); }
+.btn.sm { height: 32px; padding: 0 11px; font-size: 13px; }
+.scroll { flex: 1; overflow: auto; position: relative; min-height: 0; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0; }
+/* Slideshow screen */
+.show { padding: 24px; display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tile { position: relative; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: var(--hover); }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile .num { position: absolute; left: 6px; top: 6px; background: var(--photo-badge); color: var(--on-photo); border-radius: 6px; font: 500 11px var(--mono); padding: 3px 6px; }
+.info { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; display: grid; gap: 14px; }
+.info .name { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 13px; align-items: center; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; }
+.facts dd small { color: var(--muted); font-weight: 400; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--hover); }
+.pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+.musicrow { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 14px; align-items: center; border: 1px solid var(--line); background: var(--raised); border-radius: var(--radius); padding: 9px 10px 9px 12px; margin: 2px -4px; cursor: pointer; text-align: left; color: var(--ink); font: 500 13px var(--ui); }
+.musicrow:hover { background: var(--hover); }
+.musicrow .lbl { color: var(--muted); font-weight: 400; }
+.musicrow .val { display: grid; gap: 2px; min-width: 0; }
+.musicrow .val b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.musicrow .val small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.musicrow .go { color: var(--muted); display: flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; }
+
+
+/* Info panel: the second action under "Abspielen" */
+.info .actions { display: grid; gap: 8px; }
+.btn.large { height: 44px; font-size: 15px; }
+.btn.block { width: 100%; }
+
+/* The export sheet: a dialog on desktop, a bottom sheet on the phone */
+.backdrop { position: absolute; inset: 0; background: rgba(18, 14, 28, 0.38); z-index: 10; display: grid; place-items: center; padding: 24px; }
+.sheet { width: 100%; max-width: 520px; max-height: 100%; overflow: auto; background: var(--surface); border-radius: 16px; box-shadow: 0 24px 60px rgba(10, 6, 20, 0.3); display: grid; gap: 16px; padding: 20px; color: var(--ink); }
+.sheet header { display: flex; align-items: start; gap: 10px; }
+.sheet header h2 { margin: 0; font-family: var(--display); font-size: 22px; letter-spacing: -0.01em; flex: 1; text-wrap: balance; }
+.sheet header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.presets { display: grid; gap: 8px; }
+.preset { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; text-align: left; border: 1px solid var(--line); background: var(--raised); color: var(--ink); border-radius: var(--radius); padding: 11px 14px; cursor: pointer; font: 500 13px var(--ui); }
+.preset:hover { background: var(--hover); }
+.preset[aria-checked="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.preset[aria-disabled="true"] { cursor: default; color: var(--faint); background: transparent; }
+.preset .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--faint); grid-row: span 2; }
+.preset[aria-checked="true"] .dot { border: 5px solid var(--accent); }
+.preset b { font-weight: 600; font-size: 14px; }
+.preset small { color: var(--muted); font-size: 12px; grid-column: 2; }
+.preset .size { grid-row: span 2; font: 500 13px var(--mono); color: var(--muted); text-align: right; }
+.preset[aria-disabled="true"] small, .preset[aria-disabled="true"] .size { color: var(--faint); }
+.spec { display: flex; flex-wrap: wrap; gap: 6px; }
+.spec span { font: 500 11.5px var(--mono); padding: 3px 8px; border-radius: 999px; background: var(--hover); color: var(--muted); }
+.note { background: var(--hover); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; line-height: 1.45; display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.note.warn { background: color-mix(in srgb, var(--lemon) 22%, var(--surface)); }
+.note.err { background: color-mix(in srgb, var(--coral) 18%, var(--surface)); }
+.note.ok { background: color-mix(in srgb, var(--mint) 22%, var(--surface)); }
+.note b { font-weight: 600; }
+.note p { margin: 0; }
+.foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.preview { position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #000; }
+.preview canvas { width: 100%; height: 100%; display: block; }
+.preview .stamp { position: absolute; right: 8px; bottom: 8px; background: rgba(0, 0, 0, 0.5); color: #fff; font: 500 11.5px var(--mono); padding: 3px 7px; border-radius: 6px; }
+.meter { height: 8px; border-radius: 999px; background: var(--hover); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--mint); border-radius: 999px; }
+.runrow { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.runrow b { color: var(--ink); font-weight: 600; }
+.file { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--raised); }
+.file .thumb { width: 64px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; grid-row: span 2; }
+.file .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.file b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file small { color: var(--muted); font: 500 12px var(--mono); }
+.status-ic { width: 20px; height: 20px; }
+
+/* Live probe */
+.seg-btn { border: 1px solid var(--page-line); background: var(--page-card); color: var(--page-ink); font: 500 13px var(--ui); padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+.probe { display: grid; gap: 12px; max-width: 980px; }
+.probe table { border-collapse: collapse; width: 100%; }
+.probe td, .probe th { text-align: left; padding: 6px 10px; border-top: 1px solid var(--page-line); font-size: 13px; }
+.probe th { font-size: 12px; color: var(--page-muted); text-transform: uppercase; letter-spacing: 0.05em; border-top: 0; }
+.yes { color: #2f8f73; font-weight: 600; } .no { color: #c4473a; font-weight: 600; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .yes { color: var(--mint); } :root:not([data-theme="light"]) .no { color: var(--coral); } }
+
+@container (max-width: 720px) {
+  .show { grid-template-columns: 1fr; padding: 16px; gap: 18px; }
+  .show .info { order: -1; }
+  .tiles { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .hide-narrow { display: none !important; }
+  .backdrop { place-items: end stretch; padding: 0; }
+  .sheet { max-width: none; border-radius: 18px 18px 0 0; padding: 18px 16px 26px; }
+  .foot .btn { flex: 1; }
+}
+</style>
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Diashow als Video sichern</h1>
+      <p>Die Diashow-Ansicht. „Als Video sichern“ unter „Abspielen“ öffnet die Auswahl. Der Ablauf ist im Zeitraffer simuliert, das Vorschaubild wird Bild für Bild gerechnet. Mit „Browser“ lässt sich wechseln, was das Gerät kann; im Tab „Gerät prüfen“ misst die Seite das Gerät, auf dem sie läuft (bitte einmal auf dem iPad).</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Ansicht"><button data-tab="try">Ausprobieren</button><button data-tab="concept">Konzept</button><button data-tab="probe">Gerät prüfen</button></div>
+      <div class="seg" role="group" aria-label="Breite"><button data-width="desk">Desktop</button><button data-width="phone">Telefon</button></div>
+      <div class="seg" role="group" aria-label="Thema"><button data-theme-set="light">Hell</button><button data-theme-set="dark">Dunkel</button></div>
+      <div class="seg" role="group" aria-label="Browser"><button data-browser="chrome">Chrome / Edge</button><button data-browser="safari">Safari iPhone/iPad</button><button data-browser="firefox">Firefox Linux</button><button data-browser="none">Ohne WebCodecs</button></div>
+      <div class="seg" role="group" aria-label="Fehlerfall"><button data-full="0">Genug Speicher</button><button data-full="1">Speicher läuft voll</button></div>
+    </div>
+  </div>
+  <div class="stage" id="stage"></div>
+
+  <div class="probe" id="probe" hidden>
+    <h2 style="font-family: var(--display); margin: 10px 0 0">Was kann dieses Gerät?</h2>
+    <p style="margin: 0; color: var(--page-muted); max-width: 74ch; line-height: 1.5">Fragt den Browser mit <code>VideoEncoder.isConfigSupported</code> und <code>AudioEncoder.isConfigSupported</code>, genau mit den Einstellungen der drei Größen, und kodiert zur Probe 10 Bilder und 1 s Stille. Es verlässt nichts das Gerät. „Ergebnis kopieren“ legt den Text in die Zwischenablage, zum Einfügen in den Chat.</p>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap"><button class="seg-btn" id="probe-run">Erneut messen</button><button class="seg-btn" id="probe-copy">Ergebnis kopieren</button></div>
+    <div class="card" id="probe-out">Misst …</div>
+  </div>
+
+  <div class="concept" id="concept" hidden>
+    <h2>So funktioniert es</h2>
+    <div class="card">
+      <ul>
+        <li><b>Wo</b>: in der Infotafel der Diashow steht unter „Abspielen“ die zweite Schaltfläche „Als Video sichern“. Sie öffnet ein Fenster (am Telefon von unten), in dem man die Größe wählt und startet.</li>
+        <li><b>Drei Größen</b>: Klein 720p (zum Verschicken), Standard 1080p (vorgewählt), Groß 4K (für den Fernseher). Alle mit 30 Bildern/s im Format 16:9. Daneben steht die ungefähre Dateigröße. Eine Größe, die das Gerät nicht kodieren kann, ist ausgegraut und sagt das.</li>
+        <li><b>Während es läuft</b>: das gerade gerechnete Bild als Vorschau, ein Balken, „Bild 4.210 von 10.200“, die Restzeit, „Abbrechen“. Glissando hält dabei den Bildschirm wach (Wake Lock). Wechselt man die App, pausiert das Rechnen und läuft danach weiter; das Video wird davon nicht schlechter, weil jedes Bild seine feste Zeit hat.</li>
+        <li><b>Fertig</b>: auf dem iPhone/iPad „Teilen …“ (Teilen-Menü: „Video sichern“ legt es in Fotos, auch Dateien, AirDrop). In Chrome/Edge am Rechner fragt Glissando schon beim Start, wo die Datei hin soll, und schreibt direkt dorthin. Firefox lädt die fertige Datei herunter.</li>
+        <li><b>Fehler</b>: reicht der Speicher schon vorher sichtbar nicht, warnt das Fenster vor dem Start. Läuft er unterwegs voll, bricht Glissando ab, löscht die halbe Datei und sagt, wie viel Platz fehlt. Ohne WebCodecs bleibt die Schaltfläche da, das Fenster erklärt aber nur, welcher Browser es kann.</li>
+        <li><b>Offline</b>: alles läuft auf dem Gerät, nichts geht an einen Server. Der Muxer wird erst beim ersten Export geladen und ist für den Offline-Betrieb vorab im Cache.</li>
+      </ul>
+    </div>
+
+    <h2>Gemessen: was die Browser kodieren können</h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Browser (Playwright-Image der CI, Linux, ohne GPU)</th><th>H.264</th><th>HEVC</th><th>VP9 / AV1</th><th>AAC</th><th>Opus</th><th>WebGL2 im Worker</th><th>Speichern-Dialog</th></tr></thead>
+        <tbody>
+          <tr><td><b>Chromium 153</b></td><td>ja, bis 4K</td><td>nein</td><td>ja, bis 4K</td><td><b>nein</b></td><td>ja</td><td>ja</td><td>ja</td></tr>
+          <tr><td><b>Firefox 155</b></td><td>ja, bis 4K</td><td>nein</td><td>ja, bis 4K</td><td><b>nein</b></td><td>ja</td><td>nein</td><td>nein</td></tr>
+          <tr><td><b>WebKit 26.6</b></td><td>ja, bis 4K</td><td>ja</td><td>ja, bis 4K</td><td>ja</td><td>ja</td><td>nein</td><td>nein</td></tr>
+        </tbody>
+      </table>
+      <p>4K braucht H.264 Level 5.1 (<code>avc1.640033</code>); mit Level 4.0 lehnen alle 4K ab, wie es sein soll. Jede Zusage von <code>isConfigSupported</code> hat eine echte Probe-Kodierung bestätigt. Überall vorhanden sind VideoEncoder, AudioEncoder, OfflineAudioContext und der private Dateispeicher (OPFS) mit schreibbarem Datenstrom. Das ist die Untergrenze: echtes Chrome unter Windows/macOS/Android kodiert AAC über das Betriebssystem, unter Linux nicht. Was Safari auf dem iPad sagt, zeigt der Tab „Gerät prüfen“. Deshalb fragt Glissando das Gerät beim Öffnen des Fensters und rät nichts.</p>
+    </div>
+
+    <h2>Das Format: Vorschlag</h2>
+    <div class="card rec">
+      <ul>
+        <li><b>MP4 mit H.264 und AAC</b>: die einzige Kombination, die iPhone/iPad (Fotos, Dateien), Fernseher über USB/DLNA und jeder Rechner abspielen. H.264 High (<code>avc1.640028</code>, 4K <code>avc1.640033</code>), AAC-LC 48 kHz Stereo 160 kbit/s, ein Schlüsselbild alle 2 s. Bitraten: 720p 4, 1080p 8, 4K 24 Mbit/s.</li>
+        <li><b>Ohne AAC-Encoder</b> (Chrome und Firefox unter Linux): der Ton kommt als Opus in die MP4. Das spielt jeder Rechner, VLC und Android, aber nicht Apple-Geräte; das Fenster sagt das vorher (gelber Hinweis, Browser „Firefox Linux“).</li>
+        <li><b>Hardware</b>: <code>hardwareAcceleration: "no-preference"</code>, der Browser nimmt den Hardware-Encoder, wo es einen gibt. Die Angabe „prefer-hardware“ wird in der Messung ohne GPU trotzdem akzeptiert, ist also kein verlässliches Signal und wird nicht angezeigt.</li>
+        <li><b>HEVC, VP9, AV1 nicht</b>: HEVC kann nur Safari kodieren, VP9 und AV1 spielen Fernseher und ältere iPhones nicht zuverlässig. Kleinere Dateien wären möglich, aber eine Datei, die nicht überall läuft, verfehlt den Zweck.</li>
+      </ul>
+    </div>
+
+    <h2>Rechnen: Bild für Bild, ohne Bildschirmaufnahme</h2>
+    <div class="card">
+      <ul>
+        <li><b>Derselbe Player</b>: der WebGL2-Player (<code>src/player/</code>) hat schon die Ports <code>Clock</code> und <code>FrameScheduler</code>. Der Export gibt ihm eine Uhr, die nur er weiterstellt: Bild <i>n</i> liegt genau bei <i>n</i> × 1/30 s. Für jedes Bild: Zeit setzen, warten, bis die Bilder geladen sind (der bestehende Weg über das Spulen im Pausezustand), zeichnen, <code>new VideoFrame(canvas, { timestamp })</code>, kodieren. Ken Burns, Übergänge und Bildtexte sind damit genau wie im Player, auch auf einem langsamen Gerät.</li>
+        <li><b>Leinwand</b>: unsichtbar, fest 1280×720 / 1920×1080 / 3840×2160, Pixelverhältnis 1, ohne Platz für Bedienelemente (<code>captionInset</code> 0, wie in PLAYER.md vorgesehen). Die Schrift der Bildtexte wird vor dem ersten Bild abgewartet.</li>
+        <li><b>Gegendruck</b>: liegen mehr als ein paar Bilder in der Warteschlange des Encoders (<code>encodeQueueSize</code>), wartet der Export auf dessen <code>dequeue</code>-Ereignis. So wächst der Speicher nicht, und die Seite bleibt bedienbar.</li>
+        <li><b>Musik</b>: die Lautstärke ist schon heute eine reine Funktion der Zeit (<code>musicGainAt</code>, ADR-0009). Ein <code>OfflineAudioContext</code> (48 kHz) spielt den Ausschnitt mit genau dieser Kurve, in Stücken zu 30 s, damit am Telefon nie die ganze Diashow als PCM im Speicher liegt. Die Stücke gehen als <code>AudioData</code> in den AudioEncoder, abwechselnd mit den Videobildern.</li>
+        <li><b>Hauptthread statt Worker</b>: WebGL2 auf einer OffscreenCanvas im Worker gibt es in der Messung nur in Chromium, und der Renderer braucht heute eine echte Canvas. Die Kodierung selbst läuft im Browser ohnehin neben dem Hauptthread. Ein Worker kommt erst, wenn die Messung im PR zeigt, dass die Seite ruckelt.</li>
+      </ul>
+    </div>
+
+    <h2>Speicher und lange Diashows</h2>
+    <div class="card">
+      <ul>
+        <li><b>Nie das ganze Video im Arbeitsspeicher</b>: ein 1080p-Video von 6 Minuten hat etwa 360 MB. Der Muxer schreibt in Stücken direkt in eine Datei: in Chrome/Edge in die gewählte Datei (<code>showSaveFilePicker</code>), sonst in den privaten Dateispeicher des Browsers (OPFS, <code>createWritable</code>). Teilen und Herunterladen reichen von dort eine <code>File</code> weiter, die auf der Platte liegt.</li>
+        <li><b>Vorher prüfen</b>: <code>navigator.storage.estimate()</code> gegen die erwartete Größe. Reicht es sichtbar nicht, kommt vor dem Start ein Hinweis mit kleinerer Größe als Ausweg.</li>
+        <li><b>Unterwegs voll</b> (<code>QuotaExceededError</code>): Abbruch, halbe Datei löschen, Fehlermeldung (Umschalter „Speicher läuft voll“).</li>
+        <li><b>Aufräumen</b>: die Kopie im privaten Speicher wird gelöscht, sobald das Fenster geschlossen wird, und beim nächsten Start der App, falls sie dabei abgestürzt ist.</li>
+      </ul>
+    </div>
+
+    <h2>ADR-0015: Muxer (Vorschlag)</h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Kandidat</th><th>Lizenz</th><th>Größe (min+gz)</th><th>Pflege</th><th>Bewertung</th></tr></thead>
+        <tbody>
+          <tr><td><b>mediabunny 1.61.3</b> (Empfehlung)</td><td>MPL-2.0</td><td>33 KB</td><td>aktiv, letzte Version 2026-10-05; keine Laufzeit-Abhängigkeiten</td><td>MP4 mit H.264+AAC/Opus, schreibt in Stücken, <code>moov</code> vorn mit reserviertem Platz (die Zahl der Bilder steht vorher fest). Nur beim Export nachgeladen. MPL gilt pro Datei: unverändert eingebunden, Lizenztext liegt bei.</td></tr>
+          <tr><td>mp4-muxer 5.2.2</td><td>MIT</td><td>9 KB</td><td><b>abgekündigt</b> seit 2025-07, Nachfolger ist mediabunny</td><td>Gleiche Fähigkeiten, kleiner, aber eingefroren: Fehler bleiben.</td></tr>
+          <tr><td>webm-muxer 5.1.4</td><td>MIT</td><td>8 KB</td><td><b>abgekündigt</b></td><td>WebM kann kein AAC; iPhones erst ab iOS 17.4/18.4, Fernseher selten.</td></tr>
+          <tr><td>mp4box.js 2.4.1</td><td>BSD-3</td><td>groß (2,3 MB entpackt)</td><td>aktiv</td><td>Werkzeugkasten zum Lesen und Segmentieren, kein Schreiber für WebCodecs; viel eigener Klebstoff.</td></tr>
+          <tr><td>Eigener Muxer</td><td>–</td><td>~5 KB</td><td>wir</td><td>400–700 Zeilen. Das Risiko liegt in Dateien, die in Chrome laufen, auf dem iPhone oder Fernseher aber nicht. Anders als beim eigenen ZIP (ADR-0004) ist das Format hier nicht klein.</td></tr>
+        </tbody>
+      </table>
+      <p>Pin wie immer: exakte Version, Integrität im Lockfile (<code>sha512-kUqLKVXQ…</code>), gefrorene Installation.</p>
+    </div>
+
+    <h2>Tests</h2>
+    <div class="card">
+      <ul>
+        <li><b>Ports mit Fakes</b>: <code>FrameClock</code> (wird nur vom Export weitergestellt), <code>VideoEncoderPort</code>, <code>AudioEncoderPort</code>, <code>MuxerPort</code>, <code>FileSink</code>. Unit-Tests prüfen ohne Browser: Zeitstempel genau <i>n</i>/30 s, Schlüsselbild alle 60 Bilder, Gegendruck, Abbruch räumt auf, voller Speicher löscht die halbe Datei, Fortschritt pro Bild.</li>
+        <li><b>Browser-Test</b> (Chromium, Firefox, WebKit): eine kleine erzeugte Diashow wird wirklich exportiert und die MP4 wieder gelesen: Dauer, Zahl der Bilder, Tonspur.</li>
+        <li><b>E2E-030</b> nach deinem OK am gebauten Stand. Im PR eine Messung: Kodiergeschwindigkeit pro Größe am Rechner und mit gedrosseltem Telefon-Profil, dazu die Dateigrößen. Nur mit erzeugten oder gemeinfreien Bildern.</li>
+      </ul>
+    </div>
+
+    <h2>Offene Fragen</h2>
+    <div class="card q">
+      <ol>
+        <li><b>Ort</b>: zweite Schaltfläche in der Infotafel (Vorschlag, gut sichtbar) oder im Menü ⋯ neben „Exportieren“ (ruhiger, aber dort steht die .glissando-Datei, was leicht verwechselt wird)?</li>
+        <li><b>Format</b>: nur 16:9 mit 30 Bildern/s (Vorschlag), oder auch Hochformat 9:16 fürs Telefon bzw. 60 Bilder/s für noch weichere Bewegung (doppelte Rechenzeit)?</li>
+        <li><b>Ohne AAC</b> (Linux-Browser): mit Opus-Ton und Hinweis exportieren (Vorschlag) oder dort gar nicht anbieten?</li>
+      </ol>
+    </div>
+  </div>
+</div>
+<script>
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const PALETTES = [
+  ["#ffcfa8", "#ff8f70", "#fff1c9", "#5a3e64", "#2f2440", "#2b5d73"],
+  ["#9fd3f2", "#e7f4fb", "#fff6c2", "#5c8a6b", "#2f5a45", "#3d7fa0"],
+  ["#2a2350", "#c96b8a", "#ffd9a0", "#3a2d55", "#1d1830", "#4a3a6a"],
+  ["#b9e2f5", "#fbe9d0", "#ffe08a", "#8a9bb0", "#56677d", "#6aa0b8"],
+  ["#f6d0c4", "#f9efe4", "#fff3d6", "#b47a6a", "#7a4f48", "#a87a6e"],
+  ["#87c1e8", "#d6eef7", "#fff4b8", "#4f7d4a", "#2e5530", "#6b9c63"],
+  ["#ffb48a", "#ffe2b8", "#fff0c0", "#6a4a3a", "#3d2a24", "#8a6a5a"],
+  ["#a8c8e8", "#eef3f8", "#ffffff", "#7d8ea6", "#4a5872", "#9fb3c8"],
+];
+function scene(i, w, h) {
+  const r = rng(i * 977 + 13), [s1, s2, sun, m1, m2, water] = PALETTES[i % PALETTES.length];
+  const horizon = h * (0.55 + r() * 0.12);
+  const ridge = (base, amp, n) => { let d = `M0 ${h} L0 ${base}`; for (let k = 0; k <= n; k++) d += ` L${(w * k) / n} ${base - r() * amp}`; return d + ` L${w} ${h} Z`; };
+  const sx = w * (0.2 + r() * 0.6), sy = horizon * (0.3 + r() * 0.35), sr = Math.min(w, h) * 0.07;
+  const px = w * (0.25 + r() * 0.5), py = horizon + (h - horizon) * 0.35, ps = h * 0.11;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s1}"/><stop offset="1" stop-color="${s2}"/></linearGradient>
+<linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${water}"/><stop offset="1" stop-color="${m2}"/></linearGradient></defs>
+<rect width="${w}" height="${h}" fill="url(#s)"/><circle cx="${sx}" cy="${sy}" r="${sr}" fill="${sun}"/>
+<path d="${ridge(horizon - h * 0.04, h * 0.22, 7)}" fill="${m1}" opacity="0.75"/>
+<path d="${ridge(horizon, h * 0.12, 11)}" fill="${m2}"/>
+<rect y="${horizon}" width="${w}" height="${h - horizon}" fill="url(#w)"/>
+<g fill="#1b1622"><circle cx="${px}" cy="${py - ps * 0.82}" r="${ps * 0.17}"/><rect x="${px - ps * 0.2}" y="${py - ps * 0.62}" width="${ps * 0.4}" height="${ps * 0.62}" rx="${ps * 0.14}"/></g>
+</svg>`;
+}
+
+
+const ICON = {
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  play: '<path d="M8 5.5v13l11-6.5z"/>',
+  film: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  share: '<path d="M12 4v11"/><path d="M8 8l4-4 4 4"/><path d="M6 12v6.5a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V12"/>',
+  download: '<path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 19h14"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 10"/>',
+  warn: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  right: '<path d="M10 7l5 5-5 5"/>',
+};
+const icon = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+
+/* ---------- The slideshow: 24 pictures, 5:40 with music ---------- */
+const N = 24, SHOW_S = 340, FPS = 30, FADE_S = 1.2, TITLE = "Sommer 2025";
+const FRAMES = SHOW_S * FPS, SLIDE_S = SHOW_S / N, AUDIO_KBPS = 160;
+const pics = Array.from({ length: N }, (_, i) => {
+  const [w, h] = i % 5 === 2 ? [200, 300] : [300, 200];
+  return { src: "data:image/svg+xml;utf8," + encodeURIComponent(scene(i, w, h)), w, h };
+});
+const bitmaps = pics.map((p) => { const im = new Image(); im.src = p.src; return im; });
+
+const PRESETS = [
+  { id: "720", name: "Klein", res: "1280 × 720", w: 1280, h: 720, mbps: 4, use: "Zum Verschicken" },
+  { id: "1080", name: "Standard", res: "1920 × 1080", w: 1920, h: 1080, mbps: 8, use: "Für Rechner, Telefon und Tablet" },
+  { id: "4k", name: "Groß", res: "3840 × 2160", w: 3840, h: 2160, mbps: 24, use: "Für den Fernseher" },
+];
+/** What each simulated browser can do: the real app asks isConfigSupported when the sheet opens. */
+const BROWSERS = {
+  chrome: { codecs: true, aac: true, fourK: true, picker: true, share: false },
+  safari: { codecs: true, aac: true, fourK: true, picker: false, share: true },
+  firefox: { codecs: true, aac: false, fourK: true, picker: false, share: false },
+  none: { codecs: false },
+};
+const sizeMb = (p) => ((p.mbps * 1000 + AUDIO_KBPS) * SHOW_S) / 8 / 1000;
+const fmtSize = (mb) => (mb >= 1000 ? (mb / 1000).toFixed(1).replace(".", ",") + " GB" : Math.round(mb) + " MB");
+const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+const fmtInt = (n) => n.toLocaleString("de-DE");
+
+const S = { tab: "try", width: "desk", theme: "light", browser: "chrome", full: "0", sheet: null, preset: "1080",
+  frame: 0, startedAt: 0, timer: null, savedTo: null };
+const B = () => BROWSERS[S.browser];
+const preset = () => PRESETS.find((p) => p.id === S.preset);
+const presetOk = (p) => p.id !== "4k" || B().fourK;
+
+/* ---------- Screens ---------- */
+function bar() {
+  return `<div class="bar">
+    <button class="iconbtn" aria-label="Zurück">${icon("back")}</button>
+    <div class="crumbs"><span class="hide-narrow">Bibliothek</span><span class="sep hide-narrow">/</span><b>${TITLE}</b></div>
+    <div class="spacer"></div>
+    <button class="iconbtn" aria-label="Mehr">${icon("more")}</button>
+  </div>`;
+}
+function infoPanel() {
+  return `<aside class="info">
+    <div><div class="eyebrow">Diashow</div><div class="name">${TITLE}</div><div class="muted mono" style="font-size: 12.5px">12. Juli – 3. Aug. 2025</div></div>
+    <div class="actions">
+      <button class="btn primary large block">${icon("play", "fill")}Abspielen</button>
+      <button class="btn large block" data-open-export>${icon("film")}Als Video sichern</button>
+    </div>
+    <dl class="facts">
+      <dt>Bilder</dt><dd class="mono">${N}</dd>
+      <dt>Dauer</dt><dd class="mono">${fmtTime(SHOW_S)}</dd>
+      <button class="musicrow"><span class="lbl">Musik</span><span class="val"><b>Sommerwind.mp3</b><small>0:12 – 5:52</small></span><span class="go">Bearbeiten${icon("right")}</span></button>
+      <dt>Übergänge</dt><dd>Überblenden</dd>
+      <dt>Ken Burns</dt><dd>Automatisch <small>· 3 eigene</small></dd>
+    </dl>
+  </aside>`;
+}
+function showScreen() {
+  const tiles = pics.map((p, i) => `<div class="tile"><img alt="" src="${p.src}"><span class="num">${i + 1}</span></div>`).join("");
+  return `${bar()}<div class="scroll"><div class="show"><div class="tiles">${tiles}</div>${infoPanel()}</div></div>`;
+}
+
+function sheetHeader(title, sub) {
+  return `<header><div style="flex: 1"><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div>
+    <button class="iconbtn" data-close aria-label="Schließen">${icon("close")}</button></header>`;
+}
+function chooseSheet() {
+  if (!B().codecs) {
+    return `${sheetHeader("Als Video sichern")}
+      <div class="note">${icon("info", "status-ic")}<p><b>Dieser Browser kann keine Videos erstellen.</b> Dafür braucht Glissando WebCodecs. Es geht in aktuellem Chrome, Edge, Firefox und Safari (auch auf iPhone und iPad).</p></div>
+      <div class="foot"><button class="btn" data-close>Schließen</button></div>`;
+  }
+  const items = PRESETS.map((p) => {
+    const ok = presetOk(p);
+    return `<button class="preset" role="radio" aria-checked="${ok && p.id === S.preset}" aria-disabled="${!ok}" data-preset="${p.id}">
+      <span class="dot"></span><b>${p.name} <span class="muted mono" style="font-weight: 400; font-size: 12.5px">${p.res}</span></b>
+      <span class="size">${ok ? "ca. " + fmtSize(sizeMb(p)) : ""}</span>
+      <small>${ok ? p.use : "Kann dieses Gerät nicht kodieren"}</small></button>`;
+  }).join("");
+  const aac = B().aac;
+  const tight = S.full === "1" && S.preset === "4k";
+  return `${sheetHeader("Als Video sichern", `${TITLE} · ${fmtTime(SHOW_S)} · mit Musik`)}
+    <div class="presets" role="radiogroup" aria-label="Größe">${items}</div>
+    <div class="spec"><span>MP4</span><span>H.264</span><span>${aac ? "AAC" : "Opus"}</span><span>30 Bilder/s</span></div>
+    ${aac ? "" : `<div class="note warn">${icon("warn", "status-ic")}<p><b>Der Ton wird Opus.</b> Dieser Browser kann kein AAC kodieren. Das Video läuft am Rechner, in VLC und auf Android, aber nicht auf iPhone, iPad und Apple TV. Für Apple-Geräte in Safari oder Chrome unter Windows/macOS sichern.</p></div>`}
+    ${tight ? `<div class="note warn">${icon("warn", "status-ic")}<p><b>Der Speicher reicht wohl nicht.</b> Frei sind etwa 900 MB, „Groß“ braucht ca. ${fmtSize(sizeMb(preset()))}. „Standard“ passt.</p></div>` : ""}
+    <p class="small">Glissando rechnet jedes Bild einzeln, das dauert je nach Gerät etwa so lange wie die Diashow. Glissando muss dabei offen bleiben; der Bildschirm bleibt an.</p>
+    <div class="foot"><button class="btn ghost" data-close>Abbrechen</button><button class="btn primary" data-start>${icon("film")}Video erstellen</button></div>`;
+}
+function runSheet() {
+  const f = S.frame, frac = f / FRAMES, elapsed = (performance.now() - S.startedAt) / 1000;
+  // The mockup runs as a time lapse; the remaining time is shown as if one frame took 1/30 s.
+  const remaining = (FRAMES - f) / FPS;
+  return `${sheetHeader("Video wird erstellt", `${preset().name} · ${preset().res}`)}
+    <div class="preview"><canvas id="pv" width="480" height="270"></canvas><span class="stamp">${fmtTime(f / FPS)} / ${fmtTime(SHOW_S)}</span></div>
+    <div class="meter" role="progressbar" aria-valuenow="${Math.round(frac * 100)}" aria-valuemin="0" aria-valuemax="100"><i style="width: ${(frac * 100).toFixed(1)}%"></i></div>
+    <div class="runrow"><span>Bild <b class="mono">${fmtInt(f)}</b> von <span class="mono">${fmtInt(FRAMES)}</span></span><span>noch etwa <b class="mono">${fmtTime(remaining)}</b></span></div>
+    <p class="small">Du kannst die App wechseln: das Rechnen pausiert und läuft danach weiter.</p>
+    <div class="foot"><button class="btn" data-cancel>Abbrechen</button></div>`;
+}
+function doneSheet() {
+  const p = preset(), name = `${TITLE} (${p.id === "4k" ? "4K" : p.id + "p"}).mp4`;
+  const fileRow = `<div class="file"><span class="thumb"><img alt="" src="${pics[0].src}"></span><b>${name}</b><small>${fmtSize(sizeMb(p))} · ${fmtTime(SHOW_S)} · ${p.res}</small></div>`;
+  let actions, note;
+  if (B().picker) {
+    note = `<div class="note ok">${icon("check", "status-ic")}<p><b>Gespeichert</b> in „Videos“, wie beim Start gewählt.</p></div>`;
+    actions = `<button class="btn primary" data-close>Fertig</button>`;
+  } else if (B().share) {
+    note = `<p class="small">„Teilen …“ öffnet das Teilen-Menü: „Video sichern“ legt es in Fotos, außerdem Dateien, AirDrop und Nachrichten.</p>`;
+    actions = `<button class="btn ghost" data-close>Schließen</button><button class="btn primary">${icon("share")}Teilen …</button>`;
+  } else {
+    note = `<p class="small">Schließen löscht die Kopie in Glissando; vorher herunterladen.</p>`;
+    actions = `<button class="btn ghost" data-close>Schließen</button><button class="btn primary">${icon("download")}Herunterladen</button>`;
+  }
+  return `${sheetHeader("Video ist fertig")}${fileRow}${note}<div class="foot">${actions}</div>`;
+}
+function errorSheet() {
+  return `${sheetHeader("Video nicht erstellt")}
+    <div class="note err">${icon("warn", "status-ic")}<p><b>Der Speicher des Geräts ist voll.</b> Bei Bild ${fmtInt(S.frame)} von ${fmtInt(FRAMES)} war kein Platz mehr. Die halbe Datei ist gelöscht. Es fehlen etwa ${fmtSize(sizeMb(preset()) * 0.4)}; mit „Klein“ oder nach dem Aufräumen des Geräts klappt es.</p></div>
+    <div class="foot"><button class="btn ghost" data-close>Schließen</button><button class="btn primary" data-back>Andere Größe wählen</button></div>`;
+}
+function sheet() {
+  if (!S.sheet) return "";
+  const body = { choose: chooseSheet, run: runSheet, done: doneSheet, error: errorSheet }[S.sheet]();
+  return `<div class="backdrop"><div class="sheet" role="dialog" aria-modal="true">${body}</div></div>`;
+}
+
+/* ---------- The frame preview: Ken Burns and crossfade at the export's own clock ---------- */
+function drawPicture(ctx, i, t, alpha) {
+  const im = bitmaps[i % N], W = ctx.canvas.width, H = ctx.canvas.height;
+  if (!im.complete) return;
+  const local = (t - i * SLIDE_S) / (SLIDE_S + FADE_S), zoom = 1.06 + 0.12 * (i % 2 ? local : 1 - local);
+  const ar = pics[i].w / pics[i].h, fitH = ar >= W / H ? H : W / ar, fitW = fitH * ar;
+  const dw = fitW * zoom, dh = fitH * zoom, dx = (W - dw) / 2 + (i % 3 - 1) * 14 * local, dy = (H - dh) / 2;
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(im, dx, dy, dw, dh);
+  ctx.globalAlpha = 1;
+}
+function drawFrame() {
+  const cv = document.getElementById("pv");
+  if (!cv) return;
+  const ctx = cv.getContext("2d"), t = S.frame / FPS, i = Math.min(N - 1, Math.floor(t / SLIDE_S));
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cv.width, cv.height);
+  drawPicture(ctx, i, t, 1);
+  const intoNext = t - (i + 1) * SLIDE_S + FADE_S;
+  if (i < N - 1 && intoNext > 0) drawPicture(ctx, i + 1, t, intoNext / FADE_S);
+}
+
+/* ---------- Run simulation: a 14 s time lapse of the whole export ---------- */
+const LAPSE_MS = 14000;
+function start() {
+  if (B().picker) S.savedTo = "Videos";
+  S.sheet = "run"; S.frame = 0; S.startedAt = performance.now();
+  render();
+  const tick = () => {
+    if (S.sheet !== "run") return;
+    S.frame = Math.min(FRAMES, Math.round(((performance.now() - S.startedAt) / LAPSE_MS) * FRAMES));
+    if (S.full === "1" && S.frame >= FRAMES * 0.6) { S.frame = Math.round(FRAMES * 0.6); S.sheet = "error"; render(); return; }
+    if (S.frame >= FRAMES) { S.sheet = "done"; render(); return; }
+    updateRun();
+    S.timer = requestAnimationFrame(tick);
+  };
+  S.timer = requestAnimationFrame(tick);
+}
+/** Updates only the moving parts, so buttons keep focus while the export runs. */
+function updateRun() {
+  const sh = document.querySelector(".sheet");
+  if (!sh) return;
+  const frac = S.frame / FRAMES;
+  sh.querySelector(".meter i").style.width = (frac * 100).toFixed(1) + "%";
+  sh.querySelector(".meter").setAttribute("aria-valuenow", Math.round(frac * 100));
+  const b = sh.querySelectorAll(".runrow b");
+  b[0].textContent = fmtInt(S.frame);
+  b[1].textContent = fmtTime((FRAMES - S.frame) / FPS);
+  sh.querySelector(".stamp").textContent = `${fmtTime(S.frame / FPS)} / ${fmtTime(SHOW_S)}`;
+  drawFrame();
+}
+
+/* ---------- Render and events ---------- */
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  document.querySelectorAll("[data-tab]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tab === S.tab));
+  document.querySelectorAll("[data-width]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.width === S.width));
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.themeSet === S.theme));
+  document.querySelectorAll("[data-browser]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.browser === S.browser));
+  document.querySelectorAll("[data-full]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.full === S.full));
+  document.getElementById("stage").hidden = S.tab !== "try";
+  document.getElementById("concept").hidden = S.tab !== "concept";
+  document.getElementById("probe").hidden = S.tab !== "probe";
+  document.querySelectorAll(".controls .seg:nth-child(n+2)").forEach((s) => (s.style.visibility = S.tab === "try" ? "" : "hidden"));
+  const scrollTop = document.querySelector(".app .scroll")?.scrollTop ?? 0;
+  document.getElementById("stage").innerHTML = `<div class="app ${S.width === "phone" ? "phone" : ""} ${S.theme}">${showScreen()}${sheet()}</div>`;
+  const sc = document.querySelector(".app .scroll");
+  if (sc) sc.scrollTop = scrollTop;
+  drawFrame();
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  const d = t.dataset;
+  if (d.tab) { S.tab = d.tab; if (S.tab === "probe" && !probed) runProbe(); }
+  else if (d.width) S.width = d.width;
+  else if (d.themeSet) S.theme = d.themeSet;
+  else if (d.browser) { S.browser = d.browser; if (!presetOk(preset())) S.preset = "1080"; if (S.sheet === "run") cancelAnimationFrame(S.timer); if (S.sheet) S.sheet = "choose"; }
+  else if (d.full) S.full = d.full;
+  else if ("openExport" in d) S.sheet = "choose";
+  else if ("close" in d) { cancelAnimationFrame(S.timer); S.sheet = null; }
+  else if (d.preset) { if (t.getAttribute("aria-disabled") === "true") return; S.preset = d.preset; }
+  else if ("start" in d) return start();
+  else if ("cancel" in d) { cancelAnimationFrame(S.timer); S.sheet = "choose"; }
+  else if ("back" in d) { S.sheet = "choose"; S.preset = "720"; }
+  else return;
+  render();
+});
+
+/* ---------- Live probe of this device ---------- */
+let probed = false, probeText = "";
+const VIDEO = [
+  ["H.264 720p", { codec: "avc1.640028", width: 1280, height: 720, bitrate: 4e6, framerate: 30 }],
+  ["H.264 1080p", { codec: "avc1.640028", width: 1920, height: 1080, bitrate: 8e6, framerate: 30 }],
+  ["H.264 4K", { codec: "avc1.640033", width: 3840, height: 2160, bitrate: 24e6, framerate: 30 }],
+  ["HEVC 1080p", { codec: "hvc1.1.6.L120.B0", width: 1920, height: 1080, bitrate: 6e6, framerate: 30 }],
+  ["VP9 1080p", { codec: "vp09.00.40.08", width: 1920, height: 1080, bitrate: 6e6, framerate: 30 }],
+  ["AV1 1080p", { codec: "av01.0.08M.08", width: 1920, height: 1080, bitrate: 5e6, framerate: 30 }],
+];
+const AUDIO = [
+  ["AAC 48 kHz", { codec: "mp4a.40.2", sampleRate: 48000, numberOfChannels: 2, bitrate: 160000 }],
+  ["AAC 44,1 kHz", { codec: "mp4a.40.2", sampleRate: 44100, numberOfChannels: 2, bitrate: 160000 }],
+  ["Opus 48 kHz", { codec: "opus", sampleRate: 48000, numberOfChannels: 2, bitrate: 160000 }],
+];
+async function supported(Ctor, cfg) {
+  try { return (await Ctor.isConfigSupported(cfg)).supported === true; } catch (err) { return "Fehler: " + err.name; }
+}
+async function hwSupported(cfg) {
+  return supported(window.VideoEncoder, { ...cfg, hardwareAcceleration: "prefer-hardware" });
+}
+async function trialVideo() {
+  try {
+    let chunks = 0, failed = null;
+    const enc = new VideoEncoder({ output: () => chunks++, error: (err) => (failed = err.name) });
+    enc.configure({ codec: "avc1.640028", width: 1280, height: 720, bitrate: 4e6, framerate: 30 });
+    const cv = new OffscreenCanvas(1280, 720), ctx = cv.getContext("2d");
+    for (let n = 0; n < 10; n++) {
+      ctx.fillStyle = `hsl(${n * 36} 70% 60%)`; ctx.fillRect(0, 0, 1280, 720);
+      const f = new VideoFrame(cv, { timestamp: Math.round((n * 1e6) / 30) });
+      enc.encode(f, { keyFrame: n === 0 }); f.close();
+    }
+    await enc.flush(); enc.close();
+    return failed ? "Fehler: " + failed : `${chunks} Stücke`;
+  } catch (err) { return "Fehler: " + err.name; }
+}
+async function trialAudio(codec) {
+  try {
+    let chunks = 0, failed = null;
+    const enc = new AudioEncoder({ output: () => chunks++, error: (err) => (failed = err.name) });
+    enc.configure({ codec, sampleRate: 48000, numberOfChannels: 2, bitrate: 160000 });
+    const frames = 48000, data = new Float32Array(frames * 2);
+    enc.encode(new AudioData({ format: "f32-planar", sampleRate: 48000, numberOfFrames: frames, numberOfChannels: 2, timestamp: 0, data }));
+    await enc.flush(); enc.close();
+    return failed ? "Fehler: " + failed : `${chunks} Stücke`;
+  } catch (err) { return "Fehler: " + err.name; }
+}
+async function runProbe() {
+  probed = true;
+  const out = document.getElementById("probe-out");
+  out.textContent = "Misst …";
+  const rows = [], has = (x) => (x ? "ja" : "nein");
+  rows.push(["Browser", navigator.userAgent]);
+  rows.push(["VideoEncoder / AudioEncoder", `${has(window.VideoEncoder)} / ${has(window.AudioEncoder)}`]);
+  rows.push(["OfflineAudioContext", has(window.OfflineAudioContext)]);
+  rows.push(["Privater Dateispeicher (OPFS)", has(navigator.storage?.getDirectory)]);
+  rows.push(["Schreibbarer Datenstrom", has(window.FileSystemFileHandle?.prototype.createWritable)]);
+  rows.push(["Speichern-Dialog", has(window.showSaveFilePicker)]);
+  rows.push(["Teilen von Dateien", has(navigator.canShare)]);
+  rows.push(["Bildschirm wach halten", has(navigator.wakeLock)]);
+  try { const e = await navigator.storage.estimate(); rows.push(["Freier Speicher (Schätzung)", fmtSize((e.quota - e.usage) / 1e6)]); } catch { rows.push(["Freier Speicher (Schätzung)", "unbekannt"]); }
+  if (window.VideoEncoder) {
+    for (const [label, cfg] of VIDEO) {
+      const v = await supported(VideoEncoder, cfg), hw = await hwSupported(cfg);
+      rows.push([label, v === true ? (hw === true ? "ja (Hardware gemeldet)" : "ja") : v === false ? "nein" : v]);
+    }
+    rows.push(["Probe: 10 Bilder H.264 720p", await trialVideo()]);
+  }
+  if (window.AudioEncoder) {
+    for (const [label, cfg] of AUDIO) { const v = await supported(AudioEncoder, cfg); rows.push([label, v === true ? "ja" : v === false ? "nein" : v]); }
+    rows.push(["Probe: 1 s AAC", await trialAudio("mp4a.40.2")]);
+    rows.push(["Probe: 1 s Opus", await trialAudio("opus")]);
+  }
+  const cls = (v) => (/^(ja|\d+ Stücke)/.test(v) ? "yes" : /^(nein|Fehler)/.test(v) ? "no" : "");
+  out.innerHTML = `<table><tbody>${rows.map(([k, v]) => `<tr><th style="text-transform: none; letter-spacing: 0">${k}</th><td class="${cls(String(v))}">${v}</td></tr>`).join("")}</tbody></table>`;
+  probeText = rows.map(([k, v]) => `${k}: ${v}`).join("\n");
+}
+document.getElementById("probe-run").addEventListener("click", runProbe);
+document.getElementById("probe-copy").addEventListener("click", async (e) => {
+  try { await navigator.clipboard.writeText(probeText); e.target.textContent = "Kopiert"; }
+  catch { e.target.textContent = "Kopieren ging nicht"; }
+});
+
+if (matchMedia("(prefers-color-scheme: dark)").matches) S.theme = "dark";
+if (matchMedia("(max-width: 640px)").matches) S.width = "phone";
+render();
+bitmaps.forEach((im) => (im.onload = () => drawFrame()));
+</script>
