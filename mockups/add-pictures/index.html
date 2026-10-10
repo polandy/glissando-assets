@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bilder hinzufügen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --peach-soft: #ffb59a; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 70ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible, .app input:focus-visible, .frame:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; text-wrap: balance; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; }
+.concept p { margin: 0; }
+.concept ul, .concept ol { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.rec { border-left: 3px solid var(--mint); }
+.card.q { border-left: 3px solid var(--lemon); }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; min-width: 640px; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-top: 1px solid var(--page-line); line-height: 1.45; }
+.tbl th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--page-muted); border-top: 0; }
+code, pre { font-family: var(--mono); font-size: 12.5px; }
+pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px; --well: #0b0a10;
+  --on-photo: #ffffff; --photo-badge: rgba(0, 0, 0, 0.5); --veil: rgba(0, 0, 0, 0.46);
+  width: 100%; max-width: 1200px; height: 760px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; container-type: inline-size; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 820px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --raised: #fbfafc; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --shadow: 0 1px 2px rgba(34, 29, 51, 0.06), 0 6px 18px rgba(34, 29, 51, 0.06);
+  --inverse-bg: #221d33; --inverse-text: #ffffff;
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --raised: #221e2d; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --inverse-bg: #edeaf3; --inverse-text: #1a1723;
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.app svg.i.fill { fill: currentColor; stroke: none; }
+
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; z-index: 3; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs .sep { color: var(--faint); }
+.spacer { flex: 1; }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.iconbtn:hover { background: var(--hover); }
+.iconbtn[aria-disabled="true"] { color: var(--faint); cursor: default; background: transparent; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--ink); background: var(--hover); }
+.btn.sm { height: 32px; padding: 0 11px; font-size: 13px; }
+.scroll { flex: 1; overflow: auto; position: relative; min-height: 0; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0; }
+/* Slideshow screen */
+.show { padding: 24px; display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tile { position: relative; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: var(--hover); }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile .num { position: absolute; left: 6px; top: 6px; background: var(--photo-badge); color: var(--on-photo); border-radius: 6px; font: 500 11px var(--mono); padding: 3px 6px; }
+.info { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; display: grid; gap: 14px; }
+.info .name { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 13px; align-items: center; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; }
+.facts dd small { color: var(--muted); font-weight: 400; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--hover); }
+.pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+.musicrow { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 14px; align-items: center; border: 1px solid var(--line); background: var(--raised); border-radius: var(--radius); padding: 9px 10px 9px 12px; margin: 2px -4px; cursor: pointer; text-align: left; color: var(--ink); font: 500 13px var(--ui); }
+.musicrow:hover { background: var(--hover); }
+.musicrow .lbl { color: var(--muted); font-weight: 400; }
+.musicrow .val { display: grid; gap: 2px; min-width: 0; }
+.musicrow .val b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.musicrow .val small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.musicrow .go { color: var(--muted); display: flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; }
+
+
+/* Info panel: the second action under "Abspielen" */
+.info .actions { display: grid; gap: 8px; }
+.btn.large { height: 44px; font-size: 15px; }
+.btn.block { width: 100%; }
+
+/* The export sheet: a dialog on desktop, a bottom sheet on the phone */
+.backdrop { position: absolute; inset: 0; background: rgba(18, 14, 28, 0.38); z-index: 10; display: grid; place-items: center; padding: 24px; }
+.sheet { width: 100%; max-width: 520px; max-height: 100%; overflow: auto; background: var(--surface); border-radius: 16px; box-shadow: 0 24px 60px rgba(10, 6, 20, 0.3); display: grid; gap: 16px; padding: 20px; color: var(--ink); }
+.sheet header { display: flex; align-items: start; gap: 10px; }
+.sheet header h2 { margin: 0; font-family: var(--display); font-size: 22px; letter-spacing: -0.01em; flex: 1; text-wrap: balance; }
+.sheet header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.presets { display: grid; gap: 8px; }
+.preset { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; text-align: left; border: 1px solid var(--line); background: var(--raised); color: var(--ink); border-radius: var(--radius); padding: 11px 14px; cursor: pointer; font: 500 13px var(--ui); }
+.preset:hover { background: var(--hover); }
+.preset[aria-checked="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.preset[aria-disabled="true"] { cursor: default; color: var(--faint); background: transparent; }
+.preset .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--faint); grid-row: span 2; }
+.preset[aria-checked="true"] .dot { border: 5px solid var(--accent); }
+.preset b { font-weight: 600; font-size: 14px; }
+.preset small { color: var(--muted); font-size: 12px; grid-column: 2; }
+.preset .size { grid-row: span 2; font: 500 13px var(--mono); color: var(--muted); text-align: right; }
+.preset[aria-disabled="true"] small, .preset[aria-disabled="true"] .size { color: var(--faint); }
+.spec { display: flex; flex-wrap: wrap; gap: 6px; }
+.spec span { font: 500 11.5px var(--mono); padding: 3px 8px; border-radius: 999px; background: var(--hover); color: var(--muted); }
+.note { background: var(--hover); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; line-height: 1.45; display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.note.warn { background: color-mix(in srgb, var(--lemon) 22%, var(--surface)); }
+.note.err { background: color-mix(in srgb, var(--coral) 18%, var(--surface)); }
+.note.ok { background: color-mix(in srgb, var(--mint) 22%, var(--surface)); }
+.note b { font-weight: 600; }
+.note p { margin: 0; }
+.foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.preview { position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #000; }
+.preview canvas { width: 100%; height: 100%; display: block; }
+.preview .stamp { position: absolute; right: 8px; bottom: 8px; background: rgba(0, 0, 0, 0.5); color: #fff; font: 500 11.5px var(--mono); padding: 3px 7px; border-radius: 6px; }
+.meter { height: 8px; border-radius: 999px; background: var(--hover); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--mint); border-radius: 999px; }
+.runrow { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.runrow b { color: var(--ink); font-weight: 600; }
+.file { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--raised); }
+.file .thumb { width: 64px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; grid-row: span 2; }
+.file .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.file b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file small { color: var(--muted); font: 500 12px var(--mono); }
+.status-ic { width: 20px; height: 20px; }
+
+/* Live probe */
+.seg-btn { border: 1px solid var(--page-line); background: var(--page-card); color: var(--page-ink); font: 500 13px var(--ui); padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+.probe { display: grid; gap: 12px; max-width: 980px; }
+.probe table { border-collapse: collapse; width: 100%; }
+.probe td, .probe th { text-align: left; padding: 6px 10px; border-top: 1px solid var(--page-line); font-size: 13px; }
+.probe th { font-size: 12px; color: var(--page-muted); text-transform: uppercase; letter-spacing: 0.05em; border-top: 0; }
+.yes { color: #2f8f73; font-weight: 600; } .no { color: #c4473a; font-weight: 600; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .yes { color: var(--mint); } :root:not([data-theme="light"]) .no { color: var(--coral); } }
+
+@container (max-width: 720px) {
+  .show { grid-template-columns: 1fr; padding: 16px; gap: 18px; }
+  .show .info { order: -1; }
+  .tiles { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .hide-narrow { display: none !important; }
+  .backdrop { place-items: end stretch; padding: 0; }
+  .sheet { max-width: none; border-radius: 18px 18px 0 0; padding: 18px 16px 26px; }
+  .foot .btn { flex: 1; }
+}
+
+/* ---------- Adding pictures ---------- */
+.app { --scrim: rgba(255, 255, 255, 0.35); --photo-fade: rgba(0, 0, 0, 0.55); }
+.pictures { display: grid; gap: 12px; min-width: 0; }
+.strip-head { display: flex; align-items: end; gap: 12px; }
+.strip-head > div { flex: 1; min-width: 0; }
+.strip-head h2 { margin: 0; }
+.strip-head p { margin: 3px 0 0; font-size: 13px; }
+.tile.new { outline: 2.5px solid var(--accent); outline-offset: -2.5px; }
+.tile .newbadge { position: absolute; right: 6px; top: 6px; background: var(--accent); color: var(--accent-ink); border-radius: 6px; font: 600 11px var(--ui); padding: 3px 6px; }
+.tile.add { display: grid; place-items: center; align-content: center; gap: 4px; border: 1.5px dashed var(--line); background: transparent; color: var(--muted); font: 600 13px var(--ui); cursor: pointer; }
+.tile.add:hover { background: var(--hover); color: var(--ink); }
+.tile.add svg { width: 22px; height: 22px; }
+.content { padding: 24px; display: grid; gap: 20px; align-content: start; max-width: 960px; }
+.title { font: 700 26px var(--display); margin: 0; letter-spacing: -0.01em; }
+.lead { margin: 6px 0 0; color: var(--muted); line-height: 1.5; max-width: 60ch; }
+.lead b { color: var(--ink); font-weight: 600; }
+.drop { border: 1.5px dashed var(--line); border-radius: var(--radius-lg); padding: 30px 20px; display: grid; justify-items: center; gap: 14px; text-align: center; color: var(--muted); }
+.drop .ic svg { width: 32px; height: 32px; }
+.drop .fmt { font-size: 12px; color: var(--faint); }
+.sources { display: grid; gap: 10px; }
+.source { display: flex; align-items: center; gap: 14px; background: var(--raised); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 14px 16px; }
+.source .txt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.source .txt b { font-weight: 600; }
+.source .txt span { color: var(--muted); font-size: 13px; }
+.source .glyph { width: 34px; height: 34px; flex: none; display: grid; place-items: center; }
+.source .glyph svg { width: 30px; height: 30px; }
+.notice { border-radius: var(--radius); padding: 11px 14px; line-height: 1.45; border: 1px solid; font-size: 13.5px; }
+.notice.warn { background: color-mix(in srgb, #f5c94a 14%, var(--surface)); border-color: color-mix(in srgb, #f5c94a 45%, var(--line)); }
+.notice.info { background: var(--raised); border-color: var(--line); }
+.notice .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.progress { display: grid; gap: 8px; }
+.progress .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.progress .row b { font-weight: 600; }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.strip .tile { border-radius: 8px; }
+.tile .date { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 7px 5px; background: linear-gradient(transparent, var(--photo-fade)); color: var(--on-photo); font: 500 11px var(--mono); }
+.tile.pending::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, var(--scrim) 50%, transparent 70%); background-size: 200% 100%; animation: shimmer 1.4s infinite linear; }
+@keyframes shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+@media (prefers-reduced-motion: reduce) { .tile.pending::after { animation: none; } }
+.after { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 14px 16px; display: grid; gap: 10px; }
+.after .facts { grid-template-columns: auto 1fr; }
+.after .arrow { color: var(--faint); padding: 0 4px; }
+.footer { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 10px 24px; border-top: 1px solid var(--line); background: var(--surface); flex: none; min-height: 62px; }
+.footer .count { margin-right: auto; color: var(--muted); font-size: 13px; }
+.footer .count b { color: var(--ink); }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+.tabs { display: inline-flex; background: var(--hover); border-radius: var(--radius); padding: 3px; gap: 2px; }
+.tabs button { border: 0; background: transparent; color: var(--muted); font: 600 14px var(--ui); padding: 7px 14px; border-radius: 8px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.browse { display: grid; gap: 16px; padding: 20px 24px 24px; align-content: start; }
+.browse-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.day { display: grid; gap: 8px; }
+.day-head { display: flex; align-items: center; gap: 10px; }
+.day-head .d { font-weight: 600; }
+.day-head .btn { margin-left: auto; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.ph { display: block; width: 100%; position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 4px; background: var(--hover); cursor: pointer; border: 0; padding: 0; }
+.ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.12s; }
+.ph.on img { transform: scale(0.86); border-radius: 6px; }
+.ph.on { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+.ph .check { position: absolute; left: 8px; top: 8px; width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.92); background: rgba(0, 0, 0, 0.22); display: grid; place-items: center; color: transparent; z-index: 2; opacity: 0; }
+.ph .check svg { width: 15px; height: 15px; stroke-width: 2.4; }
+.ph:hover .check, .ph.on .check, .grid.selecting .ph .check { opacity: 1; }
+.ph.on .check { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.ph.inshow { cursor: default; }
+.ph.inshow img { opacity: 0.42; }
+.ph.inshow .check { display: none; }
+.ph .in { position: absolute; left: 6px; bottom: 6px; display: inline-flex; align-items: center; gap: 4px; background: rgba(0, 0, 0, 0.55); color: #fff; border-radius: 999px; padding: 2px 8px 2px 5px; font: 600 11px var(--ui); }
+.ph .in svg { width: 13px; height: 13px; stroke-width: 2.2; }
+.toast { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--inverse-bg); color: var(--inverse-text); border-radius: var(--radius); padding: 8px 8px 8px 14px; z-index: 6; box-shadow: var(--shadow); white-space: nowrap; font-weight: 500; display: flex; align-items: center; gap: 12px; }
+.toast button { border: 0; background: transparent; color: var(--accent); font: 600 14px var(--ui); padding: 6px 8px; border-radius: 7px; cursor: pointer; }
+.toast button:hover { background: rgba(255, 255, 255, 0.08); }
+.app.dark .toast button { color: #c2492a; }
+.variant-tag { font: 600 10px var(--ui); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-ink); background: var(--accent); border-radius: 5px; padding: 2px 5px; }
+@container (max-width: 720px) {
+  .content, .browse { padding: 16px; }
+  .footer { padding: 10px 16px; }
+  .footer .count { display: none; }
+  .title { font-size: 23px; }
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
+  .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .source { flex-wrap: wrap; }
+  .source .btn { width: 100%; }
+  .toast { white-space: normal; width: calc(100% - 24px); justify-content: space-between; }
+  .strip-head .btn .lbl-long { display: none; }
+}
+@container (min-width: 721px) { .strip-head .btn .lbl-short { display: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Bilder zu einer Diashow hinzufügen</h1>
+      <p>Die Diashow-Ansicht mit 24 Bildern. „Bilder hinzufügen“ öffnet den Bilder-Schritt der Neuen Diashow, nur ohne Musik-Schritt. Die Auswahl ist simuliert: „Bilder auswählen“ liefert 10 erzeugte Bilder, 2 davon sind schon in der Diashow. Alle Bilder sind erzeugt, keine echten Fotos.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Ansicht"><button data-tab="try">Ausprobieren</button><button data-tab="concept">Konzept</button></div>
+      <div class="seg" role="group" aria-label="Breite"><button data-width="desk">Desktop</button><button data-width="phone">Telefon</button></div>
+      <div class="seg" role="group" aria-label="Thema"><button data-theme-set="light">Hell</button><button data-theme-set="dark">Dunkel</button></div>
+      <div class="seg" role="group" aria-label="Einstieg"><button data-entry="head">Einstieg A: über den Bildern</button><button data-entry="tile">B: Kachel am Ende</button><button data-entry="info">C: Infotafel</button></div>
+      <div class="seg" role="group" aria-label="Reihenfolge"><button data-order="date">Nach Aufnahmedatum</button><button data-order="own">Eigene Reihenfolge</button></div>
+      <div class="seg" role="group" aria-label="Musik"><button data-music="1">Mit Musik</button><button data-music="0">Ohne Musik</button></div>
+      <div class="seg" role="group" aria-label="Menge"><button data-amount="few">10 Bilder wählen</button><button data-amount="many">200 Bilder wählen</button></div>
+    </div>
+  </div>
+  <div class="stage" id="stage"></div>
+
+  <div class="concept" id="concept" hidden>
+    <h2>So funktioniert es</h2>
+    <div class="card">
+      <ul>
+        <li><b>Einstieg</b>: „Bilder hinzufügen“ in der Kopfzeile über den Bildern, rechts neben der Anzahl (Variante A, Vorschlag). Er steht bei dem, was er verändert, und ist am Telefon ohne Scrollen zu sehen. B (Kachel am Ende der Bilder) ist bei 200 Bildern weit unten, C (Infotafel) drängt sich neben „Abspielen“. Die Auswahlleiste bekommt keinen Eintrag; sie wirkt auf die gewählten Bilder, nicht auf neue.</li>
+        <li><b>Derselbe Ablauf wie beim Import</b>: der Bilder-Schritt der Neuen Diashow mit derselben Ablagefläche, Ordnerwahl, Immich-Feld, Fortschrittsbalken und Hinweisen. Der Musik-Schritt fällt weg, die Diashow hat ihre Musik schon. Der Immich-Wähler (ADR-0013) ist derselbe, nur ist er nicht mehr an eine neue Diashow gebunden.</li>
+        <li><b>Verkleinern und Kamerafahrt</b>: genau wie beim Import, Bild für Bild auf dem Gerät (<code>PictureImport</code>, höchstens 3840 × 2160). Fotos aus Immich bringen ihre Gesichter mit. Für Bilder vom Gerät sucht danach der automatische Fokus-Durchlauf die Personen, wie nach dem Import.</li>
+        <li><b>Wohin die neuen Bilder kommen</b>: ist die Diashow nach Aufnahmedatum sortiert, sortieren sie sich an ihren Platz, und die Diashow bleibt sortiert. Bei eigener Reihenfolge kommen sie in Aufnahme-Reihenfolge ans Ende, und deine Reihenfolge bleibt unangetastet. Danach sind sie in der Diashow mit „neu“ markiert, bis man die Ansicht verlässt.</li>
+        <li><b>Doppelte</b>: ein Bild, das schon in der Diashow ist, wird übersprungen, und ein Hinweis nennt es. Im Immich-Wähler sind solche Fotos blass, mit „Schon drin“ markiert und nicht wählbar. Wer ein Bild absichtlich zweimal möchte, tippt im Hinweis auf „Trotzdem hinzufügen“.</li>
+        <li><b>Zeiten und Musik</b> (ADR-0008): Bilder mit eigener Dauer behalten sie. Mit Musik teilen sich alle automatischen Bilder weiter die Musik, also wird jedes kürzer, und die Diashow bleibt so lang wie die Musik. Unter 2 s pro Bild geht es nicht. Dann wird die Diashow länger als die Musik, und das steht vor dem Hinzufügen da. Ohne Musik bekommt jedes neue Bild die eingestellten Sekunden, und die Diashow wird länger. Der Kasten „Danach“ zeigt das vorher.</li>
+        <li><b>Rückgängig</b>: nach dem Hinzufügen erscheint „10 Bilder hinzugefügt · Rückgängig“, wie beim Entfernen. Rückgängig nimmt genau diese Bilder wieder heraus und gibt ihren Speicher frei.</li>
+        <li><b>Abbrechen</b>: „Abbrechen“ oder Zurück, solange noch verkleinert wird, stoppt das und verwirft die schon fertigen neuen Bilder. Die Diashow bleibt, wie sie war. Erst „10 hinzufügen“ schreibt sie in die Diashow.</li>
+        <li><b>Offline</b>: Bilder vom Gerät gehen immer. Immich braucht wie beim Import die Verbindung zum Glissando-Server.</li>
+      </ul>
+    </div>
+
+    <h2>Doppelte erkennen: Herkunft statt Prüfsumme (ADR-0016, Vorschlag)</h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Weg</th><th>Woran erkannt</th><th>Bewertung</th></tr></thead>
+        <tbody>
+          <tr><td><b>Herkunft speichern</b> (Vorschlag)</td><td>Jedes Bild merkt sich, woher es kommt. Bei Immich ist das die Asset-ID. Bei einer Datei sind es Dateiname, Größe in Bytes und Aufnahmezeit.</td><td>Billig, geht ohne sicheren Kontext (iPad über das LAN mit http). Erkennt dieselbe Datei auch von einem anderen Gerät. Eine umbenannte Kopie rutscht durch.</td></tr>
+          <tr><td>Prüfsumme des Originals (SHA-256)</td><td>Inhalt der Originaldatei</td><td>Am genauesten. Braucht aber <code>crypto.subtle</code>, also HTTPS, und muss jedes Original ganz lesen; bei 200 HEIC-Fotos spürbar. Das Bild aus Immich und dieselbe Datei vom Gerät gelten trotzdem als verschieden.</td></tr>
+          <tr><td>Prüfsumme des verkleinerten Bildes</td><td>Pixel nach dem Verkleinern</td><td>Hängt vom Browser ab (Dekoder, Farbprofil), also nicht verlässlich gleich.</td></tr>
+        </tbody>
+      </table>
+      <p>Bilder aus der Zeit vor dieser Änderung haben keine Herkunft gespeichert. Für sie gilt: gleicher Dateiname und gleiche Aufnahmezeit bedeuten dasselbe Bild. Die Herkunft wandert mit in die .glissando-Datei.</p>
+    </div>
+
+    <h2>Tests</h2>
+    <div class="card">
+      <ul>
+        <li><b>Reine Logik</b> mit Unit-Tests: wohin neue Bilder kommen (nach Datum oder ans Ende), Doppelte erkennen (Herkunft, Altbilder, Doppelte innerhalb derselben Auswahl), Rückgängig. Die Vorschau „Danach“ nutzt dieselbe Funktion wie der Player (<code>slideDurationsMs</code>).</li>
+        <li><b>Fortschritt ohne Warten</b>: der Test steuert das Verkleinern über einen Fake-Dekoder und wartet auf <code>settled()</code>, nicht auf die Uhr.</li>
+        <li><b>E2E-032</b> nach deinem OK am gebauten Stand: zwei erzeugte Bilder hinzufügen, eines davon doppelt, Platz in der Reihenfolge prüfen, Rückgängig. Nur mit erzeugten Bildern.</li>
+      </ul>
+    </div>
+
+    <h2>Offene Fragen</h2>
+    <div class="card q">
+      <ol>
+        <li><b>Einstieg</b>: A über den Bildern (Vorschlag), B Kachel am Ende oder C in der Infotafel?</li>
+        <li><b>Doppelte</b>: überspringen mit Hinweis und „Trotzdem hinzufügen“ (Vorschlag), oder vorher fragen?</li>
+        <li><b>Eigene Reihenfolge</b>: neue Bilder ans Ende (Vorschlag) oder hinter das gerade gewählte Bild?</li>
+      </ol>
+    </div>
+  </div>
+</div>
+<script>
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const PALETTES = [
+  ["#ffcfa8", "#ff8f70", "#fff1c9", "#5a3e64", "#2f2440", "#2b5d73"],
+  ["#9fd3f2", "#e7f4fb", "#fff6c2", "#5c8a6b", "#2f5a45", "#3d7fa0"],
+  ["#2a2350", "#c96b8a", "#ffd9a0", "#3a2d55", "#1d1830", "#4a3a6a"],
+  ["#b9e2f5", "#fbe9d0", "#ffe08a", "#8a9bb0", "#56677d", "#6aa0b8"],
+  ["#f6d0c4", "#f9efe4", "#fff3d6", "#b47a6a", "#7a4f48", "#a87a6e"],
+  ["#87c1e8", "#d6eef7", "#fff4b8", "#4f7d4a", "#2e5530", "#6b9c63"],
+  ["#ffb48a", "#ffe2b8", "#fff0c0", "#6a4a3a", "#3d2a24", "#8a6a5a"],
+  ["#a8c8e8", "#eef3f8", "#ffffff", "#7d8ea6", "#4a5872", "#9fb3c8"],
+];
+function scene(i, w, h) {
+  const r = rng(i * 977 + 13), [s1, s2, sun, m1, m2, water] = PALETTES[i % PALETTES.length];
+  const horizon = h * (0.55 + r() * 0.12);
+  const ridge = (base, amp, n) => { let d = `M0 ${h} L0 ${base}`; for (let k = 0; k <= n; k++) d += ` L${(w * k) / n} ${base - r() * amp}`; return d + ` L${w} ${h} Z`; };
+  const sx = w * (0.2 + r() * 0.6), sy = horizon * (0.3 + r() * 0.35), sr = Math.min(w, h) * 0.07;
+  const px = w * (0.25 + r() * 0.5), py = horizon + (h - horizon) * 0.35, ps = h * 0.11;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s1}"/><stop offset="1" stop-color="${s2}"/></linearGradient>
+<linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${water}"/><stop offset="1" stop-color="${m2}"/></linearGradient></defs>
+<rect width="${w}" height="${h}" fill="url(#s)"/><circle cx="${sx}" cy="${sy}" r="${sr}" fill="${sun}"/>
+<path d="${ridge(horizon - h * 0.04, h * 0.22, 7)}" fill="${m1}" opacity="0.75"/>
+<path d="${ridge(horizon, h * 0.12, 11)}" fill="${m2}"/>
+<rect y="${horizon}" width="${w}" height="${h - horizon}" fill="url(#w)"/>
+<g fill="#1b1622"><circle cx="${px}" cy="${py - ps * 0.82}" r="${ps * 0.17}"/><rect x="${px - ps * 0.2}" y="${py - ps * 0.62}" width="${ps * 0.4}" height="${ps * 0.62}" rx="${ps * 0.14}"/></g>
+</svg>`;
+}
+
+const ICON = {
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  play: '<path d="M8 5.5v13l11-6.5z"/>',
+  film: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  check: '<path d="M6 12.5l4 4L18 8"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  right: '<path d="M10 7l5 5-5 5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  image: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 4 4"/>',
+  open: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+};
+const icon = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+const IMMICH = `<svg viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke-width="2"><circle cx="16" cy="10" r="5.5" stroke="#ff9f7f"/><circle cx="22" cy="16" r="5.5" stroke="#6fcfb4"/><circle cx="16" cy="22" r="5.5" stroke="#f5c94a"/><circle cx="10" cy="16" r="5.5" stroke="#9c8fd6"/></g></svg>`;
+
+/* ---------- Data: everything generated, no real photos ---------- */
+const TITLE = "Sommer 2025", MUSIC_S = 340, SECONDS = 5, MIN_S = 2;
+const DAY = 86400000, START = Date.UTC(2025, 6, 12, 9);
+const srcCache = new Map();
+const srcOf = (seed) => {
+  if (!srcCache.has(seed)) {
+    const [w, h] = seed % 5 === 2 ? [200, 300] : [300, 200];
+    srcCache.set(seed, "data:image/svg+xml;utf8," + encodeURIComponent(scene(seed, w, h)));
+  }
+  return srcCache.get(seed);
+};
+const mkPic = (seed, at, extra = {}) => ({ id: `p${seed}`, seed, at, name: `IMG_${2000 + seed}.jpg`, ...extra });
+const BASE = Array.from({ length: 24 }, (_, i) => mkPic(i, START + Math.floor((i * 22) / 24) * DAY + (i % 3) * 3600000));
+/** The simulated device pick: 8 new pictures between the old ones, plus 2 that are already in. */
+function devicePick(many) {
+  const n = many ? 198 : 8;
+  const fresh = Array.from({ length: n }, (_, k) => mkPic(100 + k, START + ((k * 25) / n) * DAY + 5400000));
+  const dupA = { ...BASE[4], id: "d4" }, dupB = { ...BASE[11], id: "d11" };
+  return [...fresh.slice(0, 3), dupA, ...fresh.slice(3, 6), dupB, ...fresh.slice(6)];
+}
+/** Immich timeline: three days; the photos marked inShow came in with the import. */
+const IMMICH_DAYS = [
+  ["Sa., 2. Aug. 2025", 21 * DAY], ["So., 20. Juli 2025", 8 * DAY], ["Sa., 12. Juli 2025", 0],
+].map(([label, off], d) => ({ label, photos: Array.from({ length: 12 }, (_, k) => {
+  const inShow = (k + d) % 4 === 1;
+  const base = BASE[(d * 7 + k * 5) % 24];
+  return inShow ? { ...base, id: `im${d}-${k}`, seed: base.seed, inShow: true } : mkPic(300 + d * 20 + k, START + off + k * 600000, { id: `im${d}-${k}` });
+}) }));
+
+const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+const fmtSec = (s) => s.toFixed(1).replace(".", ",") + " s";
+const fmtInt = (n) => n.toLocaleString("de-DE");
+const fmtDate = (ms) => new Date(ms).toLocaleDateString("de-DE", { day: "numeric", month: "short", timeZone: "UTC" });
+const OWN_ORDER = (list) => { const l = [...list]; [l[2], l[9]] = [l[9], l[2]]; [l[15], l[5]] = [l[5], l[15]]; return l; };
+
+const S = { tab: "try", width: "desk", theme: "light", entry: "head", order: "date", music: "1", amount: "few",
+  screen: "show", pics: null, batch: [], dups: [], busy: null, timer: null, picked: new Set(), toast: null, toastTimer: null, prev: null };
+function reset() { S.pics = (S.order === "own" ? OWN_ORDER(BASE) : [...BASE]).map((p) => ({ ...p })); S.batch = []; S.dups = []; S.screen = "show"; S.toast = null; stopTimer(); }
+function stopTimer() { clearInterval(S.timer); S.timer = null; S.busy = null; }
+
+/** ADR-0008: automatic pictures share the music, never below 2 s; without music each gets the set seconds. */
+function timing(n) {
+  if (S.music === "0") return { per: SECONDS, total: n * SECONDS };
+  const per = Math.max(MIN_S, MUSIC_S / n);
+  return { per, total: Math.max(MUSIC_S, per * n), over: per * n > MUSIC_S };
+}
+
+/* ---------- Slideshow screen ---------- */
+function bar(crumbs) {
+  return `<div class="bar"><button class="iconbtn" aria-label="Zurück" data-act="back">${icon("back")}</button>
+    <div class="crumbs">${crumbs}</div><div class="spacer"></div>${S.screen === "show" ? `<button class="iconbtn" aria-label="Mehr">${icon("more")}</button>` : ""}</div>`;
+}
+const addBtn = (cls = "btn sm") => `<button class="${cls}" data-act="add">${icon("plus")}<span class="lbl-long">Bilder hinzufügen</span><span class="lbl-short">Hinzufügen</span></button>`;
+function infoPanel() {
+  const t = timing(S.pics.length);
+  return `<aside class="info">
+    <div><div class="eyebrow">Diashow</div><div class="name">${TITLE}</div><div class="muted mono" style="font-size: 12.5px">12. Juli – 6. Aug. 2025</div></div>
+    <div class="actions">
+      <button class="btn primary large block">${icon("play", "fill")}Abspielen</button>
+      <button class="btn large block">${icon("film")}Als Video sichern</button>
+      ${S.entry === "info" ? `<button class="btn large block" data-act="add">${icon("plus")}Bilder hinzufügen</button>` : ""}
+    </div>
+    <dl class="facts">
+      <dt>Bilder</dt><dd class="mono">${S.pics.length}</dd>
+      <dt>Dauer</dt><dd class="mono">${fmtTime(t.total)} <small>· je ${fmtSec(t.per)}</small></dd>
+      ${S.music === "1" ? `<button class="musicrow"><span class="lbl">Musik</span><span class="val"><b>Sommerwind.mp3</b><small>0:12 – 5:52</small></span><span class="go">Bearbeiten${icon("right")}</span></button>`
+        : `<dt>Musik</dt><dd>Keine <small>· ${SECONDS} s pro Bild</small></dd>`}
+      <dt>Übergänge</dt><dd>Überblenden</dd>
+    </dl>
+  </aside>`;
+}
+function showScreen() {
+  const tiles = S.pics.map((p, i) => `<div class="tile ${p.isNew ? "new" : ""}"><img alt="" src="${srcOf(p.seed)}"><span class="num">${i + 1}</span>${p.isNew ? `<span class="newbadge">neu</span>` : ""}</div>`).join("");
+  const addTile = S.entry === "tile" ? `<button class="tile add" data-act="add">${icon("plus")}Bilder hinzufügen</button>` : "";
+  return `${bar(`<span class="hide-narrow">Bibliothek</span><span class="sep hide-narrow">/</span><b>${TITLE}</b>`)}
+    <div class="scroll"><div class="show"><div class="pictures">
+      <div class="strip-head"><div><h2 class="eyebrow">Bilder</h2><p class="muted">${S.order === "own" ? "Eigene Reihenfolge" : "Nach Aufnahmedatum sortiert"}<span class="hide-narrow"> · Ziehen zum Umsortieren</span></p></div>
+        <span class="mono muted">${S.pics.length}</span>${S.entry === "head" ? addBtn() : ""}</div>
+      <div class="tiles">${tiles}${addTile}</div></div>${infoPanel()}</div></div>`;
+}
+
+/* ---------- Add screen: the import's pictures step, without the music step ---------- */
+function addScreen() {
+  const B = S.busy, has = S.batch.length > 0 || B;
+  const lead = S.order === "own"
+    ? "Sie kommen <b>ans Ende</b>, in Aufnahme-Reihenfolge; deine eigene Reihenfolge bleibt. Glissando verkleinert sie fürs Gerät, die Originale bleiben unberührt."
+    : "Sie kommen <b>nach Aufnahmedatum</b> an ihren Platz. Glissando verkleinert sie fürs Gerät, die Originale bleiben unberührt.";
+  let body = `<div><h1 class="title">Bilder hinzufügen</h1><p class="lead">${lead}</p></div>`;
+  if (!has) {
+    body += `<div class="drop"><span class="ic">${icon("image")}</span><button class="btn primary" data-act="pickDevice">Bilder auswählen</button>
+      <span>oder <b>einen Ordner wählen</b> · auf dem Desktop auch hierher ziehen</span><span class="fmt">JPEG, PNG, WebP, HEIC (wo der Browser es kann)</span></div>
+      <div class="sources"><div class="source"><span class="glyph">${IMMICH}</span><div class="txt"><b>Aus Immich</b><span>Fotos, die schon in der Diashow sind, sind dort markiert.</span></div><button class="btn" data-act="immich">Immich öffnen${icon("right")}</button></div></div>`;
+  } else {
+    const total = B ? B.total : S.batch.length, done = B ? B.done : total;
+    const from = B?.from === "immich" ? "aus Immich" : "";
+    body += `<div class="progress"><div class="row"><b>${B ? `${from ? "Lade" : "Verkleinere"} ${fmtInt(done)} von ${fmtInt(total)} ${from} …` : `${fmtInt(S.batch.length)} neue Bilder bereit`}</b><span class="spacer"></span>
+      ${B ? "" : `<button class="btn sm" data-act="pickDevice">${icon("plus")}Mehr vom Gerät</button><button class="btn sm" data-act="immich">${icon("plus")}Mehr aus Immich</button>`}</div>
+      <div class="meter"><i style="width:${(done / Math.max(1, total)) * 100}%"></i></div>
+      <p class="small">${B ? "Original lesen, verkleinern, speichern. Die Diashow ändert sich erst mit „Hinzufügen“." : "Danach richtet sich die Kamerafahrt auf die Personen aus, wie nach dem Import."}</p></div>`;
+    if (S.dups.length) {
+      const names = S.dups.map((d) => d.name);
+      body += `<div class="notice warn"><b>${S.dups.length === 1 ? "1 Bild ist" : `${S.dups.length} Bilder sind`} schon in der Diashow</b> und ${S.dups.length === 1 ? "wird" : "werden"} übersprungen: ${names.slice(0, 3).join(", ")}${names.length > 3 ? " …" : ""}
+        <div class="row"><button class="btn sm" data-act="keepDups">Trotzdem hinzufügen</button></div></div>`;
+    }
+    const shown = S.batch.slice(0, 36), pending = B ? Math.min(36 - shown.length, B.total - B.done) : 0;
+    body += `<ul class="strip">${shown.map((p) => `<li class="tile"><img src="${srcOf(p.seed)}" alt=""><span class="date">${fmtDate(p.at)}</span></li>`).join("")}
+      ${Array.from({ length: Math.max(0, pending) }, () => `<li class="tile pending"></li>`).join("")}</ul>
+      ${S.batch.length > 36 ? `<p class="small">und ${fmtInt(S.batch.length - 36)} weitere</p>` : ""}`;
+    if (!B) body += afterBox();
+  }
+  const n = S.batch.length;
+  return `${bar(`<span class="hide-narrow">${TITLE}</span><span class="sep hide-narrow">/</span><b>Bilder hinzufügen</b>`)}
+    <div class="scroll"><main class="content">${body}</main></div>
+    <div class="footer"><span class="count">${n && !B ? `${TITLE}: <b class="mono">${S.pics.length}</b> → <b class="mono">${S.pics.length + n}</b> Bilder` : ""}</span>
+      <button class="btn ghost" data-act="back">Abbrechen</button><button class="btn primary" ${n && !B ? "" : "disabled"} data-act="commit">${n && !B ? `${fmtInt(n)} hinzufügen` : "Hinzufügen"}</button></div>`;
+}
+function afterBox() {
+  const before = timing(S.pics.length), after = timing(S.pics.length + S.batch.length);
+  const arrow = `<span class="arrow">→</span>`;
+  let note = "";
+  if (S.music === "1" && after.over) note = `<div class="notice warn"><b>Die Musik reicht nicht für alle Bilder.</b> Kürzer als ${MIN_S} s zeigt Glissando kein Bild; die Diashow dauert ${fmtTime(after.total)}, die Musik ${fmtTime(MUSIC_S)}. Danach läuft sie ohne Musik weiter.</div>`;
+  else if (S.music === "1") note = `<p class="small">Die Bilder teilen sich weiter die Musik; jedes wird etwas kürzer. Bilder mit eigener Dauer behalten sie.</p>`;
+  else note = `<p class="small">Ohne Musik bekommt jedes neue Bild ${SECONDS} s; die Diashow wird länger.</p>`;
+  return `<div class="after"><div class="eyebrow">Danach</div><dl class="facts">
+    <dt>Bilder</dt><dd class="mono">${S.pics.length}${arrow}${S.pics.length + S.batch.length}</dd>
+    <dt>Dauer</dt><dd class="mono">${fmtTime(before.total)}${arrow}${fmtTime(after.total)}</dd>
+    <dt>Pro Bild</dt><dd class="mono">${fmtSec(before.per)}${arrow}${fmtSec(after.per)}</dd></dl>${note}</div>`;
+}
+
+/* ---------- Immich picker (ADR-0013), opened for this slideshow ---------- */
+function immichScreen() {
+  const days = IMMICH_DAYS.map((d, i) => {
+    const free = d.photos.filter((p) => !p.inShow), all = free.every((p) => S.picked.has(p.id));
+    return `<section class="day"><div class="day-head"><span class="d">${d.label}</span><span class="muted mono" style="font-size:12px">${d.photos.length}</span>
+      <button class="btn ghost sm" data-act="day" data-i="${i}">${all ? "Tag abwählen" : "Tag wählen"}</button></div>
+      <ul class="grid ${S.picked.size ? "selecting" : ""}">${d.photos.map((p) => p.inShow
+        ? `<li><span class="ph inshow" aria-label="Schon in der Diashow"><img src="${srcOf(p.seed)}" alt=""><span class="in">${icon("check")}Schon drin</span></span></li>`
+        : `<li><button class="ph ${S.picked.has(p.id) ? "on" : ""}" data-act="pick" data-id="${p.id}" aria-pressed="${S.picked.has(p.id)}" aria-label="Foto"><img src="${srcOf(p.seed)}" alt=""><span class="check">${icon("check")}</span></button></li>`).join("")}</ul></section>`;
+  }).join("");
+  const n = S.picked.size, inShow = IMMICH_DAYS.flatMap((d) => d.photos).filter((p) => p.inShow).length;
+  return `${bar(`<span class="hide-narrow">${TITLE}</span><span class="sep hide-narrow">/</span><span class="hide-narrow">Bilder hinzufügen</span><span class="sep hide-narrow">/</span><b>Immich</b>`)}
+    <div class="scroll"><main class="browse"><div class="browse-head"><div class="tabs" role="tablist"><button role="tab" aria-selected="true">Alle Fotos</button><button role="tab" aria-selected="false">Alben</button></div>
+      <span class="spacer"></span><span class="small">${inShow} Fotos sind schon in der Diashow</span></div>${days}</main></div>
+    <div class="footer"><span class="count">${n ? `<b class="mono">${n}</b> gewählt` : "Tippe Fotos an oder wähle einen ganzen Tag"}</span>
+      ${n ? `<button class="btn ghost" data-act="clear">Auswahl leeren</button>` : ""}
+      <button class="btn primary" ${n ? "" : "disabled"} data-act="takeImmich">${n ? `${n} hinzufügen` : "Hinzufügen"}</button></div>`;
+}
+
+/* ---------- Simulation ---------- */
+/** Same identity rule as proposed for the app: Immich asset id, or file name + size + capture time. */
+const inShow = (p) => S.pics.some((q) => q.name === p.name && q.at === p.at) || S.batch.some((q) => q.name === p.name && q.at === p.at);
+function prepare(list, from) {
+  const fresh = list.filter((p) => !inShow(p));
+  S.dups = [...S.dups, ...list.filter((p) => inShow(p))];
+  S.busy = { total: fresh.length, done: 0, from };
+  S.screen = "add"; render();
+  const step = Math.max(1, Math.round(fresh.length / 25));
+  S.timer = setInterval(() => {
+    const next = fresh.slice(S.busy.done, S.busy.done + step);
+    S.batch.push(...next); S.busy.done += next.length;
+    if (S.busy.done >= S.busy.total) stopTimer();
+    render();
+  }, 140);
+}
+function commit() {
+  S.prev = S.pics.map((p) => ({ ...p, isNew: false }));
+  const added = S.batch.map((p) => ({ ...p, isNew: true }));
+  const old = S.pics.map((p) => ({ ...p, isNew: false }));
+  const byDate = (a, b) => a.at - b.at;
+  S.pics = S.order === "date" ? [...old, ...added].sort(byDate) : [...old, ...added.sort(byDate)];
+  const n = added.length;
+  S.batch = []; S.dups = []; S.screen = "show";
+  toast(`${fmtInt(n)} ${n === 1 ? "Bild" : "Bilder"} hinzugefügt`, true);
+}
+function toast(text, undo) {
+  clearTimeout(S.toastTimer); S.toast = { text, undo }; render();
+  S.toastTimer = setTimeout(() => { S.toast = null; render(); }, 6000);
+}
+function act(a, el) {
+  if (a === "add") { S.screen = "add"; S.batch = []; S.dups = []; }
+  else if (a === "back") {
+    if (S.screen === "immich") S.screen = "add";
+    else if (S.screen === "add") { stopTimer(); S.batch = []; S.dups = []; S.screen = "show"; }
+  }
+  else if (a === "pickDevice") return prepare(devicePick(S.amount === "many"), "device");
+  else if (a === "immich") { S.picked = new Set(); S.screen = "immich"; }
+  else if (a === "pick") { const id = el.dataset.id; S.picked.has(id) ? S.picked.delete(id) : S.picked.add(id); }
+  else if (a === "day") {
+    const free = IMMICH_DAYS[+el.dataset.i].photos.filter((p) => !p.inShow), all = free.every((p) => S.picked.has(p.id));
+    free.forEach((p) => (all ? S.picked.delete(p.id) : S.picked.add(p.id)));
+  }
+  else if (a === "clear") S.picked.clear();
+  else if (a === "takeImmich") return prepare(IMMICH_DAYS.flatMap((d) => d.photos).filter((p) => S.picked.has(p.id)), "immich");
+  else if (a === "keepDups") { S.batch.push(...S.dups.map((p) => ({ ...p, id: p.id + "x" }))); S.dups = []; }
+  else if (a === "commit") return commit();
+  else if (a === "undo") { S.pics = S.prev; clearTimeout(S.toastTimer); return toast("Rückgängig gemacht", false); }
+  render();
+}
+
+function render() {
+  for (const [attr, key] of [["tab", "tab"], ["width", "width"], ["theme-set", "theme"], ["entry", "entry"], ["order", "order"], ["music", "music"], ["amount", "amount"]])
+    document.querySelectorAll(`[data-${attr}]`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset[attr.replace(/-(\w)/g, (_, c) => c.toUpperCase())] === S[key])));
+  document.documentElement.dataset.theme = S.theme;
+  const stage = document.getElementById("stage");
+  stage.hidden = S.tab !== "try"; document.getElementById("concept").hidden = S.tab !== "concept";
+  const view = S.screen === "show" ? showScreen() : S.screen === "add" ? addScreen() : immichScreen();
+  const keep = stage.querySelector(".scroll")?.scrollTop ?? 0;
+  stage.innerHTML = `<div class="app ${S.width === "phone" ? "phone" : ""} ${S.theme}">${view}
+    ${S.toast ? `<div class="toast" role="status"><span>${S.toast.text}</span>${S.toast.undo ? `<button data-act="undo">Rückgängig</button>` : ""}</div>` : ""}</div>`;
+  const sc = stage.querySelector(".scroll"); if (sc && S.sameScreen) sc.scrollTop = keep;
+}
+document.addEventListener("click", (e) => {
+  const seg = e.target.closest(".seg button");
+  if (seg) {
+    const d = seg.dataset;
+    if (d.tab) S.tab = d.tab; if (d.width) S.width = d.width; if (d.themeSet) S.theme = d.themeSet; if (d.entry) S.entry = d.entry; if (d.amount) S.amount = d.amount;
+    if (d.order) { S.order = d.order; reset(); }
+    if (d.music) S.music = d.music;
+    S.sameScreen = true; render(); return;
+  }
+  const el = e.target.closest("[data-act]");
+  if (el && !el.disabled) { const from = S.screen; act(el.dataset.act, el); S.sameScreen = from === S.screen; render(); }
+});
+if (matchMedia("(prefers-color-scheme: dark)").matches) S.theme = "dark";
+if (matchMedia("(max-width: 640px)").matches) S.width = "phone";
+reset(); render();
+</script>
+</body>
+</html>
