@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glissando – audio formats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --peach-soft: #ffb59a; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 70ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible, .app input:focus-visible, .frame:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; text-wrap: balance; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; }
+.concept p { margin: 0; }
+.concept ul, .concept ol { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.rec { border-left: 3px solid var(--mint); }
+.card.q { border-left: 3px solid var(--lemon); }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; min-width: 640px; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-top: 1px solid var(--page-line); line-height: 1.45; }
+.tbl th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--page-muted); border-top: 0; }
+code, pre { font-family: var(--mono); font-size: 12.5px; }
+pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
+.pbtn { border: 1px solid var(--page-line); background: var(--page-card); color: var(--page-ink); font: 600 14px var(--ui); height: 38px; padding: 0 15px; border-radius: 10px; cursor: pointer; }
+.pbtn.primary { background: var(--peach); border-color: transparent; color: #2a1a14; }
+.pbtn:disabled { opacity: 0.45; cursor: default; }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--page-ink); font: 600 13px var(--ui); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.under { display: flex; gap: 14px; align-items: center; justify-content: center; color: var(--page-muted); font-size: 13px; min-height: 20px; }
+.ok { color: #2f9c7d; font-weight: 600; } .no { color: #d4574a; font-weight: 600; } .unk { color: var(--page-muted); }
+.ua { font-family: var(--mono); font-size: 12px; color: var(--page-muted); word-break: break-all; }
+.probe-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.tbl td.c { white-space: nowrap; }
+.trywrap { display: grid; gap: 12px; }
+
+/* ---------- The app frame: the app's own tokens (src/styles/tokens.css) ---------- */
+.app {
+  width: 100%; max-width: 1200px; height: 720px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--gl-line); background: var(--gl-ground); color: var(--gl-ink);
+  font-family: var(--gl-font-ui); font-size: var(--gl-size-body); container-type: inline-size;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+  --gl-font-ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --gl-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --gl-weight-medium: 500; --gl-weight-semibold: 600; --gl-weight-title: 700; --gl-tracking-title: -0.015em;
+  --gl-size-caption: 11px; --gl-size-small: 12px; --gl-size-meta: 12.5px; --gl-size-label: 13px; --gl-size-body: 14px;
+  --gl-size-title: 16px; --gl-size-name: 17px; --gl-size-heading: 26px; --gl-size-heading-narrow: 23px; --gl-size-display: 34px;
+  --gl-size-icon: 18px; --gl-size-icon-small: 14px; --gl-icon-stroke: 1.7;
+  --gl-radius-small: 6px; --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-pill: 999px;
+  --gl-mint: #6fcfb4; --gl-mint-ink: #16302a; --gl-lemon: #f5c94a; --gl-coral: #f2786b; --gl-coral-ink: #2a1a14;
+  --gl-art-ink: #3a2a10; --gl-logo-peach: #ffb59a;
+}
+.app.phone { max-width: 390px; height: 820px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --gl-ground: #f6f5f8; --gl-surface: #ffffff; --gl-raised: #fbfafc; --gl-ink: #221d33; --gl-muted: #6b6580; --gl-faint: #9c97ad;
+  --gl-line: #e5e2eb; --gl-hover: #efedf3; --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-accent-hover: #ff8f6b;
+  --gl-danger-text: #c4473a;
+}
+.app.dark {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680;
+  --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a; --gl-accent-ink: #2a1a14; --gl-accent-hover: #ffc5af;
+  --gl-danger-text: var(--gl-coral);
+  color-scheme: dark;
+}
+.app svg.icon { width: var(--gl-icon-size, var(--gl-size-icon)); height: var(--gl-icon-size, var(--gl-size-icon)); fill: none; stroke: currentColor; stroke-width: var(--gl-icon-stroke); stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.app button:focus-visible { outline: 2px solid var(--gl-accent); outline-offset: 2px; }
+
+/* base.css */
+.screen { position: relative; display: flex; flex-direction: column; height: 100%; }
+.content { flex: 1; overflow: auto; padding: 24px; display: grid; gap: 22px; align-content: start; }
+.muted { color: var(--gl-muted); }
+.mono { font-family: var(--gl-font-mono); font-variant-numeric: tabular-nums; }
+.title { margin: 0; font-family: var(--gl-font-display); font-weight: var(--gl-weight-title); font-size: var(--gl-size-heading); letter-spacing: var(--gl-tracking-title); text-wrap: balance; }
+.lead { margin: 6px 0 0; max-width: 60ch; line-height: 1.5; color: var(--gl-muted); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 15px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); font: inherit; font-weight: var(--gl-weight-semibold); font-size: var(--gl-size-body); color: var(--gl-ink); background: var(--gl-surface); cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--gl-hover); }
+.btn.primary { border-color: transparent; color: var(--gl-accent-ink); background: var(--gl-accent); }
+.btn.primary:hover { background: var(--gl-accent-hover); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn:disabled:hover { background: var(--gl-surface); }
+.btn.primary:disabled:hover { background: var(--gl-accent); }
+.icon-btn { flex: none; width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border: 0; border-radius: var(--gl-radius); color: var(--gl-ink); background: transparent; cursor: pointer; }
+.icon-btn:hover { background: var(--gl-hover); }
+
+/* Header.svelte */
+.bar { position: relative; flex: none; display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 18px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+.crumbs { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--gl-muted); font-weight: var(--gl-weight-medium); }
+.earlier { flex: none; white-space: nowrap; }
+.separator { color: var(--gl-faint); }
+.here { overflow: hidden; color: var(--gl-ink); font-weight: var(--gl-weight-semibold); white-space: nowrap; text-overflow: ellipsis; }
+
+/* ImportFrame.svelte */
+.steps { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0; list-style: none; font-weight: var(--gl-weight-semibold); font-size: var(--gl-size-label); }
+.step { display: flex; align-items: center; gap: 8px; color: var(--gl-muted); }
+.num { --gl-icon-size: var(--gl-size-icon-small); display: grid; place-items: center; width: 22px; height: 22px; border: 1.5px solid var(--gl-line); border-radius: 50%; font-weight: var(--gl-weight-medium); font-size: var(--gl-size-caption); }
+.step.on { color: var(--gl-ink); }
+.step.on .num { border-color: var(--gl-ink); background: var(--gl-ink); color: var(--gl-surface); }
+.step.done .num { border-color: var(--gl-mint); background: var(--gl-mint); color: var(--gl-mint-ink); }
+.line { width: 28px; height: 1.5px; background: var(--gl-line); }
+.actions { flex: none; display: flex; gap: 10px; justify-content: flex-end; align-items: center; padding: 12px 24px; border-top: 1px solid var(--gl-line); background: var(--gl-surface); }
+
+/* DropZone.svelte */
+.drop { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 32px 16px; border: 1.5px dashed var(--gl-line); border-radius: var(--gl-radius-large); color: var(--gl-muted); text-align: center; }
+.drop .dicon { --gl-icon-size: var(--gl-size-display); color: var(--gl-faint); display: flex; }
+
+/* MusicStep.svelte */
+.formats { font-size: var(--gl-size-small); color: var(--gl-faint); }
+.panel { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); background: var(--gl-surface); }
+.track { display: flex; align-items: center; gap: 12px; }
+.text { flex: 1; min-width: 0; }
+.text b { display: block; overflow: hidden; font-weight: var(--gl-weight-semibold); white-space: nowrap; text-overflow: ellipsis; }
+.meta { font-size: var(--gl-size-meta); }
+.text .meta { display: block; margin-top: 1px; }
+.art { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: var(--gl-radius); background: linear-gradient(135deg, var(--gl-lemon), var(--gl-logo-peach)); color: var(--gl-art-ink); }
+.fit { display: grid; gap: 6px; }
+.segments { display: flex; gap: 2px; height: 26px; }
+.segments i { flex-basis: 0; min-width: 0; border-radius: 3px; background-color: var(--gl-hover); }
+.fitline { display: flex; justify-content: space-between; color: var(--gl-muted); font-size: var(--gl-size-small); }
+.timing { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; overflow: hidden; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); }
+.timing div { display: flex; flex-direction: column-reverse; gap: 2px; padding: 10px 12px; background: var(--gl-raised); }
+.timing div + div { border-left: 1px solid var(--gl-line); }
+.timing dd { margin: 0; font-weight: var(--gl-weight-medium); font-size: var(--gl-size-name); }
+.timing dt { color: var(--gl-muted); font-size: var(--gl-size-small); }
+.stepper { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; }
+.stepper .btn { width: 38px; padding: 0; }
+.stepper b { min-width: 56px; font-weight: var(--gl-weight-medium); text-align: center; }
+
+/* New in this mockup: the conversion progress and the inline failure panel. */
+.convert { display: grid; gap: 6px; }
+.progress { height: 6px; border-radius: var(--gl-radius-pill); background: var(--gl-hover); overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--gl-accent); }
+.convert .why { margin: 4px 0 0; color: var(--gl-muted); font-size: var(--gl-size-meta); line-height: 1.45; }
+.origin { display: block; margin-top: 3px; color: var(--gl-muted); font-size: var(--gl-size-meta); }
+.failed { display: flex; align-items: flex-start; gap: 12px; padding: 16px 16px 16px 14px;
+  border: 1px solid color-mix(in srgb, var(--gl-coral) 55%, var(--gl-line)); border-left: 4px solid var(--gl-coral);
+  border-radius: var(--gl-radius-large); background: color-mix(in srgb, var(--gl-coral) 10%, var(--gl-surface)); }
+.failed .ficon { color: var(--gl-coral); display: flex; margin-top: 1px; --gl-icon-size: 22px; }
+.failed .fbody { flex: 1; min-width: 0; display: grid; gap: 6px; line-height: 1.45; }
+.failed .ftitle { font-weight: var(--gl-weight-semibold); font-size: var(--gl-size-title); }
+.failed .factions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 6px; }
+.failed .factions .formats { flex-basis: 100%; }
+
+@container (max-width: 720px) {
+  .bar { padding: 0 12px; }
+  .earlier { display: none; }
+  .content { padding: 18px 16px; gap: 18px; }
+  .title { font-size: var(--gl-size-heading-narrow); }
+  .actions { padding-inline: 16px; }
+  .actions .btn.primary { flex: 1; }
+  .failed .factions .btn { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Import: music in formats the browser can't play</h1>
+      <p>The import wizard's Music step. Pick a case: a track in Apple Lossless being converted on the device, the finished FLAC copy, a file that can't be used, a copy-protected one, or the empty drop zone. “Check device” tests which formats the browser you open it in can decode.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="View"><button data-tab="try">Try</button><button data-tab="concept">Concept</button><button data-tab="probe">Check device</button></div>
+      <div class="seg" role="group" aria-label="Width"><button data-width="desk">Desktop</button><button data-width="phone">Phone</button></div>
+      <div class="seg" role="group" aria-label="Theme"><button data-theme-set="light">Light</button><button data-theme-set="dark">Dark</button></div>
+      <div class="seg" role="group" aria-label="Case"><button data-case="converting">Converting</button><button data-case="converted">Converted</button><button data-case="unreadable">Can't be used</button><button data-case="protected">Copy-protected</button><button data-case="empty">Drop zone (before)</button></div>
+    </div>
+  </div>
+  <div id="try" class="trywrap">
+    <div class="stage" id="stage"></div>
+    <div class="under" id="under"></div>
+  </div>
+
+  <div class="concept" id="concept" hidden>
+    <h2>What fails today</h2>
+    <div class="card">
+      <p>Measured 2026-10-10 in the pinned Playwright 1.63.0 image (Chromium, Firefox and WebKit on Linux) with <code>decodeAudioData</code> on generated sine tones. “Check device” fills the Safari column on real Apple hardware.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Format</th><th>Chromium</th><th>Firefox</th><th>WebKit (Linux)</th><th>Safari</th></tr></thead>
+        <tbody>
+          <tr><td><b>MP3, AAC-LC, FLAC, Opus, WAV</b></td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="unk">check device</td></tr>
+          <tr><td><b>ALAC, AIFF, AC-3, E-AC-3, AMR</b></td><td class="no">✗</td><td class="no">✗</td><td class="ok">✓ <span class="unk">via GStreamer — not representative of Safari</span></td><td class="unk">check device</td></tr>
+          <tr><td><b>WMA, CAF</b></td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="unk">check device</td></tr>
+          <tr><td><b>Vorbis</b></td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="unk">✗ per MDN</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <h2>What the app does today</h2>
+    <div class="card">
+      <ul>
+        <li>The Music step reads a file's duration with an <code>&lt;audio&gt;</code> element. A file it can't read gives the toast “The music could not be read” with Retry.</li>
+        <li>A file <code>&lt;audio&gt;</code> can read but <code>decodeAudioData</code> can't (rare) passes the Music step, then fails later: in the waveform (a generic error) and in the video export (“Video not created”).</li>
+      </ul>
+    </div>
+
+    <h2>What changes</h2>
+    <div class="card rec">
+      <ul>
+        <li><b>Recognised by its first bytes</b>: at import, Glissando recognises the format from the file's first bytes, not from its name or MIME type.</li>
+        <li><b>Portable music is stored as is</b>: music every target browser plays (MP3, AAC, FLAC, Opus?, WAV) is kept unchanged.</li>
+        <li><b>Everything else becomes FLAC</b>: ALAC, AIFF, CAF, AC-3/E-AC-3, WMA, AMR and Vorbis are converted on the device into a lossless FLAC copy, which every engine decodes — also on Safari, and also when the slideshow is later opened as a .glissando file or an HTML page on another device. Only the copy is stored.</li>
+        <li><b>Offline, off the main thread</b>: the conversion runs in a worker; the WebAssembly decoder is part of the offline app, so nothing is downloaded at that moment.</li>
+      </ul>
+    </div>
+
+    <h2>Open questions</h2>
+    <div class="card q">
+      <ol>
+        <li><b>Which files are converted?</b> Everything outside the portable set (recommended — a slideshow made on an iPad also plays on Windows), or only what this browser can't play?</li>
+        <li><b>How is a failure shown?</b> As an inline panel in the Music step (recommended — it stays visible until the music is replaced) instead of today's toast.</li>
+        <li><b>Which copy?</b> FLAC (lossless, plays everywhere, about 5× the size of a lossy WMA or Vorbis original — a 4-minute track ≈ 25 MB) or Opus (small, but Safari only from 18.4).</li>
+      </ol>
+    </div>
+
+    <h2>Recommendation</h2>
+    <div class="card rec">
+      <ul>
+        <li><b>Convert everything outside the portable set</b>, so a slideshow plays on every device it is opened on.</li>
+        <li><b>Inline failure panel</b> in place of the drop zone, with “Choose other music” and the formats that work.</li>
+        <li><b>FLAC copy</b>: the size is the price of “plays everywhere” without a quality loss; revisit Opus once Safari 18.4 is the oldest supported.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="concept" id="probe" hidden>
+    <h2>Check device</h2>
+    <div class="card">
+      <p>Open this page on the device to test (iPad, iPhone, Android) and tap “Run check”. Each sample is a generated 440 Hz tone, tried with <code>decodeAudioData</code> (what the waveform and the video export use) and with an <code>&lt;audio&gt;</code> element (what the Music step and the player use). “no answer” means nothing came back within 5 s.</p>
+      <div class="probe-actions"><button class="pbtn primary" id="run">Run check</button><button class="pbtn" id="copy" disabled>Copy results</button><span class="unk" id="probe-status"></span></div>
+      <div class="ua" id="ua"></div>
+      <div class="tbl"><table>
+        <thead><tr><th>Format</th><th>decodeAudioData</th><th>&lt;audio&gt;</th><th>Duration</th></tr></thead>
+        <tbody id="probe-rows"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+<script>
+const ICONS = {
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  music: '<path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  alert: '<path d="M10.3 4.3L2.6 18a2 2 0 001.7 3h15.4a2 2 0 001.7-3L13.7 4.3a2 2 0 00-3.4 0z"/><path d="M12 9.5v4M12 17h.01"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  minus: '<path d="M5 12h14"/>',
+};
+const icon = (n) => `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+
+const PICTURES = 24, TRACK_S = 252, DEFAULT_S = 4, CONVERT_MS = 5000, STILL_PERCENT = 42;
+const FORMATS = "MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA …";
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const params = new URLSearchParams(location.search);
+const S = { tab: params.get("tab") ?? "try", width: params.get("width") ?? "desk", theme: params.get("theme") ?? "light",
+  case: params.get("case") ?? "converting", percent: STILL_PERCENT };
+const still = params.has("still");
+
+// Generated picture stand-ins: a soft two-colour gradient per picture, never a photo.
+const segments = Array.from({ length: PICTURES }, (_, i) => {
+  const h = (i * 47 + 18) % 360;
+  return `linear-gradient(135deg, hsl(${h} 62% 70%), hsl(${(h + 40) % 360} 48% 42%))`;
+});
+
+const fmtDuration = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+const fmtSeconds = (s) => `${Number.isInteger(s) ? s : s.toFixed(1)} s`;
+
+function frame(body, primary) {
+  return `<div class="screen">
+    <header class="bar">
+      <button class="icon-btn" type="button" title="Back" aria-label="Back">${icon("back")}</button>
+      <nav class="crumbs" aria-label="Breadcrumb"><span class="earlier">Library</span><span class="earlier separator">/</span><span class="earlier">New slideshow</span><span class="earlier separator">/</span><span class="here" aria-current="page">Music</span></nav>
+    </header>
+    <main class="content">
+      <ol class="steps" aria-hidden="true">
+        <li class="step done"><span class="num mono">${icon("check")}</span>Pictures</li>
+        <li class="line"></li>
+        <li class="step on"><span class="num mono">2</span>Music</li>
+      </ol>
+      <div>
+        <h1 class="title">Which music?</h1>
+        <p class="lead">One piece is enough — the pictures share its length. Without music each picture stays ${fmtSeconds(DEFAULT_S)}.</p>
+      </div>
+      ${body}
+    </main>
+    <div class="actions">
+      <button class="btn" type="button">${icon("back")}Pictures</button>
+      ${primary}
+    </div>
+  </div>`;
+}
+
+function timing(perPicture, total) {
+  return `<dl class="timing">
+    <div><dt>Pictures</dt><dd class="mono">${PICTURES}</dd></div>
+    <div><dt>per picture</dt><dd class="mono">${perPicture}</dd></div>
+    <div><dt>Total</dt><dd class="mono">${total}</dd></div>
+  </dl>`;
+}
+
+const withoutMusic = `<div class="panel track">
+    <div class="text"><b>Without music: time per picture</b><span class="muted meta">Default ${fmtSeconds(DEFAULT_S)}, in half seconds, applies to this slideshow</span></div>
+    <div class="stepper"><button class="btn" type="button" title="Shorter" aria-label="Shorter">${icon("minus")}</button><b class="mono">${fmtSeconds(DEFAULT_S)}</b><button class="btn" type="button" title="Longer" aria-label="Longer">${icon("plus")}</button></div>
+  </div>`;
+
+function trackHead(name, meta, closeLabel, extra = "") {
+  return `<div class="track">
+      <span class="art">${icon("music")}</span>
+      <div class="text"><b>${name}</b><span class="muted mono meta">${meta}</span>${extra}</div>
+      <button class="icon-btn" type="button" id="remove" title="${closeLabel}" aria-label="${closeLabel}">${icon("close")}</button>
+    </div>`;
+}
+
+function failedPanel(text) {
+  return `<div class="failed" role="alert">
+      <span class="ficon">${icon("alert")}</span>
+      <div class="fbody">
+        <div class="ftitle">This file can't be used</div>
+        <div>${text}</div>
+        <div class="factions"><button class="btn primary" type="button" data-pick>Choose other music</button><span class="formats">${FORMATS}</span></div>
+      </div>
+    </div>`;
+}
+
+const noMusicPrimary = `<button class="btn primary" type="button">Create without music</button>`;
+const defaultTiming = timing(fmtSeconds(DEFAULT_S), fmtDuration(PICTURES * DEFAULT_S));
+
+const VIEWS = {
+  converting: () => frame(`
+    <div class="panel">
+      ${trackHead("Evening Walk.m4a", "Apple Lossless · converting on this device", "Cancel conversion")}
+      <div class="convert">
+        <div class="progress" role="progressbar" aria-label="Converting to FLAC" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${S.percent}"><i id="bar" style="width:${S.percent}%"></i></div>
+        <div class="fitline mono"><span>Converting to FLAC</span><span id="pct">${S.percent} %</span></div>
+        <p class="why">Not every browser plays Apple Lossless, so Glissando makes a FLAC copy. Nothing leaves this device.</p>
+      </div>
+    </div>
+    ${timing("—", "—")}`,
+    `<button class="btn primary" type="button" disabled>Converting …</button>`),
+  converted: () => {
+    const per = TRACK_S / PICTURES;
+    return frame(`
+    <div class="panel">
+      ${trackHead("Evening Walk.m4a", `${fmtDuration(TRACK_S)} · FLAC`, "Remove music", `<span class="origin">Converted from Apple Lossless on this device</span>`)}
+      <div class="fit" aria-hidden="true">
+        <div class="segments">${segments.map((g) => `<i style="flex-grow:1;background-image:${g}"></i>`).join("")}</div>
+        <div class="fitline mono"><span>0:00</span><span>${PICTURES} × ${fmtSeconds(per)}</span><span>${fmtDuration(TRACK_S)}</span></div>
+      </div>
+    </div>
+    ${timing(fmtSeconds(per), fmtDuration(TRACK_S))}`,
+    `<button class="btn primary" type="button">Create slideshow</button>`);
+  },
+  unreadable: () => frame(`${failedPanel("Glissando can't read “Concert.xyz”. It may be damaged, or in a format Glissando doesn't know.")}${withoutMusic}${defaultTiming}`, noMusicPrimary),
+  protected: () => frame(`${failedPanel("“Song.m4p” is copy-protected (an iTunes Store purchase with DRM). Glissando can't play protected music.")}${withoutMusic}${defaultTiming}`, noMusicPrimary),
+  empty: () => frame(`
+    <div class="drop" role="group">
+      <span class="dicon">${icon("music")}</span>
+      <button class="btn primary" type="button" data-pick>Choose music</button>
+      <span class="formats">${FORMATS}</span>
+    </div>
+    ${withoutMusic}${defaultTiming}`, noMusicPrimary),
+};
+
+/* ---------- Conversion animation ---------- */
+let anim = { raf: 0, timer: 0 };
+function stopConversion() { cancelAnimationFrame(anim.raf); clearTimeout(anim.timer); anim = { raf: 0, timer: 0 }; }
+function showPercent(p) {
+  S.percent = p;
+  const bar = document.getElementById("bar"), pct = document.getElementById("pct");
+  if (bar) { bar.style.width = p + "%"; bar.parentElement.setAttribute("aria-valuenow", String(p)); }
+  if (pct) pct.textContent = `${p} %`;
+}
+function startConversion() {
+  stopConversion();
+  S.case = "converting"; S.percent = 0; render();
+  if (still) { showPercent(STILL_PERCENT); return; }
+  const done = () => { S.case = "converted"; render(); };
+  if (reducedMotion) {
+    let step = 0;
+    const next = () => { step += 1; showPercent(step * 25); anim.timer = setTimeout(step < 4 ? next : done, CONVERT_MS / 4); };
+    anim.timer = setTimeout(next, CONVERT_MS / 4);
+    return;
+  }
+  const t0 = performance.now();
+  const tick = (now) => {
+    const p = Math.min(100, Math.floor((now - t0) / CONVERT_MS * 100));
+    showPercent(p);
+    if (p >= 100) { anim.timer = setTimeout(done, 300); return; }
+    anim.raf = requestAnimationFrame(tick);
+  };
+  anim.raf = requestAnimationFrame(tick);
+}
+
+/* ---------- Render ---------- */
+const stage = document.getElementById("stage"), under = document.getElementById("under");
+function render() {
+  stage.innerHTML = `<div class="app ${S.theme} ${S.width === "phone" ? "phone" : ""}">${VIEWS[S.case]()}</div>`;
+  under.innerHTML = S.case === "converting" || S.case === "converted"
+    ? `<button class="linkbtn" id="replay">Replay</button><span>the conversion: 0 → 100 % in about 5 s, then the converted track</span>`
+    : `<span>“Choose music” starts the conversion of “Evening Walk.m4a”.</span>`;
+  for (const [attr, key] of [["tab", "tab"], ["width", "width"], ["themeSet", "theme"], ["case", "case"]])
+    for (const b of document.querySelectorAll(".controls button")) if (attr in b.dataset) b.setAttribute("aria-pressed", String(b.dataset[attr] === S[key]));
+  document.getElementById("try").hidden = S.tab !== "try";
+  document.getElementById("concept").hidden = S.tab !== "concept";
+  document.getElementById("probe").hidden = S.tab !== "probe";
+}
+
+document.querySelector(".controls").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button"); if (!b) return;
+  const [k, v] = Object.entries(b.dataset)[0];
+  if (k === "case") { stopConversion(); if (v === "converting") { startConversion(); return; } S.case = v; }
+  else S[{ tab: "tab", width: "width", themeSet: "theme" }[k]] = v;
+  render();
+});
+document.getElementById("try").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button"); if (!b || b.disabled) return;
+  if (b.id === "replay" || "pick" in b.dataset) { startConversion(); return; }
+  if (b.id === "remove") { stopConversion(); S.case = "empty"; render(); }
+});
+
+/* ---------- Check device ---------- */
+const SAMPLES = [
+  ["mp3.mp3", "MP3"], ["aac.m4a", "AAC-LC (M4A)"], ["aac-adts.aac", "AAC-LC (ADTS)"], ["alac.m4a", "ALAC (M4A)"], ["alac.caf", "ALAC (CAF)"],
+  ["flac.flac", "FLAC"], ["opus.ogg", "Opus (Ogg)"], ["opus.webm", "Opus (WebM)"], ["vorbis.ogg", "Vorbis (Ogg)"], ["vorbis.webm", "Vorbis (WebM)"],
+  ["wav-s16.wav", "WAV 16-bit"], ["wav-f32.wav", "WAV 32-bit float"], ["aiff.aiff", "AIFF"], ["ac3.ac3", "AC-3"], ["eac3.eac3", "E-AC-3"],
+  ["wma.wma", "WMA"], ["amr.amr", "AMR-NB"],
+];
+const ANSWER_MS = 5000;
+const results = new Map();
+document.getElementById("ua").textContent = navigator.userAgent;
+
+function withTimeout(promise) {
+  return Promise.race([promise, new Promise((resolve) => setTimeout(() => resolve({ state: "timeout" }), ANSWER_MS))]);
+}
+async function probeDecode(url) {
+  try {
+    const buf = await (await fetch(url)).arrayBuffer();
+    const ctx = new OfflineAudioContext(2, 44100, 44100);
+    // Callbacks as well as the promise: older Safari only reports through the callbacks.
+    return await withTimeout(new Promise((resolve) => {
+      const p = ctx.decodeAudioData(buf, (audio) => resolve({ state: "ok", duration: audio.duration }),
+        (err) => resolve({ state: "fail", why: err?.name ?? "error" }));
+      p?.catch?.((err) => resolve({ state: "fail", why: err?.name ?? "error" }));
+    }));
+  } catch (err) { return { state: "fail", why: err?.name ?? "error" }; }
+}
+function probeElement(url) {
+  return withTimeout(new Promise((resolve) => {
+    const audio = new Audio();
+    audio.preload = "metadata";
+    audio.addEventListener("loadedmetadata", () => resolve({ state: "ok", duration: audio.duration }), { once: true });
+    audio.addEventListener("error", () => resolve({ state: "fail", why: `code ${audio.error?.code ?? "?"}` }), { once: true });
+    audio.src = url; audio.load();
+  }));
+}
+const cell = (r) => !r ? `<span class="unk">…</span>`
+  : r.state === "ok" ? `<span class="ok">✓</span>` : r.state === "timeout" ? `<span class="unk">no answer</span>` : `<span class="no">✗</span> <span class="unk">${r.why}</span>`;
+const dur = (r) => r?.state === "ok" && Number.isFinite(r.duration) ? `${r.duration.toFixed(2)} s` : "";
+function renderProbe() {
+  document.getElementById("probe-rows").innerHTML = SAMPLES.map(([file, label]) => {
+    const r = results.get(file) ?? {};
+    const d = dur(r.decode) || dur(r.element);
+    return `<tr><td><b>${label}</b> <code class="unk">${file}</code></td><td class="c">${cell(r.decode)}</td><td class="c">${cell(r.element)}</td><td class="c mono">${d}</td></tr>`;
+  }).join("");
+}
+document.getElementById("run").addEventListener("click", async (ev) => {
+  const run = ev.currentTarget, status = document.getElementById("probe-status");
+  run.disabled = true; results.clear(); renderProbe();
+  for (const [file] of SAMPLES) {
+    status.textContent = `Checking ${file} …`;
+    const url = `samples/${file}`;
+    const [decode, element] = await Promise.all([probeDecode(url), probeElement(url)]);
+    results.set(file, { decode, element }); renderProbe();
+  }
+  status.textContent = "Done."; run.disabled = false; document.getElementById("copy").disabled = false;
+});
+const mark = (r) => r.state === "ok" ? "ok" : r.state === "timeout" ? "no-answer" : `FAIL(${r.why})`;
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = [navigator.userAgent, ...SAMPLES.map(([file]) => {
+    const r = results.get(file);
+    return `${file}: decode=${mark(r.decode)} audio=${mark(r.element)} ${dur(r.decode) || dur(r.element)}`.trim();
+  })].join("\n");
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const ta = Object.assign(document.createElement("textarea"), { value: text });
+    document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove();
+  }
+  document.getElementById("probe-status").textContent = "Copied.";
+});
+
+renderProbe();
+if (S.case === "converting" && S.tab === "try") startConversion(); else render();
+</script>
