@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remove chosen pictures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --mint: #6fcfb4; --lemon: #f5c94a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 72ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; text-wrap: balance; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; }
+.concept p { margin: 0; }
+.concept ul { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.q { border-left: 3px solid var(--lemon); }
+kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--page-line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; background: var(--page-card); }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px; --on-photo: #ffffff; --photo-fade: rgba(0, 0, 0, 0.55);
+  width: 100%; max-width: 1100px; height: 720px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 800px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --mint: #3fae8f; --inverse-bg: #221d33; --inverse-text: #ffffff; --inverse-accent: #ffb59a;
+  --x-bg: rgba(20, 14, 30, 0.62); --x-hover: rgba(20, 14, 30, 0.85);
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --mint: #6fcfb4; --inverse-bg: #edeaf3; --inverse-text: #1a1723; --inverse-accent: #c4552f;
+  --x-bg: rgba(10, 8, 16, 0.66); --x-hover: rgba(10, 8, 16, 0.9);
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; }
+.crumbs b { color: var(--ink); font-weight: 600; }
+.crumbs .sep { color: var(--faint); }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.steps { display: flex; gap: 18px; padding: 14px 24px 0; font-weight: 600; font-size: 13px; color: var(--muted); }
+.phone .steps { padding: 12px 16px 0; }
+.steps span { display: inline-flex; align-items: center; gap: 7px; }
+.steps .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 500 12px var(--mono); border: 1.5px solid var(--faint); }
+.steps .on { color: var(--ink); }
+.steps .on .n { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.scroll { flex: 1; overflow: auto; min-height: 0; padding: 16px 24px 24px; display: grid; align-content: start; gap: 14px; }
+.phone .scroll { padding: 14px 16px 20px; }
+.summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.summary b { font-family: var(--display); font-size: 20px; letter-spacing: -0.01em; }
+.summary .range { color: var(--muted); font-family: var(--mono); font-size: 12.5px; }
+.link { padding: 0; border: 0; background: transparent; color: var(--ink); font: inherit; text-decoration: underline; cursor: pointer; }
+.drop { display: grid; justify-items: center; gap: 8px; padding: 36px 16px; border: 1.5px dashed var(--line); border-radius: var(--radius-lg); background: var(--surface); text-align: center; }
+.drop small { color: var(--muted); }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.phone .strip { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tile { position: relative; aspect-ratio: 4 / 3; max-width: 100%; overflow: hidden; border-radius: 8px; background: var(--hover); }
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tile .date { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 7px 5px; background: linear-gradient(transparent, var(--photo-fade)); color: var(--on-photo); font: 500 11px var(--mono); }
+.tile.gone { animation: out 0.16s ease-in forwards; }
+@keyframes out { to { opacity: 0; transform: scale(0.92); } }
+.tile.back { animation: in 0.2s ease-out; }
+@keyframes in { from { opacity: 0; transform: scale(0.92); } }
+@media (prefers-reduced-motion: reduce) { .tile.gone, .tile.back { animation: none; } }
+
+/* The ✕: a real button per tile. Touch (the phone frame) always shows it; a mouse sees it on hover, keyboard focus shows it too. */
+.x { position: absolute; top: 5px; right: 5px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: var(--x-bg); color: var(--on-photo); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.x::before { content: ""; position: absolute; inset: -8px; } /* 44px touch target */
+.x svg.i { width: 15px; height: 15px; stroke-width: 2.2; }
+.x:hover { background: var(--x-hover); }
+.app.desk .x { opacity: 0; transition: opacity 0.12s; }
+.app.desk .tile:hover .x, .app.desk .x:focus-visible { opacity: 1; }
+.app .x:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.foot { display: flex; gap: 10px; justify-content: space-between; align-items: center; padding: 12px 24px; border-top: 1px solid var(--line); background: var(--surface); flex: none; }
+.phone .foot { padding: 12px 16px 20px; }
+
+.toast { position: absolute; left: 50%; bottom: 78px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; background: var(--inverse-bg); color: var(--inverse-text); padding: 10px 10px 10px 16px; border-radius: 12px; box-shadow: 0 10px 30px rgba(10, 6, 20, 0.3); font-weight: 500; white-space: nowrap; }
+.phone .toast { bottom: 92px; width: calc(100% - 32px); justify-content: space-between; }
+.toast .undo { border: 0; background: transparent; color: var(--inverse-accent); font: 600 14px var(--ui); padding: 6px 8px; border-radius: 7px; cursor: pointer; }
+.toast .close { border: 0; background: transparent; color: inherit; opacity: 0.7; width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; cursor: pointer; }
+.toast .acts { display: flex; align-items: center; gap: 2px; }
+</style>
+
+<div class="page">
+  <header class="intro">
+    <h1>Remove a chosen picture in the pictures step</h1>
+    <p>Import wizard, step 1. Every stored tile gets a ✕. One press removes the picture, without a question; a toast offers Undo. Try it in the frame below: click or tap a ✕, or press <kbd>Tab</kbd> to reach a ✕ and <kbd>Enter</kbd>, <kbd>Space</kbd> or <kbd>Delete</kbd>. The images are generated.</p>
+  </header>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Device">
+      <button type="button" data-device="desk" aria-pressed="true">Desktop · mouse</button>
+      <button type="button" data-device="phone" aria-pressed="false">Phone · touch</button>
+    </div>
+    <div class="seg" role="group" aria-label="App theme">
+      <button type="button" data-theme-app="light" aria-pressed="true">Light</button>
+      <button type="button" data-theme-app="dark" aria-pressed="false">Dark</button>
+    </div>
+    <div class="seg"><button type="button" id="reset">Start over with 9 pictures</button></div>
+  </div>
+
+  <div class="stage">
+    <div class="app desk light" id="app">
+      <div class="bar">
+        <button class="iconbtn" type="button" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="crumbs"><span>Library</span><span class="sep">/</span><b>New slideshow</b><span class="sep">/</span><span>Pictures</span></div>
+      </div>
+      <div class="steps"><span class="on"><span class="n">1</span>Pictures</span><span><span class="n">2</span>Music</span></div>
+      <div class="scroll">
+        <div class="summary" id="summary"></div>
+        <div class="drop" id="drop" hidden>
+          <button class="btn primary" type="button" id="choose">Choose pictures</button>
+          <small>or choose a folder · or drop them here</small>
+        </div>
+        <ul class="strip" id="strip" aria-label="Chosen pictures"></ul>
+      </div>
+      <div class="foot">
+        <button class="btn" type="button">Cancel</button>
+        <button class="btn primary" type="button" id="next">Next</button>
+      </div>
+      <div class="toast" id="toast" role="status" hidden>
+        <span id="toastText"></span>
+        <span class="acts">
+          <button class="undo" type="button" id="undo">Undo</button>
+          <button class="close" type="button" id="toastClose" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <section class="concept">
+    <h2>How it behaves</h2>
+    <div class="card">
+      <ul>
+        <li><b>Mouse:</b> the ✕ shows when the pointer is over a tile. A click removes the picture.</li>
+        <li><b>Touch:</b> the ✕ is always shown, 28 px drawn on a 44 px target. A tap removes the picture. There is no selection mode here, so nothing else is needed.</li>
+        <li><b>Keyboard:</b> each ✕ is a button in the tab order, named "Remove picture from 4 Jul 18:00". <kbd>Enter</kbd>, <kbd>Space</kbd>, <kbd>Delete</kbd> or <kbd>Backspace</kbd> removes it. Focus then moves to the next tile's ✕, or the previous one at the end, or "Choose pictures" when none are left.</li>
+        <li><b>Undo:</b> the toast "Picture removed" with Undo. Removals while it shows add up ("3 pictures removed"); one Undo puts them all back where they were. Next, Cancel or ← dismiss it, and the removed pictures are then dropped for good.</li>
+        <li>The count and date range follow at once. With every picture removed the drop zone comes back and Next is disabled, as at the start.</li>
+        <li>A tile still being downscaled has no ✕; it gets one once it is stored. Removing a picture also frees it from the duplicate check, so choosing it again takes it in.</li>
+        <li>"Add pictures" to an existing slideshow uses the same step and gets the same ✕.</li>
+      </ul>
+    </div>
+    <div class="card q">
+      <p><b>Considered and left out:</b> tap to select, then a "Remove" bar, as in the slideshow editor. That costs two taps for one picture and adds a mode to a screen that has none. A confirm dialog is left out as well, because Undo covers a slip.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const D = (d, h, m) => new Date(Date.UTC(2025, 6, d, h, m));
+const ALL = [
+  { t: D(1, 9, 10), hue: 205 }, { t: D(1, 18, 40), hue: 22 }, { t: D(2, 11, 5), hue: 195 },
+  { t: D(3, 13, 30), hue: 150 }, { t: D(4, 18, 0), hue: 30 }, { t: D(5, 10, 20), hue: 200 },
+  { t: D(6, 16, 45), hue: 40 }, { t: D(8, 12, 0), hue: 185 }, { t: D(9, 20, 15), hue: 260 },
+].map((p, i) => ({ ...p, id: "p" + i }));
+
+/* Generated landscape thumbnails: sky by hour, mountains, a lake. */
+const thumbs = new Map();
+function thumb(p) {
+  if (thumbs.has(p.id)) return thumbs.get(p.id);
+  const c = document.createElement("canvas"); c.width = 160; c.height = 120;
+  const g = c.getContext("2d"); const h = p.t.getUTCHours(); const evening = h >= 18;
+  const sky = g.createLinearGradient(0, 0, 0, 80);
+  sky.addColorStop(0, `hsl(${p.hue} ${evening ? 60 : 55}% ${evening ? 38 : 62}%)`);
+  sky.addColorStop(1, `hsl(${(p.hue + 30) % 360} 70% ${evening ? 66 : 84}%)`);
+  g.fillStyle = sky; g.fillRect(0, 0, 160, 120);
+  g.fillStyle = `hsl(${evening ? 40 : 50} 95% ${evening ? 70 : 92}%)`;
+  g.beginPath(); g.arc(30 + (h * 7) % 100, 30 + (evening ? 25 : 0), 11, 0, 7); g.fill();
+  let seed = [...p.id].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7);
+  const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  g.fillStyle = `hsl(${(p.hue + 180) % 360} 22% ${evening ? 22 : 38}%)`;
+  g.beginPath(); g.moveTo(0, 80);
+  for (let x = 0; x <= 160; x += 20) g.lineTo(x, 45 + rnd() * 30);
+  g.lineTo(160, 80); g.fill();
+  g.fillStyle = `hsl(${p.hue} 45% ${evening ? 30 : 48}%)`; g.fillRect(0, 80, 160, 40);
+  const url = c.toDataURL("image/jpeg", 0.8); thumbs.set(p.id, url); return url;
+}
+const day = t => t.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+const stamp = t => day(t) + " " + t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+
+const $ = id => document.getElementById(id);
+const app = $("app");
+let pictures = ALL.slice();
+let batch = [];          // removed while the toast shows: { picture, index }
+let backIds = new Set();
+
+function render(focusIndex) {
+  const strip = $("strip");
+  strip.replaceChildren(...pictures.map(p => {
+    const li = document.createElement("li");
+    li.className = "tile" + (backIds.has(p.id) ? " back" : "");
+    li.innerHTML = `<img alt="" src="${thumb(p)}"><span class="date">${stamp(p.t)}</span>
+      <button class="x" type="button" aria-label="Remove picture from ${stamp(p.t)}" title="Remove">
+      <svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+    const x = li.querySelector(".x");
+    x.addEventListener("click", () => remove(p.id));
+    x.addEventListener("keydown", e => { if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); remove(p.id); } });
+    return li;
+  }));
+  backIds = new Set();
+  const n = pictures.length;
+  $("drop").hidden = n > 0;
+  $("next").disabled = n === 0;
+  if (n === 0) { $("summary").innerHTML = ""; }
+  else {
+    const ts = pictures.map(p => p.t).sort((a, b) => a - b);
+    $("summary").innerHTML = `<b>${n} ${n === 1 ? "picture" : "pictures"}</b><span class="range">${day(ts[0])} – ${day(ts[n - 1])}</span><button class="link" type="button">add more</button>`;
+  }
+  if (focusIndex !== undefined) {
+    const xs = strip.querySelectorAll(".x");
+    (xs[Math.min(focusIndex, xs.length - 1)] || $("choose")).focus();
+  }
+}
+
+function remove(id) {
+  const index = pictures.findIndex(p => p.id === id);
+  if (index < 0) return;
+  const tile = $("strip").children[index];
+  const done = () => {
+    const at = pictures.findIndex(p => p.id === id);
+    if (at < 0) return;
+    batch.push({ picture: pictures[at], index: at });
+    pictures.splice(at, 1);
+    render(at);
+    showToast();
+  };
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) done();
+  else { tile.classList.add("gone"); tile.addEventListener("animationend", done, { once: true }); }
+}
+
+function showToast() {
+  const n = batch.length;
+  $("toastText").textContent = n === 1 ? "Picture removed" : `${n} pictures removed`;
+  $("toast").hidden = false;
+}
+function dismissToast() { batch = []; $("toast").hidden = true; }
+
+$("undo").addEventListener("click", () => {
+  for (const { picture, index } of batch.slice().reverse()) { pictures.splice(index, 0, picture); backIds.add(picture.id); }
+  const first = Math.min(...batch.map(b => b.index));
+  dismissToast(); render(first);
+});
+$("toastClose").addEventListener("click", dismissToast);
+$("next").addEventListener("click", dismissToast);
+$("reset").addEventListener("click", () => { pictures = ALL.slice(); dismissToast(); render(); });
+
+document.querySelectorAll("[data-device]").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("[data-device]").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+  app.classList.toggle("phone", b.dataset.device === "phone");
+  app.classList.toggle("desk", b.dataset.device === "desk");
+}));
+document.querySelectorAll("[data-theme-app]").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("[data-theme-app]").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+  app.classList.toggle("dark", b.dataset.themeApp === "dark");
+  app.classList.toggle("light", b.dataset.themeApp === "light");
+}));
+render();
+</script>
