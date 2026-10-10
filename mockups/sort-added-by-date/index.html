@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sort added pictures by date</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --mint: #6fcfb4; --lemon: #f5c94a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 70ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible, .app input:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; text-wrap: balance; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; }
+.concept p { margin: 0; }
+.concept ul, .concept ol { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.q { border-left: 3px solid var(--lemon); }
+code { font-family: var(--mono); font-size: 12.5px; }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px; --on-photo: #ffffff; --photo-badge: rgba(0, 0, 0, 0.5);
+  width: 100%; max-width: 1200px; height: 760px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 820px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --raised: #fbfafc; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --accent-soft: #ffe9e0; --inverse-bg: #221d33; --inverse-text: #ffffff;
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --raised: #221e2d; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --accent-soft: #3a2a27; --inverse-bg: #edeaf3; --inverse-text: #1a1723;
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; z-index: 3; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs .sep { color: var(--faint); }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.iconbtn:hover { background: var(--hover); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.sm { height: 32px; padding: 0 11px; font-size: 13px; }
+.scroll { flex: 1; overflow: auto; position: relative; min-height: 0; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.small { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0; }
+
+/* Slideshow screen */
+.show { padding: 24px; display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; }
+.phone .show { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+.striphead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.striphead .count { font-weight: 600; }
+.striphead .ord { color: var(--muted); font-size: 13px; }
+.striphead .grow { flex: 1; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.phone .tiles { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tile { position: relative; border-radius: 8px; overflow: hidden; background: var(--hover); display: grid; }
+.tile img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; max-width: 100%; }
+.tile .num { position: absolute; left: 6px; top: 6px; background: var(--photo-badge); color: var(--on-photo); border-radius: 6px; font: 500 11px var(--mono); padding: 3px 6px; }
+.tile .date { font: 400 11px var(--mono); color: var(--muted); padding: 5px 2px 0; background: var(--ground); }
+.tile.new img { outline: 3px solid var(--accent); outline-offset: -3px; border-radius: 8px; }
+.tile .badge { position: absolute; right: 6px; top: 6px; background: var(--accent); color: var(--accent-ink); border-radius: 6px; font: 600 11px var(--ui); padding: 3px 6px; }
+.info { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; display: grid; gap: 12px; }
+.info .name { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 13px; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; }
+
+/* Add screen */
+.add { padding: 24px; display: grid; gap: 18px; max-width: 860px; margin: 0 auto; width: 100%; }
+.phone .add { padding: 16px; gap: 16px; }
+.add h2 { font-family: var(--display); font-size: 24px; margin: 0; letter-spacing: -0.01em; }
+.add .lead { margin: 4px 0 0; color: var(--muted); line-height: 1.5; max-width: 62ch; }
+.chosen { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.phone .chosen { grid-template-columns: repeat(3, 1fr); }
+.chosen .tile .date { background: var(--ground); }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px; display: grid; gap: 12px; }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.phone .choice { grid-template-columns: 1fr; }
+.opt { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: start; text-align: left; border: 1px solid var(--line); background: var(--raised); border-radius: var(--radius); padding: 11px 12px; cursor: pointer; color: var(--ink); font: inherit; }
+.opt:hover { background: var(--hover); }
+.opt[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.opt .dot { grid-row: span 2; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--faint); margin-top: 2px; }
+.opt[aria-checked="true"] .dot { border-color: var(--accent); background: radial-gradient(var(--accent) 0 4px, transparent 4.5px); }
+.opt b { font-weight: 600; }
+.opt span { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+.compare { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13px; margin: 0; }
+.compare dt { color: var(--muted); }
+.compare dd { margin: 0; font-weight: 500; }
+.order { display: flex; flex-wrap: wrap; gap: 4px; }
+.mini { position: relative; width: 40px; display: grid; gap: 2px; justify-items: center; }
+.phone .mini { width: 38px; }
+.mini img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; display: block; opacity: 0.55; }
+.mini.new img { opacity: 1; outline: 2px solid var(--accent); outline-offset: 1px; }
+.mini small { font: 400 10px var(--mono); color: var(--faint); }
+.mini.new small { color: var(--ink); font-weight: 500; }
+.where { margin: 0; font-size: 13px; line-height: 1.5; }
+.foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--surface); flex: none; }
+.toast { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--inverse-bg); color: var(--inverse-text); border-radius: 12px; padding: 10px 10px 10px 16px; display: flex; align-items: center; gap: 14px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.25); white-space: nowrap; z-index: 5; }
+.toast button { background: transparent; border: 0; color: var(--accent); font-weight: 600; cursor: pointer; padding: 6px 8px; border-radius: 7px; }
+@media (prefers-reduced-motion: no-preference) { .tile.new img { transition: outline-color 0.3s; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Sort added pictures in by capture date</h1>
+      <p>A slideshow of 12 pictures in its own order: the sunset of 8 July was moved to the front. Adding 5 pictures from a second phone. All pictures are generated; no real photos.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="View"><button data-tab="try">Try it</button><button data-tab="concept">Concept</button></div>
+      <div class="seg" role="group" aria-label="Width"><button data-width="desk">Desktop</button><button data-width="phone">Phone</button></div>
+      <div class="seg" role="group" aria-label="Theme"><button data-theme-set="light">Light</button><button data-theme-set="dark">Dark</button></div>
+      <div class="seg" role="group" aria-label="Slideshow order"><button data-order="own">Own order</button><button data-order="date">Sorted by capture date</button></div>
+    </div>
+  </div>
+  <div class="stage" id="stage"></div>
+
+  <div class="concept" id="concept" hidden>
+    <h2>How it works</h2>
+    <div class="card">
+      <ul>
+        <li><b>Only with your own order.</b> A slideshow sorted by capture date stays as it is today: the new pictures take their places, and the screen offers no choice.</li>
+        <li><b>The choice</b> sits on the Add screen as soon as pictures are chosen, under “Where they go”: <i>By capture date</i> (proposed default) or <i>At the end</i>. Your own order stays either way, and the slideshow stays “Own order”.</li>
+        <li><b>The rule for “By capture date”</b>: each new picture goes right after the picture in the slideshow taken last before it (or at the same time). In the example the evening photo of 8 July lands after the sunset, at the front, because that is where you put the sunset. A picture older than all of them goes right before the oldest one. Several new pictures at the same spot keep their capture order.</li>
+        <li><b>The preview</b> in “After adding” shows the whole play order as small thumbnails, the new ones outlined, and one line naming the spots: “2 after picture 1 · 1 after picture 2 · 2 after picture 6”. It follows the choice live.</li>
+        <li><b>After adding</b> nothing new: the slideshow shows the new tiles outlined with “new”, and “5 pictures added · Undo” takes them out again wherever they went.</li>
+        <li><b>Server library</b> (Immich, linked): the same choice; it only changes where the pictures go in the record.</li>
+      </ul>
+    </div>
+    <h2>Tests</h2>
+    <div class="card">
+      <ul>
+        <li><b>Unit</b> (pure <code>addPictures</code> in <code>slideshow-edits.ts</code>): into place after the latest earlier picture, ties after it, before the oldest when older than all, several at one spot in capture order, at the end unchanged, sorted slideshows unchanged. Plus the spot summary for the preview line.</li>
+        <li><b>Component</b>: the choice shows only with own order, the default, the preview follows it.</li>
+        <li><b>E2E</b> after your OK on the built change: add two generated pictures to an own-order slideshow by capture date and check their places.</li>
+      </ul>
+    </div>
+    <h2>Decisions</h2>
+    <div class="card q">
+      <ol>
+        <li><b>Default</b>: “By capture date” is preselected (proposed). Alternative: “At the end”, as today.</li>
+        <li><b>Remembered?</b> Proposed: no, every add starts with the default. A choice stays while the selection is open.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<script>
+const D = (d, h, m) => new Date(Date.UTC(2025, 6, d, h, m));
+const EXISTING = [
+  { t: D(8, 19, 40), hue: 18 }, { t: D(2, 10, 5), hue: 205 }, { t: D(2, 15, 20), hue: 195 },
+  { t: D(3, 9, 10), hue: 210 }, { t: D(3, 13, 30), hue: 190 }, { t: D(4, 11, 0), hue: 150 },
+  { t: D(5, 16, 45), hue: 35 }, { t: D(6, 10, 20), hue: 200 }, { t: D(7, 12, 0), hue: 185 },
+  { t: D(7, 18, 30), hue: 28 }, { t: D(9, 9, 0), hue: 45 }, { t: D(9, 14, 0), hue: 205 },
+].map((p, i) => ({ ...p, id: "e" + i }));
+const ADDED = [
+  { t: D(1, 18, 0), hue: 30 }, { t: D(2, 12, 30), hue: 200 }, { t: D(4, 17, 10), hue: 40 },
+  { t: D(4, 18, 0), hue: 20 }, { t: D(8, 21, 15), hue: 260 },
+].map((p, i) => ({ ...p, id: "n" + i, isNew: true }));
+
+/* Generated landscape thumbnails: sky by hour, mountains, a lake. */
+const thumbCache = new Map();
+function thumb(p) {
+  if (thumbCache.has(p.id)) return thumbCache.get(p.id);
+  const c = document.createElement("canvas"); c.width = 160; c.height = 120;
+  const g = c.getContext("2d"); const h = p.t.getUTCHours();
+  const evening = h >= 18 || h < 7;
+  const sky = g.createLinearGradient(0, 0, 0, 80);
+  sky.addColorStop(0, `hsl(${p.hue} ${evening ? 60 : 55}% ${evening ? 38 : 62}%)`);
+  sky.addColorStop(1, `hsl(${(p.hue + 30) % 360} 70% ${evening ? 66 : 84}%)`);
+  g.fillStyle = sky; g.fillRect(0, 0, 160, 120);
+  g.fillStyle = `hsl(${evening ? 40 : 50} 95% ${evening ? 70 : 92}%)`;
+  g.beginPath(); g.arc(30 + (h * 7) % 100, 30 + (evening ? 25 : 0), 11, 0, 7); g.fill();
+  let seed = [...p.id].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7);
+  const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  g.fillStyle = `hsl(${(p.hue + 180) % 360} 22% ${evening ? 22 : 38}%)`;
+  g.beginPath(); g.moveTo(0, 80);
+  for (let x = 0; x <= 160; x += 20) g.lineTo(x, 45 + rnd() * 30);
+  g.lineTo(160, 80); g.fill();
+  g.fillStyle = `hsl(${p.hue} 45% ${evening ? 30 : 48}%)`; g.fillRect(0, 80, 160, 40);
+  g.fillStyle = "rgba(255,255,255,0.18)";
+  for (let i = 0; i < 6; i++) g.fillRect(rnd() * 140, 86 + rnd() * 30, 20, 1.5);
+  const url = c.toDataURL("image/jpeg", 0.8); thumbCache.set(p.id, url); return url;
+}
+const fmt = t => t.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }) + " " +
+  t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+
+/* The placement rule: after the latest picture taken no later than it, else before the oldest. */
+function placeByDate(existing, added) {
+  const before = existing.map(() => []), after = existing.map(() => []);
+  let oldest = 0;
+  existing.forEach((q, i) => { if (q.t < existing[oldest].t) oldest = i; });
+  for (const p of added.slice().sort((a, b) => a.t - b.t)) {
+    let anchor = -1;
+    existing.forEach((q, i) => { if (q.t <= p.t && (anchor < 0 || q.t >= existing[anchor].t)) anchor = i; });
+    (anchor >= 0 ? after[anchor] : before[oldest]).push(p);
+  }
+  return existing.flatMap((q, i) => [...before[i], q, ...after[i]]);
+}
+const atEnd = (existing, added) => existing.concat(added.slice().sort((a, b) => a.t - b.t));
+const byDateSorted = (existing, added) => existing.concat(added).sort((a, b) => a.t - b.t);
+
+function spots(order) {
+  const parts = []; let lastOld = 0, run = 0;
+  order.forEach(p => {
+    if (p.isNew) run++;
+    else { if (run) parts.push([lastOld, run]); run = 0; lastOld = existingNumber(p); }
+  });
+  if (run) parts.push([lastOld, run]);
+  return parts.map(([n, k]) => n === 0 ? `${k} before picture 1` : `${k} after picture ${n}`).join(" · ");
+}
+let sortedExisting = [];
+const existingNumber = p => state.order === "own" ? EXISTING.indexOf(p) + 1 : sortedExisting.indexOf(p) + 1;
+
+const state = { tab: "try", width: "desk", theme: "light", order: "own", screen: "show", place: "date", added: false };
+const icon = {
+  back: '<svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  play: '<svg class="i" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>',
+};
+const playOrder = () => {
+  sortedExisting = EXISTING.slice().sort((a, b) => a.t - b.t);
+  if (state.order === "date") return byDateSorted(sortedExisting, ADDED);
+  return state.place === "date" ? placeByDate(EXISTING, ADDED) : atEnd(EXISTING, ADDED);
+};
+const tileHtml = (p, i, markNew) => `<div class="tile${markNew && p.isNew ? " new" : ""}"><img alt="" src="${thumb(p)}"><span class="num">${i + 1}</span>${markNew && p.isNew ? '<span class="badge">new</span>' : ""}<span class="date">${fmt(p.t)}</span></div>`;
+
+function showScreen() {
+  const base = state.order === "own" ? EXISTING : EXISTING.slice().sort((a, b) => a.t - b.t);
+  const list = state.added ? playOrder() : base;
+  const phone = state.width === "phone";
+  return `<div class="bar"><div class="crumbs"><span>Library</span><span class="sep">/</span><b>Lake Garda</b></div></div>
+  <div class="scroll"><div class="show">
+    <section>
+      <div class="striphead"><span class="count">${list.length} pictures</span>
+        <span class="ord">${state.order === "own" ? (phone ? "Own order · tap to reorder" : "Own order · drag or tap") : "Sorted by capture date"}</span>
+        <span class="grow"></span><button class="btn sm" id="open-add">${icon.plus}${phone ? "Add" : "Add pictures"}</button></div>
+      <div class="tiles">${list.map((p, i) => tileHtml(p, i, state.added)).join("")}</div>
+    </section>
+    <aside class="info"><div class="name">Lake Garda</div><div class="small">1 Jul – 9 Jul 2025</div>
+      <button class="btn primary">${icon.play}Play</button>
+      <dl class="facts"><dt>Pictures</dt><dd>${list.length}</dd><dt>Duration</dt><dd class="mono">${state.added ? "1:25" : "1:00"}</dd><dt>Music</dt><dd>No music</dd></dl></aside>
+  </div></div>
+  ${state.added ? '<div class="toast">5 pictures added<button id="undo">Undo</button></div>' : ""}`;
+}
+
+function addScreen() {
+  const own = state.order === "own";
+  const order = playOrder();
+  const lead = own
+    ? "Your own order stays; choose below where the new pictures go. Glissando downscales them for this device; your originals stay untouched."
+    : "They go into place by capture date. Glissando downscales them for this device; your originals stay untouched.";
+  const option = (key, title, sub) => `<button class="opt" role="radio" aria-checked="${state.place === key}" data-place="${key}"><i class="dot"></i><b>${title}</b><span>${sub}</span></button>`;
+  return `<div class="bar"><button class="iconbtn" id="back" aria-label="Back">${icon.back}</button><div class="crumbs"><span>Lake Garda</span><span class="sep">/</span><b>Add pictures</b></div></div>
+  <div class="scroll"><div class="add">
+    <div><h2>Add pictures</h2><p class="lead">${lead}</p></div>
+    <div><div class="eyebrow" style="margin-bottom:8px">5 new pictures</div>
+      <div class="chosen">${ADDED.slice().sort((a, b) => a.t - b.t).map(p => `<div class="tile"><img alt="" src="${thumb(p)}"><span class="date">${fmt(p.t)}</span></div>`).join("")}</div></div>
+    ${own ? `<div class="box" role="radiogroup" aria-labelledby="where-h"><div class="eyebrow" id="where-h">Where they go</div>
+      <div class="choice">${option("date", "By capture date", "Each goes right after the picture taken just before it.")}${option("end", "At the end", "After picture 12, in capture order.")}</div></div>` : ""}
+    <div class="box"><div class="eyebrow">After adding</div>
+      <dl class="compare"><dt>Pictures</dt><dd class="mono">12 → 17</dd><dt>Duration</dt><dd class="mono">1:00 → 1:25</dd></dl>
+      <p class="small">Each new picture gets 5 s; the slideshow gets longer.</p>
+      ${own ? `<div class="order" aria-label="Play order after adding">${order.map((p, i) => `<div class="mini${p.isNew ? " new" : ""}"><img alt="" src="${thumb(p)}"><small>${i + 1}</small></div>`).join("")}</div>
+      <p class="where">${spots(order)}</p>` : ""}
+    </div>
+  </div></div>
+  <div class="foot"><button class="btn" id="cancel">Cancel</button><button class="btn primary" id="do-add">Add 5</button></div>`;
+}
+
+function render() {
+  document.querySelectorAll("[data-tab]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tab === state.tab));
+  document.querySelectorAll("[data-width]").forEach(b => b.setAttribute("aria-pressed", b.dataset.width === state.width));
+  document.querySelectorAll("[data-theme-set]").forEach(b => b.setAttribute("aria-pressed", b.dataset.themeSet === state.theme));
+  document.querySelectorAll("[data-order]").forEach(b => b.setAttribute("aria-pressed", b.dataset.order === state.order));
+  document.getElementById("concept").hidden = state.tab !== "concept";
+  const stage = document.getElementById("stage"); stage.hidden = state.tab !== "try";
+  stage.innerHTML = `<div class="app ${state.theme} ${state.width === "phone" ? "phone" : ""}">${state.screen === "show" ? showScreen() : addScreen()}</div>`;
+  const on = (id, f) => { const el = document.getElementById(id); if (el) el.onclick = f; };
+  on("open-add", () => { state.screen = "add"; state.added = false; state.place = "date"; render(); });
+  on("back", () => { state.screen = "show"; render(); });
+  on("cancel", () => { state.screen = "show"; render(); });
+  on("do-add", () => { state.screen = "show"; state.added = true; render(); });
+  on("undo", () => { state.added = false; render(); });
+  stage.querySelectorAll("[data-place]").forEach(b => b.onclick = () => { state.place = b.dataset.place; render(); });
+}
+document.querySelectorAll(".controls button").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.tab) state.tab = b.dataset.tab;
+  if (b.dataset.width) state.width = b.dataset.width;
+  if (b.dataset.themeSet) state.theme = b.dataset.themeSet;
+  if (b.dataset.order) { state.order = b.dataset.order; state.added = false; }
+  render();
+}));
+state.screen = "add";
+render();
+</script>
+</body>
+</html>
