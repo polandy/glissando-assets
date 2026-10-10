@@ -1,0 +1,784 @@
+<title>Glissando web page export</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --peach-soft: #ffb59a; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 70ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible, .app input:focus-visible, .frame:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; text-wrap: balance; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; }
+.concept p { margin: 0; }
+.concept ul, .concept ol { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.rec { border-left: 3px solid var(--mint); }
+.card.q { border-left: 3px solid var(--lemon); }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; min-width: 640px; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-top: 1px solid var(--page-line); line-height: 1.45; }
+.tbl th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--page-muted); border-top: 0; }
+code, pre { font-family: var(--mono); font-size: 12.5px; }
+pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px; --well: #0b0a10;
+  --on-photo: #ffffff; --photo-badge: rgba(0, 0, 0, 0.5); --veil: rgba(0, 0, 0, 0.46);
+  width: 100%; max-width: 1200px; height: 760px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; container-type: inline-size; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 820px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --raised: #fbfafc; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --shadow: 0 1px 2px rgba(34, 29, 51, 0.06), 0 6px 18px rgba(34, 29, 51, 0.06);
+  --inverse-bg: #221d33; --inverse-text: #ffffff;
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --raised: #221e2d; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --inverse-bg: #edeaf3; --inverse-text: #1a1723;
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.app svg.i.fill { fill: currentColor; stroke: none; }
+
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; z-index: 3; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs .sep { color: var(--faint); }
+.spacer { flex: 1; }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.iconbtn:hover { background: var(--hover); }
+.iconbtn[aria-disabled="true"] { color: var(--faint); cursor: default; background: transparent; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--ink); background: var(--hover); }
+.btn.sm { height: 32px; padding: 0 11px; font-size: 13px; }
+.scroll { flex: 1; overflow: auto; position: relative; min-height: 0; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0; }
+/* Slideshow screen */
+.show { padding: 24px; display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tile { position: relative; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: var(--hover); }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile .num { position: absolute; left: 6px; top: 6px; background: var(--photo-badge); color: var(--on-photo); border-radius: 6px; font: 500 11px var(--mono); padding: 3px 6px; }
+.info { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; display: grid; gap: 14px; }
+.info .name { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 13px; align-items: center; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; }
+.facts dd small { color: var(--muted); font-weight: 400; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--hover); }
+.pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+.musicrow { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 14px; align-items: center; border: 1px solid var(--line); background: var(--raised); border-radius: var(--radius); padding: 9px 10px 9px 12px; margin: 2px -4px; cursor: pointer; text-align: left; color: var(--ink); font: 500 13px var(--ui); }
+.musicrow:hover { background: var(--hover); }
+.musicrow .lbl { color: var(--muted); font-weight: 400; }
+.musicrow .val { display: grid; gap: 2px; min-width: 0; }
+.musicrow .val b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.musicrow .val small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.musicrow .go { color: var(--muted); display: flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; }
+
+
+/* Info panel: the second action under "Abspielen" */
+.info .actions { display: grid; gap: 8px; }
+.btn.large { height: 44px; font-size: 15px; }
+.btn.block { width: 100%; }
+
+/* The export sheet: a dialog on desktop, a bottom sheet on the phone */
+.backdrop { position: absolute; inset: 0; background: rgba(18, 14, 28, 0.38); z-index: 10; display: grid; place-items: center; padding: 24px; }
+.sheet { width: 100%; max-width: 520px; max-height: 100%; overflow: auto; background: var(--surface); border-radius: 16px; box-shadow: 0 24px 60px rgba(10, 6, 20, 0.3); display: grid; gap: 16px; padding: 20px; color: var(--ink); }
+.sheet header { display: flex; align-items: start; gap: 10px; }
+.sheet header h2 { margin: 0; font-family: var(--display); font-size: 22px; letter-spacing: -0.01em; flex: 1; text-wrap: balance; }
+.sheet header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.presets { display: grid; gap: 8px; }
+.preset { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; text-align: left; border: 1px solid var(--line); background: var(--raised); color: var(--ink); border-radius: var(--radius); padding: 11px 14px; cursor: pointer; font: 500 13px var(--ui); }
+.preset:hover { background: var(--hover); }
+.preset[aria-checked="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.preset[aria-disabled="true"] { cursor: default; color: var(--faint); background: transparent; }
+.preset .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--faint); grid-row: span 2; }
+.preset[aria-checked="true"] .dot { border: 5px solid var(--accent); }
+.preset b { font-weight: 600; font-size: 14px; }
+.preset small { color: var(--muted); font-size: 12px; grid-column: 2; }
+.preset .size { grid-row: span 2; font: 500 13px var(--mono); color: var(--muted); text-align: right; }
+.preset[aria-disabled="true"] small, .preset[aria-disabled="true"] .size { color: var(--faint); }
+.spec { display: flex; flex-wrap: wrap; gap: 6px; }
+.spec span { font: 500 11.5px var(--mono); padding: 3px 8px; border-radius: 999px; background: var(--hover); color: var(--muted); }
+.note { background: var(--hover); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; line-height: 1.45; display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.note.warn { background: color-mix(in srgb, var(--lemon) 22%, var(--surface)); }
+.note.err { background: color-mix(in srgb, var(--coral) 18%, var(--surface)); }
+.note.ok { background: color-mix(in srgb, var(--mint) 22%, var(--surface)); }
+.note b { font-weight: 600; }
+.note p { margin: 0; }
+.foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.preview { position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #000; }
+.preview canvas { width: 100%; height: 100%; display: block; }
+.preview .stamp { position: absolute; right: 8px; bottom: 8px; background: rgba(0, 0, 0, 0.5); color: #fff; font: 500 11.5px var(--mono); padding: 3px 7px; border-radius: 6px; }
+.meter { height: 8px; border-radius: 999px; background: var(--hover); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--mint); border-radius: 999px; }
+.runrow { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.runrow b { color: var(--ink); font-weight: 600; }
+.file { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--raised); }
+.file .thumb { width: 64px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; grid-row: span 2; }
+.file .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.file b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file small { color: var(--muted); font: 500 12px var(--mono); }
+.status-ic { width: 20px; height: 20px; }
+
+
+@container (max-width: 720px) {
+  .show { grid-template-columns: 1fr; padding: 16px; gap: 18px; }
+  .show .info { order: -1; }
+  .tiles { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .hide-narrow { display: none !important; }
+  .backdrop { place-items: end stretch; padding: 0; }
+  .sheet { max-width: none; border-radius: 18px 18px 0 0; padding: 18px 16px 26px; }
+  .foot .btn { flex: 1; }
+}
+</style>
+<style>
+/* Info panel: the two save actions */
+.saverow { display: grid; gap: 6px; }
+.saverow .lbl { font-size: 12px; font-weight: 600; color: var(--muted); }
+.saverow .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* The web page export */
+.thumbs { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.thumbs span { aspect-ratio: 3 / 2; border-radius: 4px; background: var(--hover); overflow: hidden; }
+.thumbs span img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.35; transition: opacity 0.2s; }
+.thumbs span.ok img { opacity: 1; }
+.compare { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; font-size: 12.5px; }
+.compare .bar2 { height: 6px; border-radius: 999px; background: var(--hover); overflow: hidden; }
+.compare .bar2 i { display: block; height: 100%; border-radius: 999px; background: var(--mint); }
+.compare .bar2 i.video { background: var(--faint); }
+.compare .v { font: 500 12px var(--mono); color: var(--muted); text-align: right; }
+.file .thumb.page { display: grid; place-items: center; background: var(--inverse-bg); color: var(--inverse-text); }
+/* The exported page, as the recipient sees it */
+.web { position: absolute; inset: 0; background: #0b0a10; color: #fff; overflow: hidden; font-family: var(--ui); z-index: 20; }
+.web canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.web .start { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; background: radial-gradient(ellipse at center, rgba(11, 10, 16, 0.25), rgba(11, 10, 16, 0.75)); }
+.web .start .eyebrow { color: rgba(255, 255, 255, 0.75); }
+.web .start h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 6cqi, 52px); margin: 6px 0 4px; letter-spacing: -0.01em; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45); }
+.web .start p { margin: 0 0 22px; font: 500 13px var(--mono); color: rgba(255, 255, 255, 0.82); }
+.web .bigplay { width: 76px; height: 76px; border-radius: 50%; border: 0; background: #ff9f7f; color: #2a1a14; display: inline-grid; place-items: center; cursor: pointer; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+.web .bigplay svg.i { width: 30px; height: 30px; }
+.web .made { position: absolute; left: 0; right: 0; bottom: 16px; text-align: center; font-size: 12px; color: rgba(255, 255, 255, 0.6); }
+.web .caption { position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%); max-width: 80%; text-align: center; font-family: "Baloo 2", var(--ui); font-weight: 800; font-size: clamp(16px, 3cqi, 26px); text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55); transition: opacity 0.6s; }
+.web .ctl { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 14px; background: rgba(12, 10, 18, 0.55); backdrop-filter: blur(10px); transition: opacity 0.3s; }
+.web .ctl button { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: #fff; display: grid; place-items: center; cursor: pointer; flex: none; }
+.web .ctl button:hover { background: rgba(255, 255, 255, 0.12); }
+.web .ctl .time { font: 500 12px var(--mono); color: rgba(255, 255, 255, 0.85); white-space: nowrap; }
+.web .ctl .track { flex: 1; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.25); position: relative; cursor: pointer; }
+.web .ctl .track i { position: absolute; left: 0; top: 0; bottom: 0; background: #ff9f7f; border-radius: 999px; }
+.web.idle .ctl { opacity: 0; }
+.web .end { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; background: rgba(11, 10, 16, 0.72); }
+.web .end h2 { font-family: var(--display); font-size: 30px; margin: 0 0 16px; }
+.web .end .btn { background: #ff9f7f; color: #2a1a14; border: 0; }
+.backchip { position: absolute; left: 12px; top: 12px; z-index: 21; display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px 6px 6px; border-radius: 999px; border: 0; background: rgba(255, 255, 255, 0.16); color: #fff; font: 600 12px var(--ui); cursor: pointer; backdrop-filter: blur(8px); }
+/* Device test */
+.probe { display: grid; gap: 12px; max-width: 980px; }
+.probe h2 { font-family: var(--display); margin: 10px 0 0; }
+.probe p { margin: 0; color: var(--page-muted); max-width: 74ch; line-height: 1.5; }
+.seg-btn { border: 1px solid var(--page-line); background: var(--page-card); color: var(--page-ink); font: 500 13px var(--ui); padding: 9px 14px; border-radius: 8px; cursor: pointer; }
+.seg-btn.main { background: var(--chip-on); color: var(--chip-on-ink); border-color: transparent; }
+.probe ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.5; max-width: 74ch; }
+@container (max-width: 720px) {
+  .web .ctl { left: 8px; right: 8px; bottom: 8px; gap: 6px; padding: 6px 8px; }
+  .web .caption { bottom: 64px; }
+}
+</style>
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Save a slideshow as a web page</h1>
+      <p>The slideshow screen. “Web page” under “Save as” creates one <code>.html</code> file with the downscaled pictures, the music and a small player: it plays offline in a browser, at a fraction of the video's size. “Open it” in the finished sheet, or “Exported page”, shows what the recipient sees. The run is a time lapse. “Test this device” downloads a real sample file to try opening on the iPad, an Android phone and a computer.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="View"><button data-tab="try">Try it</button><button data-tab="concept">Concept</button><button data-tab="probe">Test this device</button></div>
+      <div class="seg" role="group" aria-label="Screen"><button data-screen="app">Glissando</button><button data-screen="web">Exported page</button></div>
+      <div class="seg" role="group" aria-label="Width"><button data-width="desk">Desktop</button><button data-width="phone">Phone</button></div>
+      <div class="seg" role="group" aria-label="Theme"><button data-theme-set="light">Light</button><button data-theme-set="dark">Dark</button></div>
+      <div class="seg" role="group" aria-label="Info panel"><button data-panel="pair">Save as: two buttons</button><button data-panel="stack">Three stacked</button></div>
+      <div class="seg" role="group" aria-label="Browser"><button data-browser="chrome">Chrome / Edge</button><button data-browser="safari">Safari iPhone/iPad</button><button data-browser="firefox">Firefox</button></div>
+    </div>
+  </div>
+  <div class="stage" id="stage"></div>
+
+  <div class="concept" id="concept" hidden>
+    <h2>How it works</h2>
+    <div class="card">
+      <ul>
+        <li><b>Where</b>: the info panel. Under “Play”, “Save as” offers <b>Video</b> and <b>Web page</b> side by side (the “Info panel” switch also shows three stacked buttons). “Web page” opens a dialog, or a bottom sheet on the phone.</li>
+        <li><b>Two sizes</b>: Small, 1280 px on the long edge, to send in a message; Sharp, 1920 px, for a computer, tablet or TV. Each shows its size, and a bar compares it with the 1080p video.</li>
+        <li><b>Fast</b>: Glissando only scales down 50 pictures and writes one file, which takes seconds instead of the video's minutes. No WebCodecs, so it works in every browser that runs Glissando.</li>
+        <li><b>Finished</b>: the same targets as the video. Chrome/Edge save where you chose at the start, Safari offers “Share …”, Firefox downloads. Plus “Open it”, which shows the page as the recipient will see it.</li>
+        <li><b>What the recipient sees</b>: a start card (title, pictures, length, a big Play button, since browsers only play music after a tap), then the slideshow full screen with Ken Burns, transitions, captions and the music with its trim and fades, exactly as in Glissando. Controls appear on a tap or mouse move: play/pause, a timeline, mute, full screen. At the end, “Play again”.</li>
+      </ul>
+    </div>
+
+    <h2>Measured: one file vs a zip</h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>50 generated pictures + 3 min music (MP3 192 kbit/s, 4.3 MB)</th><th>1280 px</th><th>1920 px</th><th>2560 px</th></tr></thead>
+        <tbody>
+          <tr><td>Pictures as JPEG q 0.85</td><td>5.8 MB</td><td>15.8 MB</td><td>35.3 MB</td></tr>
+          <tr><td><b>Zip</b>: <code>index.html</code> + <code>pictures/</code> + music (stored / deflate)</td><td>10.2 / 9.7 MB</td><td>20.2 / 19.1 MB</td><td>39.7 / 37.8 MB</td></tr>
+          <tr><td><b>One .html</b>: everything base64 inside (+33 %)</td><td>13.6 MB</td><td>27.0 MB</td><td>53.0 MB</td></tr>
+          <tr><td>The one .html, as mail or a messenger sends it compressed (gzip)</td><td>≈ 9.7 MB</td><td>19.3 MB</td><td>≈ 37.8 MB</td></tr>
+          <tr><td>For comparison: MP4 1080p (8 Mbit/s + 160 kbit/s, 250 s)</td><td colspan="3">255 MB, so 10–25 × bigger</td></tr>
+        </tbody>
+      </table>
+      <p>Base64 costs a third on disk, but almost nothing once sent compressed: the gzipped one file is as big as the deflated zip. WebP would have been 3–4 × smaller on these generated pictures (on real photos usually about 30 %), but Safari's canvas cannot write WebP, so the export would turn out differently depending on the browser. 2560 px is too big to send as mail (about 25 MB limit).</p>
+    </div>
+
+    <h2>Measured: what a browser allows from <code>file://</code></h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Opened by double-click (CI's Playwright image)</th><th>Chromium</th><th>Firefox</th><th>WebKit</th></tr></thead>
+        <tbody>
+          <tr><td>Show a picture beside the file (<code>pictures/1.jpg</code>)</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td><b>WebGL texture from that picture</b></td><td><b>no, SecurityError</b></td><td>(no WebGL2 in the image)</td><td><b>no, SecurityError</b></td></tr>
+          <tr><td>Read it with <code>fetch</code> / canvas</td><td>no</td><td>yes</td><td>no</td></tr>
+          <tr><td><b>WebGL texture from a picture inside the file</b> (blob URL; <code>data:</code> URL checked in Chromium)</td><td><b>yes</b></td><td>(no WebGL2)</td><td><b>yes</b></td></tr>
+          <tr><td>Music, beside the file or inside it</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td>27 MB file: page ready / 50 pictures unpacked</td><td>133 / 122 ms</td><td>80 / 97 ms</td><td>186 / 78 ms</td></tr>
+        </tbody>
+      </table>
+      <p>From a zip, Chromium and Safari refuse the pictures to WebGL, so Glissando's player could only fall back to the DOM. The zip also has to be unpacked first: Windows opens a zip like a folder and then shows the page without its pictures, and on Android a file opened from a share or the Files app has no folder around it. Not measurable in CI: iOS Files (its preview is known to show HTML without scripts) and real Android phones. The “Test this device” tab covers both.</p>
+    </div>
+
+    <h2>Proposal</h2>
+    <div class="card rec">
+      <ul>
+        <li><b>One self-contained <code>.html</code></b>: one file that plays wherever it is opened, by double-click, from a mail or from Downloads, and WebGL works because the pictures are inside it. The third of extra size on disk mostly disappears when it is sent.</li>
+        <li><b>Glissando's own player engine</b> (<code>src/player/</code>), built as a second, standalone bundle: <b>39 KB, 12.5 KB gzipped</b>, plus the caption font (Instrument Sans, 36 KB). It reads the same slideshow JSON as the app, so music trim and fades, captions, each picture's own Ken Burns, duration and transition all carry over unchanged, with no second implementation to keep in step. The page only adds the start card, the controls and the end card, in plain TypeScript without Svelte.</li>
+        <li><b>Pictures</b> scaled down off the main thread (as when preparing pictures, ADR-0014) to JPEG q 0.85 at 1280 or 1920 px on the long edge, never scaled up. The <b>music</b> goes in as its original bytes, and the player applies trim and fades. Re-encoding only the part that plays would be smaller, but there is no AAC encoder in Firefox or in Chromium on Linux.</li>
+        <li>Recorded as <b>ADR-0017</b>: one file over a zip, JPEG over WebP, the player engine reused.</li>
+      </ul>
+    </div>
+    <h2>Open for you</h2>
+    <div class="card q">
+      <ul>
+        <li><b>iPhone / iPad</b>: please run “Test this device” there. If Files shows the page without scripts, the sample's no-script fallback (a CSS slideshow with an audio control) decides whether that is worth carrying: it costs no size if the pictures go in as <code>data:</code> images.</li>
+        <li><b>Info panel</b>: “Save as: Video | Web page” (my pick: compact, and the two read as a pair) or three stacked buttons?</li>
+        <li><b>Sizes</b>: Small 1280 and Sharp 1920 (my pick), or only one size?</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="probe" id="probe" hidden>
+    <h2>Does an exported page play on this device?</h2>
+    <p>This builds a small real export here in the browser: six generated pictures (no photos), 20 s of generated music, captions, and the player. The pictures sit inside the file as <code>data:</code> images, so the same file also carries a no-script fallback: a CSS slideshow with the music as a plain audio control. The page reports on screen what worked. Nothing leaves the device.</p>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <button class="seg-btn main" id="dl-html">Download sample (.html, one file)</button>
+      <button class="seg-btn" id="dl-zip">Download sample (.zip: index.html + pictures/)</button>
+      <button class="seg-btn" id="open-here">Open the sample here</button>
+    </div>
+    <ol>
+      <li><b>iPhone / iPad:</b> download, then open it from the Files app (Downloads). Try a tap on the file, and also long press → Share → Safari or Chrome if offered. For the zip: tap to unpack, open the folder, tap <code>index.html</code>.</li>
+      <li><b>Android:</b> download, then open it from the notification, from Files / Downloads, and from Chrome's Downloads list.</li>
+      <li><b>Computer:</b> download, double-click it (opens via <code>file://</code>). For the zip: once without unpacking (Windows opens into the zip), once unpacked.</li>
+      <li>Each time, note what the page says at the top (“Scripts running …”, or the no-script banner) and whether the pictures move and the music plays. A screenshot in the chat is enough.</li>
+    </ol>
+    <div class="card" id="probe-out">The sample is built when you press a button (about 2.5 MB).</div>
+  </div>
+</div>
+<script>
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const PALETTES = [
+  ["#ffcfa8", "#ff8f70", "#fff1c9", "#5a3e64", "#2f2440", "#2b5d73"],
+  ["#9fd3f2", "#e7f4fb", "#fff6c2", "#5c8a6b", "#2f5a45", "#3d7fa0"],
+  ["#2a2350", "#c96b8a", "#ffd9a0", "#3a2d55", "#1d1830", "#4a3a6a"],
+  ["#b9e2f5", "#fbe9d0", "#ffe08a", "#8a9bb0", "#56677d", "#6aa0b8"],
+  ["#f6d0c4", "#f9efe4", "#fff3d6", "#b47a6a", "#7a4f48", "#a87a6e"],
+  ["#87c1e8", "#d6eef7", "#fff4b8", "#4f7d4a", "#2e5530", "#6b9c63"],
+  ["#ffb48a", "#ffe2b8", "#fff0c0", "#6a4a3a", "#3d2a24", "#8a6a5a"],
+  ["#a8c8e8", "#eef3f8", "#ffffff", "#7d8ea6", "#4a5872", "#9fb3c8"],
+];
+function scene(i, w, h) {
+  const r = rng(i * 977 + 13), [s1, s2, sun, m1, m2, water] = PALETTES[i % PALETTES.length];
+  const horizon = h * (0.55 + r() * 0.12);
+  const ridge = (base, amp, n) => { let d = `M0 ${h} L0 ${base}`; for (let k = 0; k <= n; k++) d += ` L${(w * k) / n} ${base - r() * amp}`; return d + ` L${w} ${h} Z`; };
+  const sx = w * (0.2 + r() * 0.6), sy = horizon * (0.3 + r() * 0.35), sr = Math.min(w, h) * 0.07;
+  const px = w * (0.25 + r() * 0.5), py = horizon + (h - horizon) * 0.35, ps = h * 0.11;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s1}"/><stop offset="1" stop-color="${s2}"/></linearGradient>
+<linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${water}"/><stop offset="1" stop-color="${m2}"/></linearGradient></defs>
+<rect width="${w}" height="${h}" fill="url(#s)"/><circle cx="${sx}" cy="${sy}" r="${sr}" fill="${sun}"/>
+<path d="${ridge(horizon - h * 0.04, h * 0.22, 7)}" fill="${m1}" opacity="0.75"/>
+<path d="${ridge(horizon, h * 0.12, 11)}" fill="${m2}"/>
+<rect y="${horizon}" width="${w}" height="${h - horizon}" fill="url(#w)"/>
+<g fill="#1b1622"><circle cx="${px}" cy="${py - ps * 0.82}" r="${ps * 0.17}"/><rect x="${px - ps * 0.2}" y="${py - ps * 0.62}" width="${ps * 0.4}" height="${ps * 0.62}" rx="${ps * 0.14}"/></g>
+</svg>`;
+}
+
+const ICON = {
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  play: '<path d="M8 5.5v13l11-6.5z"/>',
+  pause: '<path d="M8 5v14M16 5v14"/>',
+  film: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4"/>',
+  page: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 8.5h18"/><path d="M10 12.5l-2.2 2.2L10 17M14 12.5l2.2 2.2L14 17"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  share: '<path d="M12 4v11"/><path d="M8 8l4-4 4 4"/><path d="M6 12v6.5a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V12"/>',
+  download: '<path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 19h14"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 10"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  right: '<path d="M10 7l5 5-5 5"/>',
+  open: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/>',
+  volume: '<path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
+  full: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  replay: '<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/>',
+};
+const icon = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+
+/* ---------- The slideshow: 50 generated pictures, 5 s each ---------- */
+const N = 50, SLIDE_S = 5, FADE_S = 1, SHOW_S = N * SLIDE_S, TITLE = "Summer 2025";
+const CAPTIONS = { 0: "Arrival at the lake", 7: "Grandma's birthday", 18: "The long hike", 33: "Last swim" };
+const pics = Array.from({ length: N }, (_, i) => {
+  const [w, h] = i % 5 === 2 ? [200, 300] : [300, 200];
+  return { src: "data:image/svg+xml;utf8," + encodeURIComponent(scene(i, w, h)), w, h };
+});
+const bitmaps = pics.map((p) => { const im = new Image(); im.src = p.src; return im; });
+
+/** Bytes per picture and the music as measured on the generated 50-picture slideshow (Concept tab). */
+const QUALITIES = [
+  { id: "small", name: "Small", px: 1280, kbPerPic: 116, use: "For sending in a message" },
+  { id: "sharp", name: "Sharp", px: 1920, kbPerPic: 317, use: "For a computer, tablet or TV" },
+];
+const MUSIC_KB = 6300, PLAYER_KB = 90, VIDEO_1080_MB = ((8000 + 160) * SHOW_S) / 8 / 1000;
+const sizeMb = (q) => ((q.kbPerPic * N + MUSIC_KB + PLAYER_KB) * 4) / 3 / 1000;
+const BROWSERS = { chrome: { picker: true }, safari: { share: true }, firefox: {} };
+const fmtSize = (mb) => (mb >= 1000 ? (mb / 1000).toFixed(1) + " GB" : Math.round(mb) + " MB");
+const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+const S = { tab: "try", screen: "app", width: "desk", theme: "light", panel: "pair", browser: "chrome",
+  sheet: null, quality: "small", done: 0, timer: null, web: "start", t: 0, playing: false, last: 0, idleAt: 0 };
+const B = () => BROWSERS[S.browser];
+const quality = () => QUALITIES.find((q) => q.id === S.quality);
+
+/* ---------- Glissando ---------- */
+function bar() {
+  return `<div class="bar">
+    <button class="iconbtn" aria-label="Back">${icon("back")}</button>
+    <div class="crumbs"><span class="hide-narrow">Library</span><span class="sep hide-narrow">/</span><b>${TITLE}</b></div>
+    <div class="spacer"></div>
+    <button class="iconbtn" aria-label="More">${icon("more")}</button>
+  </div>`;
+}
+function actions() {
+  const play = `<button class="btn primary large block">${icon("play", "fill")}Play</button>`;
+  if (S.panel === "stack") {
+    return `<div class="actions">${play}
+      <button class="btn large block">${icon("film")}Save as video</button>
+      <button class="btn large block" data-open-export>${icon("page")}Save as web page</button></div>`;
+  }
+  return `<div class="actions">${play}
+    <div class="saverow"><span class="lbl">Save as</span><div class="pair">
+      <button class="btn">${icon("film")}Video</button>
+      <button class="btn" data-open-export>${icon("page")}Web page</button></div></div></div>`;
+}
+function infoPanel() {
+  return `<aside class="info">
+    <div><div class="eyebrow">Slideshow</div><div class="name">${TITLE}</div><div class="muted mono" style="font-size: 12.5px">12 Jul – 3 Aug 2025</div></div>
+    ${actions()}
+    <dl class="facts">
+      <dt>Pictures</dt><dd class="mono">${N}</dd>
+      <dt>Duration</dt><dd class="mono">${fmtTime(SHOW_S)}</dd>
+      <button class="musicrow"><span class="lbl">Music</span><span class="val"><b>Summer breeze.mp3</b><small>0:12 – 4:22</small></span><span class="go">Edit${icon("right")}</span></button>
+      <dt>Transitions</dt><dd>Crossfade</dd>
+      <dt>Ken Burns</dt><dd>Automatic <small>· 3 own</small></dd>
+    </dl>
+  </aside>`;
+}
+function showScreen() {
+  const tiles = pics.slice(0, 24).map((p, i) => `<div class="tile"><img alt="" src="${p.src}"><span class="num">${i + 1}</span></div>`).join("");
+  return `${bar()}<div class="scroll"><div class="show"><div class="tiles">${tiles}</div>${infoPanel()}</div></div>`;
+}
+function sheetHeader(title, sub) {
+  return `<header><div style="flex: 1"><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div>
+    <button class="iconbtn" data-close aria-label="Close">${icon("close")}</button></header>`;
+}
+function chooseSheet() {
+  const items = QUALITIES.map((q) => `<button class="preset" role="radio" aria-checked="${q.id === S.quality}" data-quality="${q.id}">
+      <span class="dot"></span><b>${q.name} <span class="muted mono" style="font-weight: 400; font-size: 12.5px">${q.px} px</span></b>
+      <span class="size">about ${fmtSize(sizeMb(q))}</span><small>${q.use}</small></button>`).join("");
+  const share = Math.max(2, (sizeMb(quality()) / VIDEO_1080_MB) * 100);
+  return `${sheetHeader("Save as web page", `${TITLE} · ${fmtTime(SHOW_S)} · with music`)}
+    <div class="presets" role="radiogroup" aria-label="Picture size">${items}</div>
+    <div class="compare" aria-label="Size compared with the video">
+      <span>Web page</span><span class="bar2"><i style="width: ${share.toFixed(1)}%"></i></span><span class="v">${fmtSize(sizeMb(quality()))}</span>
+      <span>Video 1080p</span><span class="bar2"><i class="video" style="width: 100%"></i></span><span class="v">${fmtSize(VIDEO_1080_MB)}</span>
+    </div>
+    <div class="spec"><span>one .html file</span><span>plays offline</span><span>music, captions, Ken Burns</span></div>
+    <p class="small">Opens in any current browser on a computer, phone or tablet, without the internet and without Glissando. Pictures are downscaled; the originals stay here.</p>
+    <div class="foot"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" data-start>${icon("page")}Create web page</button></div>`;
+}
+function runSheet() {
+  const thumbs = pics.map((p, i) => `<span class="${i < S.done ? "ok" : ""}"><img alt="" src="${p.src}"></span>`).join("");
+  return `${sheetHeader("Creating the web page", `${quality().name} · ${quality().px} px`)}
+    <div class="thumbs">${thumbs}</div>
+    <div class="meter" role="progressbar" aria-valuenow="${Math.round((S.done / N) * 100)}" aria-valuemin="0" aria-valuemax="100"><i style="width: ${((S.done / N) * 100).toFixed(1)}%"></i></div>
+    <div class="runrow"><span>Picture <b class="mono">${S.done}</b> of <span class="mono">${N}</span></span><span class="mono">${fmtSize((S.done / N) * sizeMb(quality()))}</span></div>
+    <div class="foot"><button class="btn" data-cancel>Cancel</button></div>`;
+}
+function doneSheet() {
+  const q = quality();
+  const fileRow = `<div class="file"><span class="thumb"><img alt="" src="${pics[0].src}"></span><b>${TITLE}.html</b><small>${fmtSize(sizeMb(q))} · ${fmtTime(SHOW_S)} · ${q.px} px</small></div>`;
+  const openIt = `<button class="btn" data-open-web>${icon("open")}Open it</button>`;
+  let main, note;
+  if (B().picker) {
+    note = `<div class="note ok">${icon("check", "status-ic")}<p><b>Saved</b> where you chose when starting.</p></div>`;
+    main = `<button class="btn primary" data-close>Done</button>`;
+  } else if (B().share) {
+    note = `<p class="small">“Share …” opens the share menu: Mail, Messages, AirDrop, Files. Closing deletes the copy in Glissando.</p>`;
+    main = `<button class="btn primary">${icon("share")}Share …</button>`;
+  } else {
+    note = `<p class="small">Closing deletes the copy in Glissando; download it first.</p>`;
+    main = `<button class="btn primary">${icon("download")}Download</button>`;
+  }
+  return `${sheetHeader("The web page is ready")}${fileRow}${note}<div class="foot">${openIt}${B().picker ? "" : `<button class="btn ghost" data-close>Close</button>`}${main}</div>`;
+}
+function sheet() {
+  if (!S.sheet || S.sheet === "web") return "";
+  const body = { choose: chooseSheet, run: runSheet, done: doneSheet }[S.sheet]();
+  return `<div class="backdrop"><div class="sheet" role="dialog" aria-modal="true">${body}</div></div>`;
+}
+
+/* ---------- The exported page ---------- */
+function webPage() {
+  const ctl = `<div class="ctl">
+    <button data-web-toggle aria-label="${S.playing ? "Pause" : "Play"}">${icon(S.playing ? "pause" : "play", S.playing ? "" : "fill")}</button>
+    <span class="time mono" id="w-time">${fmtTime(S.t)} / ${fmtTime(SHOW_S)}</span>
+    <span class="track" data-web-seek><i id="w-track" style="width: ${(S.t / SHOW_S) * 100}%"></i></span>
+    <button aria-label="Mute">${icon("volume")}</button><button aria-label="Full screen">${icon("full")}</button></div>`;
+  let overlay = "";
+  if (S.web === "start") {
+    overlay = `<div class="start"><div><div class="eyebrow">Slideshow</div><h1>${TITLE}</h1><p>${N} pictures · ${fmtTime(SHOW_S)} · with music</p>
+      <button class="bigplay" data-web-play aria-label="Play">${icon("play", "fill")}</button></div>
+      <div class="made">Made with Glissando · plays offline</div></div>`;
+  } else if (S.web === "end") {
+    overlay = `<div class="end"><div><h2>${TITLE}</h2><button class="btn" data-web-replay>${icon("replay")}Play again</button></div></div>`;
+  }
+  return `<div class="web" id="web"><canvas id="wv"></canvas><div class="caption" id="w-cap"></div>${S.web === "play" ? ctl : ""}${overlay}</div>
+    ${S.screen === "web" ? "" : `<button class="backchip" data-close-web>${icon("back")}Glissando</button>`}`;
+}
+function drawPicture(ctx, i, t, alpha) {
+  const im = bitmaps[i], W = ctx.canvas.width, H = ctx.canvas.height;
+  if (!im.complete) return;
+  const local = (t - i * SLIDE_S) / SLIDE_S, zoom = 1.04 + 0.12 * (i % 2 ? local : 1 - local);
+  const ar = pics[i].w / pics[i].h, fitH = ar >= W / H ? H : W / ar, fitW = fitH * ar;
+  const dw = fitW * zoom, dh = fitH * zoom, dx = (W - dw) / 2 + ((i % 3) - 1) * 0.02 * W * local, dy = (H - dh) / 2;
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(im, dx, dy, dw, dh);
+  ctx.globalAlpha = 1;
+}
+function drawWeb() {
+  const cv = document.getElementById("wv");
+  if (!cv) return;
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio);
+  if (cv.width !== Math.round(r.width * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+  const ctx = cv.getContext("2d"), t = Math.min(S.t, SHOW_S - 0.001), i = Math.floor(t / SLIDE_S);
+  ctx.fillStyle = "#0b0a10"; ctx.fillRect(0, 0, cv.width, cv.height);
+  drawPicture(ctx, i, t, 1);
+  const into = t - ((i + 1) * SLIDE_S - FADE_S);
+  if (i < N - 1 && into > 0) drawPicture(ctx, i + 1, t, into / FADE_S);
+  const cap = document.getElementById("w-cap");
+  const shown = S.web === "play" ? CAPTIONS[into > FADE_S / 2 ? i + 1 : i] : null;
+  cap.textContent = shown ?? cap.textContent;
+  cap.style.opacity = shown ? 1 : 0;
+  const tm = document.getElementById("w-time");
+  if (tm) { tm.textContent = `${fmtTime(S.t)} / ${fmtTime(SHOW_S)}`; document.getElementById("w-track").style.width = `${(S.t / SHOW_S) * 100}%`; }
+  document.getElementById("web").classList.toggle("idle", S.playing && performance.now() - S.idleAt > 2500);
+}
+function tickWeb(now) {
+  if (!S.playing) return;
+  S.t += (now - S.last) / 1000; S.last = now;
+  if (S.t >= SHOW_S) { S.t = SHOW_S; S.playing = false; S.web = "end"; render(); return; }
+  drawWeb();
+  requestAnimationFrame(tickWeb);
+}
+function playWeb() { S.web = "play"; S.playing = true; S.last = performance.now(); S.idleAt = S.last; render(); requestAnimationFrame(tickWeb); }
+
+/* ---------- Run simulation: downscaling 50 pictures in about 4 s ---------- */
+function start() {
+  S.sheet = "run"; S.done = 0; render();
+  S.timer = setInterval(() => {
+    S.done++;
+    if (S.done >= N) { clearInterval(S.timer); S.sheet = "done"; render(); return; }
+    const sh = document.querySelector(".sheet");
+    sh.querySelectorAll(".thumbs span")[S.done - 1].classList.add("ok");
+    sh.querySelector(".meter i").style.width = `${((S.done / N) * 100).toFixed(1)}%`;
+    const b = sh.querySelectorAll(".runrow .mono");
+    b[0].textContent = S.done; b[2].textContent = fmtSize((S.done / N) * sizeMb(quality()));
+  }, 80);
+}
+
+/* ---------- Render and events ---------- */
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  for (const [attr, key] of [["tab", "tab"], ["screen", "screen"], ["width", "width"], ["theme-set", "theme"], ["panel", "panel"], ["browser", "browser"]]) {
+    document.querySelectorAll(`[data-${attr}]`).forEach((b) => b.setAttribute("aria-pressed", b.getAttribute(`data-${attr}`) === S[key]));
+  }
+  document.getElementById("stage").hidden = S.tab !== "try";
+  document.getElementById("concept").hidden = S.tab !== "concept";
+  document.getElementById("probe").hidden = S.tab !== "probe";
+  document.querySelectorAll(".controls .seg:nth-child(n+2)").forEach((s) => (s.style.visibility = S.tab === "try" ? "" : "hidden"));
+  const scrollTop = document.querySelector(".app .scroll")?.scrollTop ?? 0;
+  const showWeb = S.screen === "web" || S.sheet === "web";
+  document.getElementById("stage").innerHTML = `<div class="app ${S.width === "phone" ? "phone" : ""} ${S.theme}">${S.screen === "web" ? "" : showScreen() + sheet()}${showWeb ? webPage() : ""}</div>`;
+  const sc = document.querySelector(".app .scroll");
+  if (sc) sc.scrollTop = scrollTop;
+  drawWeb();
+}
+function stopWeb() { S.playing = false; S.web = "start"; S.t = 0; }
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button, [data-web-seek]");
+  if (!t) return;
+  const d = t.dataset;
+  if (d.tab) S.tab = d.tab;
+  else if (d.screen) { S.screen = d.screen; stopWeb(); if (S.sheet === "web") S.sheet = "done"; }
+  else if (d.width) S.width = d.width;
+  else if (d.themeSet) S.theme = d.themeSet;
+  else if (d.panel) S.panel = d.panel;
+  else if (d.browser) S.browser = d.browser;
+  else if ("openExport" in d) S.sheet = "choose";
+  else if ("close" in d) { clearInterval(S.timer); S.sheet = null; }
+  else if (d.quality) S.quality = d.quality;
+  else if ("start" in d) return start();
+  else if ("cancel" in d) { clearInterval(S.timer); S.sheet = "choose"; }
+  else if ("openWeb" in d) { stopWeb(); S.sheet = "web"; }
+  else if ("closeWeb" in d) { stopWeb(); S.sheet = "done"; }
+  else if ("webPlay" in d || "webReplay" in d) { S.t = 0; return playWeb(); }
+  else if ("webToggle" in d) { if (S.playing) { S.playing = false; } else { return playWeb(); } }
+  else if ("webSeek" in d) { const r = t.getBoundingClientRect(); S.t = ((e.clientX - r.left) / r.width) * SHOW_S; S.idleAt = performance.now(); drawWeb(); return; }
+  else return;
+  render();
+});
+document.addEventListener("pointermove", (e) => { if (e.target.closest(".web")) { S.idleAt = performance.now(); if (!S.playing) drawWeb(); } });
+addEventListener("resize", drawWeb);
+render();
+
+/* ---------- Device test: a real sample export, built here ---------- */
+const SAMPLE_N = 6, SAMPLE_SLIDE_S = 4, SAMPLE_W = 1280, SAMPLE_H = 853;
+const SAMPLE_CAPTIONS = ["Arrival at the lake", "", "The long hike", "", "Last swim", ""];
+
+async function samplePictures() {
+  const out = [];
+  for (let i = 0; i < SAMPLE_N; i++) {
+    const im = new Image();
+    im.src = "data:image/svg+xml;utf8," + encodeURIComponent(scene(i + 3, SAMPLE_W, SAMPLE_H));
+    await im.decode();
+    const cv = document.createElement("canvas");
+    cv.width = SAMPLE_W; cv.height = SAMPLE_H;
+    const ctx = cv.getContext("2d");
+    ctx.drawImage(im, 0, 0);
+    // A little grain, so the JPEG weighs about what a downscaled photo does.
+    const px = ctx.getImageData(0, 0, SAMPLE_W, SAMPLE_H), r = rng(i);
+    for (let k = 0; k < px.data.length; k += 4) { const n = (r() - 0.5) * 18; px.data[k] += n; px.data[k + 1] += n; px.data[k + 2] += n; }
+    ctx.putImageData(px, 0, 0);
+    out.push(await new Promise((res) => cv.toBlob(res, "image/jpeg", 0.85)));
+  }
+  return out;
+}
+/** 20 s of a soft generated arpeggio as 16-bit mono WAV. */
+function sampleMusic() {
+  const rate = 22050, secs = SAMPLE_N * SAMPLE_SLIDE_S - 4, n = rate * secs;
+  const buf = new DataView(new ArrayBuffer(44 + n * 2));
+  const str = (o, s) => [...s].forEach((c, k) => buf.setUint8(o + k, c.charCodeAt(0)));
+  str(0, "RIFF"); buf.setUint32(4, 36 + n * 2, true); str(8, "WAVEfmt "); buf.setUint32(16, 16, true);
+  buf.setUint16(20, 1, true); buf.setUint16(22, 1, true); buf.setUint32(24, rate, true); buf.setUint32(28, rate * 2, true);
+  buf.setUint16(32, 2, true); buf.setUint16(34, 16, true); str(36, "data"); buf.setUint32(40, n * 2, true);
+  const notes = [261.6, 329.6, 392, 523.3, 392, 329.6];
+  for (let k = 0; k < n; k++) {
+    const t = k / rate, note = notes[Math.floor(t * 2) % notes.length], local = (t * 2) % 1;
+    const env = Math.min(1, t / 1.5, (secs - t) / 2.5) * Math.exp(-local * 3);
+    const v = env * 0.32 * (Math.sin(2 * Math.PI * note * t) + 0.3 * Math.sin(4 * Math.PI * note * t));
+    buf.setInt16(44 + k * 2, Math.max(-1, Math.min(1, v)) * 32767, true);
+  }
+  return new Blob([buf], { type: "audio/wav" });
+}
+const toDataUrl = (blob) => new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
+
+/** The sample page; `src(i)` and `musicSrc` are data: URLs (one file) or relative paths (zip). */
+function sampleHtml(src, musicSrc, variant) {
+  const T = SAMPLE_N * SAMPLE_SLIDE_S, f = (100 / SAMPLE_N) * 0.25, step = 100 / SAMPLE_N;
+  const figures = Array.from({ length: SAMPLE_N }, (_, i) => `<figure style="animation-delay:${i * SAMPLE_SLIDE_S}s"><img alt="" src="${src(i)}">${SAMPLE_CAPTIONS[i] ? `<figcaption>${SAMPLE_CAPTIONS[i]}</figcaption>` : ""}</figure>`).join("\n");
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glissando sample (${variant})</title>
+<style>
+html,body{margin:0;height:100%;background:#0b0a10;color:#fff;font:15px system-ui,sans-serif}
+.report{position:fixed;left:8px;right:8px;top:8px;z-index:5;background:rgba(20,16,30,.86);border-radius:12px;padding:10px 12px;font:13px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+.show{position:fixed;inset:0;overflow:hidden}
+.show figure{position:absolute;inset:0;margin:0;opacity:0;animation:slide ${T}s linear infinite}
+.show img{width:100%;height:100%;object-fit:contain;display:block}
+.show figcaption{position:absolute;left:0;right:0;bottom:70px;text-align:center;font-weight:800;font-size:24px;text-shadow:0 2px 10px #000}
+@keyframes slide{0%{opacity:0;transform:scale(1.02)}${f.toFixed(2)}%{opacity:1}${step.toFixed(2)}%{opacity:1}${(step + f).toFixed(2)}%{opacity:0;transform:scale(1.14)}100%{opacity:0}}
+audio{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:5;width:min(420px,90%)}
+.js .show,.js audio{display:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:none}
+.js canvas{display:block}
+.cap{position:fixed;left:0;right:0;bottom:70px;text-align:center;font-weight:800;font-size:24px;text-shadow:0 2px 10px #000;z-index:3}
+.go{position:fixed;left:50%;top:55%;transform:translate(-50%,-50%);z-index:6;width:84px;height:84px;border-radius:50%;border:0;background:#ff9f7f;color:#2a1a14;font:700 16px system-ui;display:none}
+.js .go{display:block}
+</style></head><body>
+<div class="report" id="report">No scripts run here: this is the no-script fallback (CSS slideshow${variant === "zip" ? ", pictures from pictures/" : ""}). Do the pictures change? Does the audio control play?</div>
+<div class="show">
+${figures}
+</div>
+<audio controls preload="metadata" src="${musicSrc}"></audio>
+<canvas id="cv"></canvas><div class="cap" id="cap"></div><button class="go" id="go">Play</button>
+<script>
+document.documentElement.className = "js";
+const lines = ["Scripts running ✓ · protocol " + location.protocol + " · ${variant}"];
+const report = document.getElementById("report");
+const say = (l) => { lines.push(l); report.textContent = lines.join("\\n"); };
+report.textContent = lines[0];
+const imgs = [...document.querySelectorAll(".show img")];
+const caps = ${JSON.stringify(SAMPLE_CAPTIONS)};
+const audio = document.querySelector("audio");
+let cv = document.getElementById("cv");
+let gl = null, tex = [], prog = null, mode = "none";
+Promise.all(imgs.map((im) => im.decode().then(() => true, () => false))).then((ok) => {
+  say("Pictures decoded: " + ok.filter(Boolean).length + " / " + ok.length);
+  gl = cv.getContext("webgl2");
+  if (!gl) { say("WebGL2: not available"); } else {
+    try {
+      tex = imgs.map((im) => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); return t; });
+      mode = "webgl2"; say("WebGL2 textures from the pictures ✓");
+    } catch (e) { say("WebGL2 textures refused: " + e.name); gl = null; const fresh = cv.cloneNode(); cv.replaceWith(fresh); cv = fresh; }
+  }
+  if (mode === "none") {
+    const c2 = document.createElement("canvas").getContext("2d"); c2.drawImage(imgs[0], 0, 0);
+    try { c2.getImageData(0, 0, 1, 1); say("Canvas 2D readable ✓"); } catch (e) { say("Canvas 2D tainted: " + e.name); }
+    mode = "2d"; say("Drawing with canvas 2D instead");
+  }
+  if (mode === "webgl2") setUpGl();
+});
+audio.addEventListener("loadedmetadata", () => say("Music loads ✓ (" + audio.duration.toFixed(1) + " s)"));
+audio.addEventListener("error", () => say("Music refused: error " + (audio.error && audio.error.code)));
+function setUpGl() {
+  const vs = "#version 300 es\\nin vec2 p;uniform vec4 r;out vec2 uv;void main(){uv=vec2(p.x,1.0-p.y)*r.zw+r.xy;gl_Position=vec4(p*2.0-1.0,0,1);}";
+  const fs = "#version 300 es\\nprecision mediump float;in vec2 uv;uniform sampler2D t;uniform float a;out vec4 o;void main(){o=vec4(texture(t,uv).rgb,a);}";
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(prog); gl.useProgram(prog);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,1,0,0,1,1,1]), gl.STATIC_DRAW);
+  const l = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, 2, gl.FLOAT, false, 0, 0);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+}
+const SLIDE = ${SAMPLE_SLIDE_S}, FADE = 1, N = imgs.length;
+function crop(i, t) { const k = Math.max(0, Math.min(1, (t - i * SLIDE) / SLIDE)), z = 1 / (1.04 + 0.12 * (i % 2 ? k : 1 - k)); return [(1 - z) / 2 + (i % 3 - 1) * 0.02 * k, (1 - z) / 2, z, z]; }
+function draw(i, t, a) {
+  const c = crop(i, t);
+  if (mode === "webgl2") { gl.bindTexture(gl.TEXTURE_2D, tex[i]); gl.uniform4fv(gl.getUniformLocation(prog, "r"), c); gl.uniform1f(gl.getUniformLocation(prog, "a"), a); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); }
+  else { const x = cv.getContext("2d"), im = imgs[i]; x.globalAlpha = a; x.drawImage(im, c[0] * im.naturalWidth, c[1] * im.naturalHeight, c[2] * im.naturalWidth, c[3] * im.naturalHeight, 0, 0, cv.width, cv.height); x.globalAlpha = 1; }
+}
+let t0 = 0;
+function frame(now) {
+  const t = (now - t0) / 1000;
+  if (t >= N * SLIDE) { document.getElementById("go").style.display = "block"; return; }
+  const dpr = Math.min(2, devicePixelRatio), w = Math.round(innerWidth * dpr), h = Math.round(innerWidth * dpr * 2 / 3);
+  if (cv.width !== w) { cv.width = w; cv.height = h; cv.style.height = innerWidth * 2 / 3 + "px"; cv.style.top = (innerHeight - innerWidth * 2 / 3) / 2 + "px"; }
+  if (mode === "webgl2") { gl.viewport(0, 0, w, h); gl.clearColor(0.04, 0.04, 0.06, 1); gl.clear(gl.COLOR_BUFFER_BIT); }
+  const i = Math.min(N - 1, Math.floor(t / SLIDE)), into = t - ((i + 1) * SLIDE - FADE);
+  draw(i, t, 1);
+  if (i < N - 1 && into > 0) draw(i + 1, t, into / FADE);
+  document.getElementById("cap").textContent = caps[into > FADE / 2 ? i + 1 : i] || "";
+  requestAnimationFrame(frame);
+}
+document.getElementById("go").onclick = () => {
+  document.getElementById("go").style.display = "none";
+  audio.currentTime = 0;
+  audio.play().then(() => say("Music plays ✓"), (e) => say("Music play refused: " + e.name));
+  t0 = performance.now(); requestAnimationFrame(frame);
+};
+<\/script>
+</body></html>`;
+}
+
+/* A stored (uncompressed) zip: JPEGs and WAV gain nothing from deflate. */
+const CRC = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+const crc32 = (b) => { let c = 0xffffffff; for (const x of b) c = CRC[(c ^ x) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+async function zip(entries) {
+  const parts = [], central = [];
+  let offset = 0;
+  for (const [name, blob] of entries) {
+    const data = new Uint8Array(await blob.arrayBuffer()), nameB = new TextEncoder().encode(name), crc = crc32(data);
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, data.length, true); h.setUint16(26, nameB.length, true);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true); c.setUint16(28, nameB.length, true); c.setUint32(42, offset, true);
+    parts.push(h, nameB, data); central.push(c, nameB);
+    offset += 30 + nameB.length + data.length;
+  }
+  const size = central.reduce((s, p) => s + p.byteLength, 0), end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true); end.setUint32(12, size, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, end], { type: "application/zip" });
+}
+let sampleCache = null;
+async function buildSample() {
+  if (!sampleCache) {
+    const out = document.getElementById("probe-out");
+    out.textContent = "Building the sample …";
+    const pictures = await samplePictures(), music = sampleMusic();
+    const urls = await Promise.all(pictures.map(toDataUrl)), musicUrl = await toDataUrl(music);
+    const one = new Blob([sampleHtml((i) => urls[i], musicUrl, "one file")], { type: "text/html" });
+    const zipped = await zip([["index.html", new Blob([sampleHtml((i) => `pictures/${i + 1}.jpg`, "music.wav", "zip")])],
+      ...pictures.map((p, i) => [`pictures/${i + 1}.jpg`, p]), ["music.wav", music]]);
+    sampleCache = { one, zipped };
+    out.textContent = `Sample built: one file ${(one.size / 1e6).toFixed(2)} MB, zip ${(zipped.size / 1e6).toFixed(2)} MB.`;
+  }
+  return sampleCache;
+}
+function save(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
+document.getElementById("dl-html").onclick = async () => save((await buildSample()).one, "glissando-sample.html");
+document.getElementById("dl-zip").onclick = async () => save((await buildSample()).zipped, "glissando-sample.zip");
+document.getElementById("open-here").onclick = async () => open(URL.createObjectURL((await buildSample()).one), "_blank");
+</script>
