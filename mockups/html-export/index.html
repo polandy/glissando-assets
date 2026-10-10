@@ -249,7 +249,7 @@ pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
     <div class="card">
       <ul>
         <li><b>Where</b>: the info panel. Under “Play”, “Save as” offers <b>Video</b> and <b>Web page</b> side by side (the “Info panel” switch also shows three stacked buttons). “Web page” opens a dialog, or a bottom sheet on the phone.</li>
-        <li><b>Two sizes</b>: Small, 1280 px on the long edge, to send in a message; Sharp, 1920 px, for a computer, tablet or TV. Each shows its size, and a bar compares it with the 1080p video.</li>
+        <li><b>Three sizes</b>, on the long edge: Small, 1280 px, to send in a message; Sharp, 1920 px, for a computer or tablet; 4K, 3840 px, for the TV (estimated about 115 MB for 50 pictures, too big for mail; a lemon note says so). A picture smaller than the size is never scaled up. Each shows its size, and a bar compares it with the 1080p video.</li>
         <li><b>Fast</b>: Glissando only scales down 50 pictures and writes one file, which takes seconds instead of the video's minutes. No WebCodecs, so it works in every browser that runs Glissando.</li>
         <li><b>Finished</b>: the same targets as the video. Chrome/Edge save where you chose at the start, Safari offers “Share …”, Firefox downloads. Plus “Open it”, which shows the page as the recipient will see it.</li>
         <li><b>What the recipient sees</b>: a start card (title, pictures, length, a big Play button, since browsers only play music after a tap), then the slideshow full screen with Ken Burns, transitions, captions and the music with its trim and fades, exactly as in Glissando. Controls appear on a tap or mouse move: play/pause, a timeline, mute, full screen. At the end, “Play again”.</li>
@@ -292,7 +292,7 @@ pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
       <ul>
         <li><b>One self-contained <code>.html</code></b>: one file that plays wherever it is opened, by double-click, from a mail or from Downloads, and WebGL works because the pictures are inside it. The third of extra size on disk mostly disappears when it is sent.</li>
         <li><b>Glissando's own player engine</b> (<code>src/player/</code>), built as a second, standalone bundle: <b>39 KB, 12.5 KB gzipped</b>, plus the caption font (Instrument Sans, 36 KB). It reads the same slideshow JSON as the app, so music trim and fades, captions, each picture's own Ken Burns, duration and transition all carry over unchanged, with no second implementation to keep in step. The page only adds the start card, the controls and the end card, in plain TypeScript without Svelte.</li>
-        <li><b>Pictures</b> scaled down off the main thread (as when preparing pictures, ADR-0014) to JPEG q 0.85 at 1280 or 1920 px on the long edge, never scaled up. The <b>music</b> goes in as its original bytes, and the player applies trim and fades. Re-encoding only the part that plays would be smaller, but there is no AAC encoder in Firefox or in Chromium on Linux.</li>
+        <li><b>Pictures</b> scaled down off the main thread (as when preparing pictures, ADR-0014) to JPEG q 0.85 at 1280, 1920 or 3840 px on the long edge, never scaled up. The <b>music</b> goes in as its original bytes, and the player applies trim and fades. Re-encoding only the part that plays would be smaller, but there is no AAC encoder in Firefox or in Chromium on Linux.</li>
         <li>Recorded as <b>ADR-0017</b>: one file over a zip, JPEG over WebP, the player engine reused.</li>
       </ul>
     </div>
@@ -300,8 +300,6 @@ pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
     <div class="card q">
       <ul>
         <li><b>iPhone / iPad</b>: please run “Test this device” there. If Files shows the page without scripts, the sample's no-script fallback (a CSS slideshow with an audio control) decides whether that is worth carrying: it costs no size if the pictures go in as <code>data:</code> images.</li>
-        <li><b>Info panel</b>: “Save as: Video | Web page” (my pick: compact, and the two read as a pair) or three stacked buttons?</li>
-        <li><b>Sizes</b>: Small 1280 and Sharp 1920 (my pick), or only one size?</li>
       </ul>
     </div>
   </div>
@@ -384,7 +382,8 @@ const bitmaps = pics.map((p) => { const im = new Image(); im.src = p.src; return
 /** Bytes per picture and the music as measured on the generated 50-picture slideshow (Concept tab). */
 const QUALITIES = [
   { id: "small", name: "Small", px: 1280, kbPerPic: 116, use: "For sending in a message" },
-  { id: "sharp", name: "Sharp", px: 1920, kbPerPic: 317, use: "For a computer, tablet or TV" },
+  { id: "sharp", name: "Sharp", px: 1920, kbPerPic: 317, use: "For a computer or tablet" },
+  { id: "4k", name: "4K", px: 3840, kbPerPic: 1600, use: "For the TV" },
 ];
 const MUSIC_KB = 6300, PLAYER_KB = 90, VIDEO_1080_MB = ((8000 + 160) * SHOW_S) / 8 / 1000;
 const sizeMb = (q) => ((q.kbPerPic * N + MUSIC_KB + PLAYER_KB) * 4) / 3 / 1000;
@@ -450,6 +449,7 @@ function chooseSheet() {
       <span>Web page</span><span class="bar2"><i style="width: ${share.toFixed(1)}%"></i></span><span class="v">${fmtSize(sizeMb(quality()))}</span>
       <span>Video 1080p</span><span class="bar2"><i class="video" style="width: 100%"></i></span><span class="v">${fmtSize(VIDEO_1080_MB)}</span>
     </div>
+    ${S.quality === "4k" ? `<div class="note warn">${icon("info", "status-ic")}<p><b>Too big to send as mail.</b> Copy it to the TV's computer or a USB stick, or share it through a cloud folder.</p></div>` : ""}
     <div class="spec"><span>one .html file</span><span>plays offline</span><span>music, captions, Ken Burns</span></div>
     <p class="small">Opens in any current browser on a computer, phone or tablet, without the internet and without Glissando. Pictures are downscaled; the originals stay here.</p>
     <div class="foot"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" data-start>${icon("page")}Create web page</button></div>`;
