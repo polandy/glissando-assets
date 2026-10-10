@@ -1,0 +1,720 @@
+<title>Move Pictures Together</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --gl-ground: #f6f5f8; --gl-surface: #ffffff; --gl-raised: #fbfafc; --gl-ink: #221d33;
+  --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-lemon: #f5c94a; --gl-coral: #f2786b;
+  --gl-inverse-bg: #221d33; --gl-inverse-text: #ffffff;
+  --gl-shadow: 0 1px 2px rgb(34 29 51 / 0.06), 0 6px 18px rgb(34 29 51 / 0.06);
+  --gl-on-photo: #ffffff; --gl-photo-badge: rgb(0 0 0 / 0.45); --gl-photo-fade: rgb(0 0 0 / 0.55);
+  --gl-font-ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --gl-radius-small: 6px; --gl-radius-tile: 8px; --gl-radius: 10px; --gl-radius-large: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+    --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f;
+    --gl-accent: #ffb59a; --gl-inverse-bg: #edeaf3; --gl-inverse-text: #1a1723;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f;
+  --gl-accent: #ffb59a; --gl-inverse-bg: #edeaf3; --gl-inverse-text: #1a1723;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font: 14px/1.45 var(--gl-font-ui); padding: 20px 16px 40px; }
+.mono { font-family: var(--gl-font-mono); font-variant-numeric: tabular-nums; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--gl-accent); outline-offset: 2px; }
+
+.page { max-width: 1240px; margin: 0 auto; display: grid; gap: 18px; }
+header h1 { margin: 2px 0 4px; font-size: 26px; letter-spacing: -0.015em; text-wrap: balance; }
+header p { margin: 0; color: var(--gl-muted); max-width: 70ch; }
+.eyebrow { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gl-muted); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.seg { display: inline-flex; align-items: center; gap: 8px; }
+.seg > span { color: var(--gl-muted); font-size: 12.5px; }
+.seg .opts { display: inline-flex; border: 1px solid var(--gl-line); border-radius: 999px; padding: 2px; background: var(--gl-surface); }
+.seg button { border: 0; background: none; padding: 5px 12px; border-radius: 999px; cursor: pointer; font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--gl-inverse-bg); color: var(--gl-inverse-text); }
+.reset { border: 1px solid var(--gl-line); background: var(--gl-surface); border-radius: 999px; padding: 5px 12px; cursor: pointer; font-size: 13px; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 22px; align-items: start; }
+@media (max-width: 980px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.stage { display: grid; justify-items: center; }
+
+/* The app frame */
+.app { container: app / inline-size; position: relative; width: 100%; height: 640px; border: 1px solid var(--gl-line); border-radius: 18px; background: var(--gl-ground); overflow: hidden; box-shadow: var(--gl-shadow); }
+.app.phone { width: min(412px, 100%); max-width: 100%; height: 780px; border-radius: 30px; }
+.scroll { position: absolute; inset: 0; overflow-y: auto; padding: 16px 18px; padding-bottom: var(--clearance, 20px); }
+.crumbs { display: flex; align-items: center; gap: 6px; color: var(--gl-muted); font-size: 13px; margin-bottom: 14px; }
+.crumbs b { color: var(--gl-ink); font-weight: 600; }
+.head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.head .title { font-weight: 600; font-size: 16px; }
+.head .order { color: var(--gl-muted); font-size: 12.5px; }
+.head .spacer { flex: 1; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); background: var(--gl-surface); cursor: pointer; font-size: 13px; white-space: nowrap; }
+.btn svg { width: 14px; height: 14px; }
+.btn[aria-pressed="true"] { background: var(--gl-inverse-bg); color: var(--gl-inverse-text); border-color: transparent; }
+.add-long { display: inline; } .add-short { display: none; }
+.hint-long { display: inline; } .hint-short { display: none; }
+
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.tile { position: relative; aspect-ratio: 4 / 3; border-radius: var(--gl-radius-tile); background: var(--gl-hover); scroll-margin-bottom: var(--clearance, 0px); }
+.tile.selected { outline: 3px solid var(--gl-accent); outline-offset: 2px; }
+.tile.dragging { opacity: 0.35; }
+.tile.drop-before::before, .tile.drop-after::before { content: ""; position: absolute; top: -2px; bottom: -2px; z-index: 3; border-left: 3px dashed var(--gl-lemon); }
+.tile.drop-before::before { left: -7px; } .tile.drop-after::before { right: -7px; }
+.pick { position: absolute; inset: 0; padding: 0; border: 0; border-radius: inherit; overflow: hidden; background: none; cursor: pointer; touch-action: manipulation; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+.pick img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.tile.selecting-mode:not(.selected) .pick img { filter: saturate(0.8) brightness(0.92); }
+.tile.selected.selecting-mode .pick img { transform: scale(0.94); border-radius: 6px; transition: transform 0.12s; }
+.number, .date { position: absolute; color: var(--gl-on-photo); font-weight: 500; font-size: 11px; }
+.number { left: 6px; top: 6px; padding: 1px 6px; border-radius: var(--gl-radius-small); background: var(--gl-photo-badge); }
+.tile.selected .number { background: var(--gl-accent); color: var(--gl-accent-ink); }
+.date { left: 0; right: 0; bottom: 0; padding: 14px 7px 5px; text-align: left; background: linear-gradient(transparent, var(--gl-photo-fade)); }
+.check { position: absolute; top: 6px; right: 6px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--gl-on-photo); background: rgb(0 0 0 / 0.25); display: none; place-items: center; pointer-events: none; }
+.check svg { width: 13px; height: 13px; opacity: 0; }
+.tile.selecting-mode .check { display: grid; }
+.tile.selected .check { background: var(--gl-accent); border-color: var(--gl-accent); color: var(--gl-accent-ink); }
+.tile.selected .check svg { opacity: 1; }
+.mark { position: absolute; top: 5px; z-index: 2; display: none; place-items: center; width: 26px; height: 26px; border: 0; padding: 0; border-radius: var(--gl-radius-small); background: var(--gl-photo-badge); color: var(--gl-on-photo); opacity: 0; transition: opacity 0.12s; }
+.mark svg { width: 14px; height: 14px; }
+.mark.remove { right: 5px; cursor: pointer; } .mark.remove:hover { background: var(--gl-coral); }
+.mark.grab { right: 35px; pointer-events: none; }
+.app.desktop .tile:not(.selecting-mode) .mark { display: grid; }
+.app.desktop .tile:hover .mark, .app.desktop .tile.selected .mark, .app.desktop .tile:focus-within .mark { opacity: 1; }
+.app.desktop .tile[draggable="true"] .pick { cursor: grab; }
+
+/* Selection bar */
+.dock { position: absolute; left: 50%; bottom: 14px; z-index: 10; translate: -50% 0; max-width: calc(100% - 24px); display: grid; justify-items: center; gap: 8px; }
+.bar { display: flex; align-items: center; gap: 4px; height: 54px; padding: 6px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); background: var(--gl-surface); box-shadow: var(--gl-shadow); }
+.bar .btn { height: 40px; border-color: transparent; background: transparent; }
+.bar .btn[aria-disabled="true"] { opacity: 0.4; cursor: default; }
+.bar .done { background: var(--gl-inverse-bg); color: var(--gl-inverse-text); }
+.app.desktop .bar .btn:hover:not([aria-disabled="true"], .done) { background: var(--gl-hover); }
+.count { padding: 0 8px 0 6px; color: var(--gl-muted); font-size: 12px; white-space: nowrap; }
+.count.several { color: var(--gl-ink); font-weight: 500; }
+.count.several b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; margin-right: 5px; border-radius: 999px; background: var(--gl-accent); color: var(--gl-accent-ink); font-weight: 500; }
+.separator { width: 1px; height: 24px; background: var(--gl-line); }
+.toast { display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border-radius: var(--gl-radius-large); background: var(--gl-inverse-bg); color: var(--gl-inverse-text); box-shadow: var(--gl-shadow); font-size: 13px; }
+.toast button { border: 0; background: none; color: var(--gl-accent); font-weight: 600; cursor: pointer; padding: 4px 6px; }
+.ghost { position: fixed; top: -400px; left: -400px; width: 120px; height: 100px; pointer-events: none; }
+.ghost.live { z-index: 50; filter: drop-shadow(0 8px 16px rgb(0 0 0 / 0.25)); }
+.ghost img { position: absolute; width: 96px; height: 72px; object-fit: cover; border-radius: 8px; border: 2px solid #fff; box-shadow: 0 4px 12px rgb(0 0 0 / 0.3); }
+.ghost .n { position: absolute; right: 2px; top: 0; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 999px; background: var(--gl-accent); color: var(--gl-accent-ink); font: 500 13px/26px var(--gl-font-mono); text-align: center; }
+
+@container app (max-width: 720px) {
+  .scroll { padding: 12px 10px; padding-bottom: var(--clearance, 20px); }
+  .strip { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .add-long, .hint-long { display: none; } .add-short, .hint-short { display: inline; }
+  .head { flex-wrap: wrap; row-gap: 2px; }
+  .head .order { order: 5; flex-basis: 100%; }
+  .head .btn { padding: 0 10px; }
+  .dock { left: 8px; right: 8px; max-width: none; translate: none; justify-items: stretch; }
+  .bar { justify-content: space-between; }
+  .bar .btn { gap: 5px; padding: 0 9px; font-size: 13px; }
+  .count.single { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+  .count.several { padding: 0 2px 0 4px; }
+  .count.several .word { display: none; }
+  .separator { display: none; }
+  .bar .btn .lbl-wide { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .mark, .tile .pick img { transition: none !important; } }
+
+/* Notes */
+.notes { display: grid; gap: 14px; }
+.card { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); padding: 14px 16px; }
+.card h2 { font-size: 14px; margin: 0 0 8px; }
+.card ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; color: var(--gl-ink); }
+.card li { font-size: 13px; }
+.card p { margin: 0 0 6px; font-size: 13px; color: var(--gl-muted); }
+kbd { font-family: var(--gl-font-mono); font-size: 11.5px; padding: 0 5px; border: 1px solid var(--gl-line); border-bottom-width: 2px; border-radius: 4px; background: var(--gl-raised); }
+.decide { border-color: var(--gl-accent); }
+.log { font-size: 12px; color: var(--gl-muted); min-height: 1.4em; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Glissando · mockup · slideshow editor</div>
+    <h1>Move several pictures together</h1>
+    <p>Select more than one tile and move them as a group: with the selection bar, by dragging (mouse), or with the keyboard. Try both views. All pictures here are generated.</p>
+  </header>
+  <div class="controls">
+    <div class="seg"><span>View</span><span class="opts" id="view-opts">
+      <button id="view-desktop" type="button" data-view="desktop">Desktop · mouse</button>
+      <button id="view-phone" type="button" data-view="phone">Phone · touch</button></span></div>
+    <div class="seg"><span>Earlier / Later on scattered pictures</span><span class="opts" id="step-opts">
+      <button id="step-gather" type="button" data-step="gather">Gather first</button>
+      <button id="step-keep" type="button" data-step="keep">Keep gaps</button></span></div>
+    <button class="reset" id="reset" type="button">Reset</button>
+  </div>
+  <div class="layout">
+    <div class="stage">
+      <div class="app desktop" id="app">
+        <div class="scroll" id="scroll">
+          <div class="crumbs">Library / <b>Summer at the lake</b></div>
+          <div class="head">
+            <span class="title"><span id="pic-count">14</span> pictures</span>
+            <span class="order" id="order"></span>
+            <span class="spacer"></span>
+            <button class="btn" id="select-btn" type="button" aria-pressed="false">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6.2"/><path d="M5.3 8.2l1.9 1.9 3.6-4"/></svg>Select</button>
+            <button class="btn" type="button" id="add-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3v10M3 8h10"/></svg><span class="add-long">Add pictures</span><span class="add-short">Add</span></button>
+          </div>
+          <ol class="strip" id="strip"></ol>
+        </div>
+        <div class="dock" id="dock"></div>
+      </div>
+      <div class="log" id="log" aria-hidden="true"></div>
+    </div>
+    <aside class="notes">
+      <div class="card">
+        <h2>Selecting several</h2>
+        <ul>
+          <li>A tap or click still selects one picture, as now.</li>
+          <li><b>Select</b> beside "Add pictures" starts selecting several: every tile gets a circle and a tap or click adds or removes it.</li>
+          <li>Touch: <b>hold</b> a tile to start the same way (the hint says "hold to select several"). It lifts with a short buzz.</li>
+          <li>Mouse: <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+click adds or removes; <kbd>Shift</kbd>+click adds the range from the last picked one.</li>
+          <li>The bar then shows the count ("3 selected", on the phone too) instead of "Picture 3 of 12"; Edit appears only while one is selected. <b>Done</b> or <kbd>Esc</kbd> ends it.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Moving the group</h2>
+        <ul>
+          <li><b>Earlier / Later</b> move all selected pictures one step; they stay selected.</li>
+          <li><b>Drag</b> any selected tile: the whole group follows, shown as a stack with its count, and lands together at the dashed line, in its play order. Dragging an unselected tile moves only that one.</li>
+          <li><b>Remove</b> removes the whole group; the toast "3 pictures removed" undoes all of it. At least one picture stays.</li>
+          <li>Touch: <b>hold and move</b> a tile to drag the selection with it (the held tile joins it). Near the top or bottom edge the strip scrolls along. Lifting the finger in place only selects.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Keyboard</h2>
+        <ul>
+          <li><kbd>Ctrl</kbd>+<kbd>Space</kbd> on a focused tile starts selecting several and adds it.</li>
+          <li>While selecting several: arrows move only the focus, <kbd>Space</kbd>/<kbd>Enter</kbd> add or remove, <kbd>Shift</kbd>+<kbd>Space</kbd> adds the range.</li>
+          <li><kbd>Shift</kbd>+arrows move the whole group (up and down by a row); <kbd>Delete</kbd> removes it; <kbd>Esc</kbd> deselects all.</li>
+        </ul>
+      </div>
+      <div class="card decide">
+        <h2>Decided: scattered pictures gather</h2>
+        <p>Select 2, 7 and 11, then press Earlier: the first press brings them together where the first one is, as a drop would; later presses move the block. "Keep gaps" above is only for comparison.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+<div class="ghost" id="ghost" aria-hidden="true"></div>
+
+<script>
+(() => {
+  const DATES = ["12 Jul", "12 Jul", "13 Jul", "13 Jul", "14 Jul", "14 Jul", "15 Jul", "16 Jul", "16 Jul", "18 Jul", "19 Jul", "20 Jul", "21 Jul", "22 Jul"];
+  const HOLD_MS = 450;
+  const MOVE_TOLERANCE_PX = 8;
+
+  // Generated landscapes, no photos.
+  function picture(i) {
+    const hue = (i * 47 + 190) % 360;
+    const sky1 = `hsl(${hue} 70% 78%)`, sky2 = `hsl(${(hue + 30) % 360} 75% 88%)`;
+    const hill1 = `hsl(${(hue + 140) % 360} 35% 45%)`, hill2 = `hsl(${(hue + 160) % 360} 40% 30%)`;
+    const sunX = 30 + ((i * 37) % 100), sunY = 22 + ((i * 13) % 20);
+    const h1 = 60 + ((i * 7) % 18), h2 = 72 + ((i * 11) % 14);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky1}"/><stop offset="1" stop-color="${sky2}"/></linearGradient></defs><rect width="160" height="120" fill="url(#g)"/><circle cx="${sunX}" cy="${sunY}" r="11" fill="hsl(45 100% 92%)"/><path d="M0 ${h1} Q40 ${h1 - 22} 80 ${h1} T160 ${h1 - 6} V120 H0Z" fill="${hill1}"/><path d="M0 ${h2} Q50 ${h2 - 14} 100 ${h2 + 2} T160 ${h2 - 4} V120 H0Z" fill="${hill2}"/></svg>`;
+    return { id: "p" + i, date: DATES[i], url: "data:image/svg+xml," + encodeURIComponent(svg) };
+  }
+
+  const ICON = {
+    left: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3L5 8l5 5"/></svg>',
+    right: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3l5 5-5 5"/></svg>',
+    pencil: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg>',
+    trash: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 9h5.6l.7-9"/></svg>',
+    close: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+    grip: '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="6" cy="4" r="1.2"/><circle cx="10" cy="4" r="1.2"/><circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/><circle cx="6" cy="12" r="1.2"/><circle cx="10" cy="12" r="1.2"/></svg>',
+    check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3.5 8.3l3 3 6-6.5"/></svg>',
+  };
+
+  const app = document.getElementById("app");
+  const strip = document.getElementById("strip");
+  const dock = document.getElementById("dock");
+  const scroll = document.getElementById("scroll");
+  const selectBtn = document.getElementById("select-btn");
+  const log = document.getElementById("log");
+
+  let state;
+  const tiles = new Map();
+  let view = window.matchMedia("(max-width: 600px)").matches ? "phone" : "desktop";
+  let stepMode = "gather";
+
+  function reset() {
+    state = {
+      pictures: Array.from({ length: 14 }, (_, i) => picture(i)),
+      selected: new Set(),
+      several: false,
+      anchor: null,
+      focusId: null,
+      ownOrder: false,
+      toast: null,
+      dragged: null,
+      dropMark: null,
+    };
+    render();
+  }
+
+  const indexOf = (id) => state.pictures.findIndex((p) => p.id === id);
+  const selectedIndices = () => state.pictures.map((p, i) => (state.selected.has(p.id) ? i : -1)).filter((i) => i >= 0);
+  const isTouch = () => view === "phone";
+  function say(text) { log.textContent = text; }
+
+  // ----- Moving -----
+  function contiguous(indices) { return indices.every((v, k) => k === 0 || v === indices[k - 1] + 1); }
+
+  function moveStep(direction) {
+    const idx = selectedIndices();
+    if (idx.length === 0) return false;
+    const list = state.pictures.slice();
+    if (stepMode === "gather" && !contiguous(idx)) {
+      const group = idx.map((i) => list[i]);
+      const rest = list.filter((p) => !state.selected.has(p.id));
+      const at = direction < 0 ? idx[0] : idx[idx.length - 1] - group.length + 1;
+      rest.splice(at, 0, ...group);
+      state.pictures = rest;
+      return true;
+    }
+    let changed = false;
+    if (direction < 0) {
+      for (let i = 1; i < list.length; i++) {
+        if (state.selected.has(list[i].id) && !state.selected.has(list[i - 1].id)) {
+          [list[i - 1], list[i]] = [list[i], list[i - 1]]; changed = true;
+        }
+      }
+    } else {
+      for (let i = list.length - 2; i >= 0; i--) {
+        if (state.selected.has(list[i].id) && !state.selected.has(list[i + 1].id)) {
+          [list[i + 1], list[i]] = [list[i], list[i + 1]]; changed = true;
+        }
+      }
+    }
+    state.pictures = list;
+    return changed;
+  }
+
+  function canStep(direction) {
+    const idx = selectedIndices();
+    if (idx.length === 0) return false;
+    if (stepMode === "gather" && !contiguous(idx)) return true;
+    const n = state.pictures.length;
+    return direction < 0 ? !idx.every((v, k) => v === k) : !idx.every((v, k) => v === n - idx.length + k);
+  }
+
+  function step(direction, times = 1) {
+    let changed = false;
+    for (let t = 0; t < times; t++) changed = moveStep(direction) || changed;
+    if (changed) afterMove();
+  }
+
+  function moveGroupTo(ids, insertion) {
+    const group = state.pictures.filter((p) => ids.includes(p.id));
+    const before = state.pictures.slice(0, insertion).filter((p) => ids.includes(p.id)).length;
+    const rest = state.pictures.filter((p) => !ids.includes(p.id));
+    rest.splice(insertion - before, 0, ...group);
+    const changed = rest.some((p, i) => p !== state.pictures[i]);
+    state.pictures = rest;
+    if (changed) afterMove();
+  }
+
+  function afterMove() {
+    state.ownOrder = true;
+    state.toast = null; // any move ends the removal batch
+    render(true);
+  }
+
+  // ----- Selecting -----
+  function selectOnly(id) { state.selected = new Set([id]); state.anchor = id; }
+  function toggle(id) {
+    if (state.selected.has(id)) state.selected.delete(id); else state.selected.add(id);
+    state.anchor = id;
+    if (state.selected.size === 0 && !state.manualMode) state.several = false;
+  }
+  function addRange(id) {
+    const a = state.anchor === null ? indexOf(id) : indexOf(state.anchor);
+    const b = indexOf(id);
+    for (let i = Math.min(a, b); i <= Math.max(a, b); i++) state.selected.add(state.pictures[i].id);
+    state.anchor = id;
+  }
+  function startSeveral() { state.several = true; }
+  function endSelection() { state.selected.clear(); state.several = false; state.manualMode = false; state.anchor = null; }
+
+  function pick(id, event) {
+    const mod = event && (event.ctrlKey || event.metaKey);
+    const shift = event && event.shiftKey;
+    if (!isTouch() && shift) { startSeveral(); addRange(id); }
+    else if (!isTouch() && mod) { startSeveral(); toggle(id); }
+    else if (state.several) { toggle(id); }
+    else if (state.selected.size === 1 && state.selected.has(id)) { endSelection(); }
+    else { selectOnly(id); }
+    state.focusId = id;
+    render();
+  }
+
+  // ----- Removing -----
+  function removeSelection(fallbackId) {
+    const ids = state.selected.size > 0 ? [...state.selected] : [fallbackId];
+    if (ids.length >= state.pictures.length) {
+      showToast(ids.length === 1 ? "The last picture stays. To get rid of it, delete the whole slideshow." : "At least one picture stays. To get rid of all of them, delete the whole slideshow.");
+      return;
+    }
+    const removed = state.pictures.map((p, i) => ({ p, i })).filter(({ p }) => ids.includes(p.id));
+    state.pictures = state.pictures.filter((p) => !ids.includes(p.id));
+    const batch = state.toast && state.toast.removed ? state.toast.removed.concat(removed) : removed;
+    state.toast = { removed: batch };
+    endSelection();
+    render(true);
+  }
+  function undo() {
+    const removed = state.toast.removed.slice().sort((a, b) => a.i - b.i);
+    // Removals add up in the order made; replaying them backwards restores every position.
+    const list = state.pictures.slice();
+    for (const r of state.toast.removed.slice().reverse()) list.splice(r.i, 0, r.p);
+    state.pictures = list;
+    state.toast = null;
+    void removed;
+    render(true);
+  }
+  function showToast(text) { state.toast = { text }; render(); }
+
+  // ----- Rendering -----
+  function render(animate) {
+    const before = animate ? rects() : null;
+    const several = state.several;
+    // Tiles are kept and updated in place: a finger on a tile must stay on the same element.
+    const ids = new Set(state.pictures.map((p) => p.id));
+    for (const [id, li] of tiles) if (!ids.has(id)) { li.remove(); tiles.delete(id); }
+    state.pictures.forEach((p, i) => {
+      let li = tiles.get(p.id);
+      if (!li) {
+        li = document.createElement("li");
+        li.className = "tile";
+        li.dataset.id = p.id;
+        li.innerHTML = `<button class="pick" type="button" data-id="${p.id}"><img src="${p.url}" alt=""><span class="number mono" aria-hidden="true"></span><span class="date mono" aria-hidden="true">${p.date}</span></button><span class="check" aria-hidden="true">${ICON.check}</span><span class="mark grab" aria-hidden="true">${ICON.grip}</span><button class="mark remove" type="button">${ICON.close}</button>`;
+        tiles.set(p.id, li);
+      }
+      const sel = state.selected.has(p.id);
+      li.classList.toggle("selected", sel);
+      li.classList.toggle("selecting-mode", several);
+      li.classList.toggle("dragging", state.dragged !== null && state.dragged.includes(p.id));
+      li.classList.remove("drop-before", "drop-after");
+      li.draggable = !isTouch();
+      li.querySelector(".pick").setAttribute("aria-pressed", String(sel));
+      li.querySelector("img").alt = `Picture ${i + 1}, ${p.date}`;
+      li.querySelector(".number").textContent = i + 1;
+      li.querySelector(".mark.remove").setAttribute("aria-label", `Remove picture ${i + 1}`);
+      if (strip.children[i] !== li) strip.insertBefore(li, strip.children[i] ?? null);
+    });
+    document.getElementById("pic-count").textContent = state.pictures.length;
+    const order = document.getElementById("order");
+    order.innerHTML = state.ownOrder
+      ? 'Own order · <span class="hint-long">drag or tap</span><span class="hint-short">tap to reorder, hold to select several</span>'
+      : 'Sorted by capture date<span class="hint-short"> · hold to select several</span>';
+    selectBtn.setAttribute("aria-pressed", String(several));
+    renderDock();
+    if (before) flip(before);
+    if (state.focusId !== null && strip.contains(document.activeElement) === false && lastInteractionWasKey) {
+      strip.querySelector(`.pick[data-id="${state.focusId}"]`)?.focus();
+    }
+  }
+
+  function renderDock() {
+    const idx = selectedIndices();
+    const parts = [];
+    if (state.toast) {
+      parts.push(state.toast.removed
+        ? `<div class="toast" role="status"><span>${state.toast.removed.length === 1 ? "Picture removed" : state.toast.removed.length + " pictures removed"}</span><button type="button" id="undo">Undo</button></div>`
+        : `<div class="toast" role="status"><span>${state.toast.text}</span></div>`);
+    }
+    if (idx.length > 0 || state.several) {
+      const n = state.pictures.length;
+      let count;
+      if (!state.several) {
+        count = `<span class="count single mono" aria-live="polite">Picture ${idx[0] + 1} of ${n}</span>`;
+      } else {
+        const where = idx.length > 1 && contiguous(idx) ? ` · ${idx[0] + 1}–${idx[idx.length - 1] + 1} of ${n}` : "";
+        count = `<span class="count several" aria-live="polite"><b class="mono">${idx.length}</b><span class="word">selected${where}</span></span>`;
+      }
+      const none = idx.length === 0;
+      parts.push(`<div class="bar" role="toolbar" aria-label="Selection">${count}<span class="separator" aria-hidden="true"></span>
+        <button class="btn" type="button" id="earlier" aria-disabled="${!canStep(-1)}">${ICON.left}<span>Earlier</span></button>
+        <button class="btn" type="button" id="later" aria-disabled="${!canStep(1)}"><span>Later</span>${ICON.right}</button>
+        ${idx.length === 1 ? `<button class="btn" type="button" id="edit">${ICON.pencil}<span>Edit</span></button>` : ""}
+        <button class="btn remove" type="button" id="remove" aria-disabled="${none}">${ICON.trash}<span>Remove</span></button>
+        <button class="btn done" type="button" id="done">Done</button></div>`);
+      app.style.setProperty("--clearance", "86px");
+    } else {
+      app.style.removeProperty("--clearance");
+    }
+    dock.innerHTML = parts.join("");
+    if (state.selected.size > 0) {
+      const last = [...state.selected].pop();
+      strip.querySelector(`.tile[data-id="${state.anchor ?? last}"]`)?.scrollIntoView({ block: "nearest" });
+    }
+  }
+
+  function rects() {
+    const m = new Map();
+    strip.querySelectorAll(".tile").forEach((t) => m.set(t.dataset.id, t.getBoundingClientRect()));
+    return m;
+  }
+  function flip(before) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    strip.querySelectorAll(".tile").forEach((t) => {
+      const a = before.get(t.dataset.id);
+      if (!a) return;
+      const b = t.getBoundingClientRect();
+      const dx = a.left - b.left, dy = a.top - b.top;
+      if (dx === 0 && dy === 0) return;
+      t.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 220, easing: "cubic-bezier(.2,.7,.2,1)" });
+    });
+  }
+
+  // ----- Events -----
+  let lastInteractionWasKey = false;
+  let hold = null;
+  const ghost = document.getElementById("ghost");
+  let suppressClick = false;
+
+  // Touch: a hold lifts the tile (and selects it); moving the finger then drags the group.
+  let lift = null;
+  let autoScroll = 0;
+  const EDGE_PX = 64;
+  const MAX_SCROLL_STEP_PX = 14;
+
+  strip.addEventListener("pointerdown", (e) => {
+    lastInteractionWasKey = false;
+    const pickEl = e.target.closest(".pick");
+    if (!pickEl || !isTouch()) return;
+    const id = pickEl.dataset.id;
+    hold = { id, x: e.clientX, y: e.clientY, timer: setTimeout(() => {
+      hold = null;
+      suppressClick = true;
+      // A single selection gives way to the held tile; selecting several keeps what is there.
+      if (!state.several) state.selected = new Set();
+      startSeveral();
+      state.selected.add(id);
+      state.anchor = id;
+      navigator.vibrate?.(15);
+      say("Held: selected; move the finger to drag");
+      render();
+      lift = { id, x: lastPoint.x, y: lastPoint.y, dragging: false };
+    }, HOLD_MS) };
+    lastPoint = { x: e.clientX, y: e.clientY };
+  });
+  let lastPoint = { x: 0, y: 0 };
+  const cancelHold = () => { if (hold) { clearTimeout(hold.timer); hold = null; } };
+
+  function markDrop(tile, clientX) {
+    let mark = null;
+    if (tile) {
+      const box = tile.getBoundingClientRect();
+      const after = clientX > box.left + box.width / 2;
+      const id = tile.dataset.id;
+      mark = state.dragged.length === 1 && id === state.dragged[0] ? null : { id, after };
+    }
+    strip.querySelectorAll(".tile").forEach((t) => {
+      t.classList.toggle("drop-before", !!mark && mark.id === t.dataset.id && !mark.after);
+      t.classList.toggle("drop-after", !!mark && mark.id === t.dataset.id && mark.after);
+    });
+    state.dropMark = mark;
+  }
+
+  function fillGhost(group) {
+    const shown = group.slice(0, 3);
+    ghost.innerHTML = shown.map((g, k) => `<img src="${state.pictures[indexOf(g)].url}" style="left:${k * 6}px;top:${12 + k * 6}px;transform:rotate(${(k - 1) * 4}deg)" alt="">`).join("") + (group.length > 1 ? `<span class="n">${group.length}</span>` : "");
+  }
+
+  function hideGhost() {
+    ghost.classList.remove("live");
+    ghost.style.left = "";
+    ghost.style.top = "";
+  }
+
+  function trackTouchDrag() {
+    if (!lift || !lift.dragging) return;
+    ghost.style.left = lastPoint.x - 48 + "px";
+    ghost.style.top = lastPoint.y - 60 + "px";
+    const box = scroll.getBoundingClientRect();
+    const fromTop = lastPoint.y - box.top, fromBottom = box.bottom - lastPoint.y;
+    autoScroll = fromTop < EDGE_PX ? -MAX_SCROLL_STEP_PX * (1 - fromTop / EDGE_PX)
+      : fromBottom < EDGE_PX ? MAX_SCROLL_STEP_PX * (1 - fromBottom / EDGE_PX) : 0;
+    markDrop(document.elementFromPoint(lastPoint.x, lastPoint.y)?.closest(".tile") ?? null, lastPoint.x);
+  }
+  function scrollLoop() {
+    if (!lift || !lift.dragging) return;
+    if (autoScroll !== 0) { scroll.scrollTop += autoScroll; trackTouchDrag(); }
+    requestAnimationFrame(scrollLoop);
+  }
+
+  window.addEventListener("pointermove", (e) => {
+    lastPoint = { x: e.clientX, y: e.clientY };
+    if (hold && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > MOVE_TOLERANCE_PX) cancelHold();
+    if (!lift) return;
+    if (!lift.dragging && Math.hypot(e.clientX - lift.x, e.clientY - lift.y) > MOVE_TOLERANCE_PX) {
+      lift.dragging = true;
+      state.dragged = state.pictures.filter((p) => state.selected.has(p.id)).map((p) => p.id);
+      fillGhost(state.dragged);
+      ghost.classList.add("live");
+      strip.querySelectorAll(".tile").forEach((t) => t.classList.toggle("dragging", state.dragged.includes(t.dataset.id)));
+      say(state.dragged.length > 1 ? `Dragging ${state.dragged.length} pictures` : "Dragging 1 picture");
+      requestAnimationFrame(scrollLoop);
+    }
+    trackTouchDrag();
+  });
+  window.addEventListener("pointerup", () => {
+    cancelHold();
+    if (!lift) return;
+    const wasDragging = lift.dragging;
+    lift = null; autoScroll = 0;
+    hideGhost();
+    if (!wasDragging) return;
+    const { dropMark, dragged } = state;
+    state.dragged = null; state.dropMark = null;
+    if (dropMark) moveGroupTo(dragged, indexOf(dropMark.id) + (dropMark.after ? 1 : 0));
+    else render();
+  });
+  window.addEventListener("pointercancel", () => { cancelHold(); if (lift) { lift = null; hideGhost(); state.dragged = null; state.dropMark = null; render(); } });
+  // A lifted tile owns the finger: the page must not scroll under it.
+  window.addEventListener("touchmove", (e) => { if (lift) e.preventDefault(); }, { passive: false });
+  strip.addEventListener("contextmenu", (e) => { if (isTouch()) e.preventDefault(); });
+
+  strip.addEventListener("click", (e) => {
+    const removeEl = e.target.closest(".mark.remove");
+    if (removeEl) {
+      const id = removeEl.closest(".tile").dataset.id;
+      state.selected.delete(id);
+      const keep = new Set(state.selected); state.selected.clear();
+      removeSelection(id);
+      state.selected = keep; render();
+      return;
+    }
+    const pickEl = e.target.closest(".pick");
+    if (!pickEl) return;
+    if (suppressClick) { suppressClick = false; return; }
+    pick(pickEl.dataset.id, e);
+  });
+  strip.addEventListener("dblclick", (e) => {
+    const pickEl = e.target.closest(".pick");
+    if (pickEl && !isTouch() && !state.several) showToast("Opens the picture editor (not part of this mockup).");
+  });
+
+  strip.addEventListener("keydown", (e) => {
+    const pickEl = e.target.closest(".pick");
+    if (!pickEl) return;
+    lastInteractionWasKey = true;
+    const id = pickEl.dataset.id;
+    const i = indexOf(id);
+    const cols = getComputedStyle(strip).gridTemplateColumns.split(" ").length;
+    const steps = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -cols, ArrowDown: cols };
+    const focusAt = (j) => { const p = state.pictures[j]; if (!p) return; state.focusId = p.id; strip.querySelector(`.pick[data-id="${p.id}"]`)?.focus(); };
+
+    if (e.key === " " && (e.ctrlKey || e.metaKey)) { e.preventDefault(); startSeveral(); toggle(id); state.focusId = id; render(); focusAt(indexOf(id)); return; }
+    if (e.key === " " && e.shiftKey) { e.preventDefault(); startSeveral(); addRange(id); state.focusId = id; render(); focusAt(indexOf(id)); return; }
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); pick(id, null); focusAt(indexOf(id)); return; }
+    if (e.key === "Escape") { e.preventDefault(); endSelection(); render(); focusAt(i); return; }
+    if (e.key === "Delete" || e.key === "Backspace") {
+      e.preventDefault();
+      const neighbour = state.pictures.find((p, j) => j > i && !state.selected.has(p.id)) ?? state.pictures.slice(0, i).reverse().find((p) => !state.selected.has(p.id));
+      if (!state.selected.has(id)) { const keep = state.selected; state.selected = new Set(); removeSelection(id); state.selected = keep; render(); }
+      else removeSelection(id);
+      if (neighbour) focusAt(indexOf(neighbour.id));
+      return;
+    }
+    const delta = steps[e.key];
+    if (delta === undefined) return;
+    e.preventDefault();
+    if (e.shiftKey) {
+      if (!state.selected.has(id)) { state.several = false; selectOnly(id); }
+      const horizontal = Math.abs(delta) === 1;
+      step(Math.sign(delta), horizontal ? 1 : cols);
+      focusAt(indexOf(id));
+      return;
+    }
+    const j = i + delta;
+    if (j < 0 || j >= state.pictures.length) return;
+    if (!state.several && state.selected.size === 1) { selectOnly(state.pictures[j].id); render(); }
+    focusAt(j);
+  });
+
+  // Drag (mouse only)
+  strip.addEventListener("dragstart", (e) => {
+    const tile = e.target.closest(".tile");
+    if (!tile || isTouch()) { e.preventDefault(); return; }
+    const id = tile.dataset.id;
+    const group = state.selected.has(id) ? state.pictures.filter((p) => state.selected.has(p.id)).map((p) => p.id) : [id];
+    state.dragged = group;
+    fillGhost(group);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
+    e.dataTransfer.setDragImage(ghost, 40, 40);
+    requestAnimationFrame(() => strip.querySelectorAll(".tile").forEach((t) => t.classList.toggle("dragging", group.includes(t.dataset.id))));
+    say(group.length > 1 ? `Dragging ${group.length} pictures` : "Dragging 1 picture");
+  });
+  strip.addEventListener("dragover", (e) => {
+    const tile = e.target.closest(".tile");
+    if (!tile || !state.dragged) return;
+    e.preventDefault();
+    markDrop(tile, e.clientX);
+  });
+  strip.addEventListener("drop", (e) => {
+    if (!state.dragged) return;
+    e.preventDefault();
+    const { dropMark, dragged } = state;
+    state.dragged = null; state.dropMark = null;
+    if (dropMark) moveGroupTo(dragged, indexOf(dropMark.id) + (dropMark.after ? 1 : 0));
+    else render();
+  });
+  strip.addEventListener("dragend", () => { if (state.dragged) { state.dragged = null; state.dropMark = null; render(); } });
+
+  dock.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.getAttribute("aria-disabled") === "true") return;
+    if (b.id === "earlier") step(-1);
+    else if (b.id === "later") step(1);
+    else if (b.id === "remove") removeSelection(null);
+    else if (b.id === "done") { endSelection(); render(); }
+    else if (b.id === "edit") showToast("Opens the picture editor (not part of this mockup).");
+    else if (b.id === "undo") undo();
+  });
+
+  selectBtn.addEventListener("click", () => {
+    if (state.several) endSelection();
+    else { state.several = true; state.manualMode = true; }
+    render();
+  });
+  document.getElementById("add-btn").addEventListener("click", () => showToast("Opens Add pictures (not part of this mockup)."));
+
+  function setView(v) {
+    view = v;
+    app.classList.toggle("phone", v === "phone");
+    app.classList.toggle("desktop", v === "desktop");
+    document.querySelectorAll("#view-opts button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === v)));
+    render();
+  }
+  function setStep(s) {
+    stepMode = s;
+    document.querySelectorAll("#step-opts button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.step === s)));
+    render();
+  }
+  document.getElementById("view-opts").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setView(b.dataset.view); });
+  document.getElementById("step-opts").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setStep(b.dataset.step); });
+  document.getElementById("reset").addEventListener("click", reset);
+
+  reset();
+  setView(view);
+  setStep(stepMode);
+  void scroll;
+})();
+</script>
