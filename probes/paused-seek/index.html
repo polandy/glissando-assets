@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paused seek probe</title>
+<style>body{color:#eee;background:#111;margin:0;padding:12px;font:16px system-ui}#stage{aspect-ratio:16/9;background:#000;width:min(100%,640px);position:relative}#row{flex-wrap:wrap;gap:8px;margin:12px 0;display:flex}button{font:inherit;color:#fff;background:#334;border:0;border-radius:8px;padding:12px 16px}#expect{font-size:28px;font-weight:700}input{width:min(100%,640px)}</style>  <script type="module" crossorigin src="./assets/index-o_OAsnxm.js"></script>
+</head>
+<body>
+<h1 style="font-size:20px">Paused seek probe</h1>
+<p id="mode"></p>
+<p>The player is paused. Tap the numbers one after another (or drag the slider). The picture must
+show the same number as “Expected” right away. If it keeps showing the <em>previous</em> number
+until your next tap, this Safari shows the late frame.</p>
+<p>Try both: <a href="?" style="color:#9cf">antialias off (as Glissando)</a> ·
+<a href="?aa" style="color:#9cf">antialias on</a></p>
+<div id="stage"></div>
+<p id="expect">Expected: –</p>
+<input id="seek" type="range" min="0" max="5" step="1" value="0">
+<div id="row"></div>
+<p id="log"></p>
+</body></html>

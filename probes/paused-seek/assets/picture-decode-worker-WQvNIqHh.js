@@ -1,0 +1,1 @@
+(function(){self.addEventListener(`message`,t=>{e(t.data)});async function e({id:e,bytes:t}){let n;try{n=await createImageBitmap(t,{imageOrientation:`from-image`})}catch(t){let n={id:e,kind:`failed`,message:t instanceof Error?t.message:String(t)};self.postMessage(n);return}let r={id:e,kind:`decoded`,bitmap:n};self.postMessage(r,{transfer:[n]})}})();
