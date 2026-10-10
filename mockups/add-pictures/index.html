@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bilder hinzufügen</title>
+<title>Add pictures</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
@@ -127,7 +127,7 @@ pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
 .musicrow .go { color: var(--muted); display: flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; }
 
 
-/* Info panel: the second action under "Abspielen" */
+/* Info panel: the second action under "Play" */
 .info .actions { display: grid; gap: 8px; }
 .btn.large { height: 44px; font-size: 15px; }
 .btn.block { width: 100%; }
@@ -284,65 +284,65 @@ pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
 <div class="page">
   <div class="intro">
     <div>
-      <h1>Bilder zu einer Diashow hinzufügen</h1>
-      <p>Die Diashow-Ansicht mit 24 Bildern. „Bilder hinzufügen“ öffnet den Bilder-Schritt der Neuen Diashow, nur ohne Musik-Schritt. Die Auswahl ist simuliert: „Bilder auswählen“ liefert 10 erzeugte Bilder, 2 davon sind schon in der Diashow. Alle Bilder sind erzeugt, keine echten Fotos.</p>
+      <h1>Add pictures to a slideshow</h1>
+      <p>The slideshow view with 24 pictures. “Add pictures” opens the pictures step of New slideshow, just without the music step. The selection is simulated: “Choose pictures” delivers 10 generated pictures, 2 of which are already in the slideshow. All pictures are generated, no real photos.</p>
     </div>
     <div class="controls">
-      <div class="seg" role="group" aria-label="Ansicht"><button data-tab="try">Ausprobieren</button><button data-tab="concept">Konzept</button></div>
-      <div class="seg" role="group" aria-label="Breite"><button data-width="desk">Desktop</button><button data-width="phone">Telefon</button></div>
-      <div class="seg" role="group" aria-label="Thema"><button data-theme-set="light">Hell</button><button data-theme-set="dark">Dunkel</button></div>
-      <div class="seg" role="group" aria-label="Einstieg"><button data-entry="head">Einstieg A: über den Bildern</button><button data-entry="tile">B: Kachel am Ende</button><button data-entry="info">C: Infotafel</button></div>
-      <div class="seg" role="group" aria-label="Reihenfolge"><button data-order="date">Nach Aufnahmedatum</button><button data-order="own">Eigene Reihenfolge</button></div>
-      <div class="seg" role="group" aria-label="Musik"><button data-music="1">Mit Musik</button><button data-music="0">Ohne Musik</button></div>
-      <div class="seg" role="group" aria-label="Menge"><button data-amount="few">10 Bilder wählen</button><button data-amount="many">200 Bilder wählen</button></div>
+      <div class="seg" role="group" aria-label="View"><button data-tab="try">Try it</button><button data-tab="concept">Concept</button></div>
+      <div class="seg" role="group" aria-label="Width"><button data-width="desk">Desktop</button><button data-width="phone">Phone</button></div>
+      <div class="seg" role="group" aria-label="Theme"><button data-theme-set="light">Light</button><button data-theme-set="dark">Dark</button></div>
+      <div class="seg" role="group" aria-label="Entry point"><button data-entry="head">Entry A: above the pictures</button><button data-entry="tile">B: tile at the end</button><button data-entry="info">C: info panel</button></div>
+      <div class="seg" role="group" aria-label="Order"><button data-order="date">By capture date</button><button data-order="own">Own order</button></div>
+      <div class="seg" role="group" aria-label="Music"><button data-music="1">With music</button><button data-music="0">No music</button></div>
+      <div class="seg" role="group" aria-label="Amount"><button data-amount="few">Choose 10 pictures</button><button data-amount="many">Choose 200 pictures</button></div>
     </div>
   </div>
   <div class="stage" id="stage"></div>
 
   <div class="concept" id="concept" hidden>
-    <h2>So funktioniert es</h2>
+    <h2>How it works</h2>
     <div class="card">
       <ul>
-        <li><b>Einstieg</b>: „Bilder hinzufügen“ in der Kopfzeile über den Bildern, rechts neben der Anzahl (Variante A, Vorschlag). Er steht bei dem, was er verändert, und ist am Telefon ohne Scrollen zu sehen. B (Kachel am Ende der Bilder) ist bei 200 Bildern weit unten, C (Infotafel) drängt sich neben „Abspielen“. Die Auswahlleiste bekommt keinen Eintrag; sie wirkt auf die gewählten Bilder, nicht auf neue.</li>
-        <li><b>Derselbe Ablauf wie beim Import</b>: der Bilder-Schritt der Neuen Diashow mit derselben Ablagefläche, Ordnerwahl, Immich-Feld, Fortschrittsbalken und Hinweisen. Der Musik-Schritt fällt weg, die Diashow hat ihre Musik schon. Der Immich-Wähler (ADR-0013) ist derselbe, nur ist er nicht mehr an eine neue Diashow gebunden.</li>
-        <li><b>Verkleinern und Kamerafahrt</b>: genau wie beim Import, Bild für Bild auf dem Gerät (<code>PictureImport</code>, höchstens 3840 × 2160). Fotos aus Immich bringen ihre Gesichter mit. Für Bilder vom Gerät sucht danach der automatische Fokus-Durchlauf die Personen, wie nach dem Import.</li>
-        <li><b>Wohin die neuen Bilder kommen</b>: ist die Diashow nach Aufnahmedatum sortiert, sortieren sie sich an ihren Platz, und die Diashow bleibt sortiert. Bei eigener Reihenfolge kommen sie in Aufnahme-Reihenfolge ans Ende, und deine Reihenfolge bleibt unangetastet. Danach sind sie in der Diashow mit „neu“ markiert, bis man die Ansicht verlässt.</li>
-        <li><b>Doppelte</b>: ein Bild, das schon in der Diashow ist, wird übersprungen, und ein Hinweis nennt es. Im Immich-Wähler sind solche Fotos blass, mit „Schon drin“ markiert und nicht wählbar. Wer ein Bild absichtlich zweimal möchte, tippt im Hinweis auf „Trotzdem hinzufügen“.</li>
-        <li><b>Zeiten und Musik</b> (ADR-0008): Bilder mit eigener Dauer behalten sie. Mit Musik teilen sich alle automatischen Bilder weiter die Musik, also wird jedes kürzer, und die Diashow bleibt so lang wie die Musik. Unter 2 s pro Bild geht es nicht. Dann wird die Diashow länger als die Musik, und das steht vor dem Hinzufügen da. Ohne Musik bekommt jedes neue Bild die eingestellten Sekunden, und die Diashow wird länger. Der Kasten „Danach“ zeigt das vorher.</li>
-        <li><b>Rückgängig</b>: nach dem Hinzufügen erscheint „10 Bilder hinzugefügt · Rückgängig“, wie beim Entfernen. Rückgängig nimmt genau diese Bilder wieder heraus und gibt ihren Speicher frei.</li>
-        <li><b>Abbrechen</b>: „Abbrechen“ oder Zurück, solange noch verkleinert wird, stoppt das und verwirft die schon fertigen neuen Bilder. Die Diashow bleibt, wie sie war. Erst „10 hinzufügen“ schreibt sie in die Diashow.</li>
-        <li><b>Offline</b>: Bilder vom Gerät gehen immer. Immich braucht wie beim Import die Verbindung zum Glissando-Server.</li>
+        <li><b>Entry point</b>: “Add pictures” in the header bar above the pictures, to the right of the count (variant A, proposal). It sits next to what it changes, and is visible on the phone without scrolling. B (a tile at the end of the pictures) ends up far down with 200 pictures, C (the info panel) crowds in next to “Play”. The selection bar gets no entry; it acts on the chosen pictures, not on new ones.</li>
+        <li><b>Same flow as the import</b>: the pictures step of New slideshow, with the same drop zone, folder choice, Immich field, progress bar and notices. The music step falls away, the slideshow already has its music. The Immich picker (ADR-0013) is the same, just no longer tied to a new slideshow.</li>
+        <li><b>Downsizing and Ken Burns motion</b>: exactly like the import, picture by picture on the device (<code>PictureImport</code>, at most 3840 × 2160). Photos from Immich bring their faces with them. For pictures from the device, the automatic focus pass then finds the people, as it does after the import.</li>
+        <li><b>Where the new pictures go</b>: if the slideshow is sorted by capture date, they sort into their place, and the slideshow stays sorted. With your own order, they go to the end in capture order, and your order stays untouched. After that, they are marked “new” in the slideshow until you leave the view.</li>
+        <li><b>Duplicates</b>: a picture already in the slideshow is skipped, and a notice names it. In the Immich picker, such photos are faded, marked “Already in” and not selectable. Anyone who wants a picture twice on purpose taps “Add anyway” in the notice.</li>
+        <li><b>Timing and music</b> (ADR-0008): pictures with their own duration keep it. With music, all automatic pictures keep sharing the music, so each gets shorter, and the slideshow stays as long as the music. Below 2 s per picture is not possible. Then the slideshow gets longer than the music, and that shows before you add. Without music, each new picture gets the set seconds, and the slideshow gets longer. The “After adding” box shows this beforehand.</li>
+        <li><b>Undo</b>: after adding, “10 pictures added · Undo” appears, as with removing. Undo takes exactly these pictures back out and frees their storage.</li>
+        <li><b>Cancel</b>: “Cancel” or Back, while downsizing is still running, stops it and discards the new pictures already finished. The slideshow stays as it was. Only “Add 10” writes them into the slideshow.</li>
+        <li><b>Offline</b>: pictures from the device always work. Immich needs the connection to the Glissando server, just like during the import.</li>
       </ul>
     </div>
 
-    <h2>Doppelte erkennen: Herkunft statt Prüfsumme (ADR-0016, Vorschlag)</h2>
+    <h2>Detecting duplicates: provenance instead of checksum (ADR-0016, proposal)</h2>
     <div class="card tbl">
       <table>
-        <thead><tr><th>Weg</th><th>Woran erkannt</th><th>Bewertung</th></tr></thead>
+        <thead><tr><th>Approach</th><th>Detected by</th><th>Assessment</th></tr></thead>
         <tbody>
-          <tr><td><b>Herkunft speichern</b> (Vorschlag)</td><td>Jedes Bild merkt sich, woher es kommt. Bei Immich ist das die Asset-ID. Bei einer Datei sind es Dateiname, Größe in Bytes und Aufnahmezeit.</td><td>Billig, geht ohne sicheren Kontext (iPad über das LAN mit http). Erkennt dieselbe Datei auch von einem anderen Gerät. Eine umbenannte Kopie rutscht durch.</td></tr>
-          <tr><td>Prüfsumme des Originals (SHA-256)</td><td>Inhalt der Originaldatei</td><td>Am genauesten. Braucht aber <code>crypto.subtle</code>, also HTTPS, und muss jedes Original ganz lesen; bei 200 HEIC-Fotos spürbar. Das Bild aus Immich und dieselbe Datei vom Gerät gelten trotzdem als verschieden.</td></tr>
-          <tr><td>Prüfsumme des verkleinerten Bildes</td><td>Pixel nach dem Verkleinern</td><td>Hängt vom Browser ab (Dekoder, Farbprofil), also nicht verlässlich gleich.</td></tr>
+          <tr><td><b>Store provenance</b> (proposal)</td><td>Each picture remembers where it came from. For Immich that is the asset id. For a file it is the file name, size in bytes and capture time.</td><td>Cheap, works without a secure context (an iPad over the LAN with http). Recognizes the same file from another device too. A renamed copy slips through.</td></tr>
+          <tr><td>Checksum of the original (SHA-256)</td><td>Content of the original file</td><td>Most accurate. But needs <code>crypto.subtle</code>, so HTTPS, and has to read every original in full; noticeable with 200 HEIC photos. The picture from Immich and the same file from the device still count as different.</td></tr>
+          <tr><td>Checksum of the downsized picture</td><td>Pixels after downsizing</td><td>Depends on the browser (decoder, colour profile), so not reliably the same.</td></tr>
         </tbody>
       </table>
-      <p>Bilder aus der Zeit vor dieser Änderung haben keine Herkunft gespeichert. Für sie gilt: gleicher Dateiname und gleiche Aufnahmezeit bedeuten dasselbe Bild. Die Herkunft wandert mit in die .glissando-Datei.</p>
+      <p>Pictures from before this change have no stored provenance. For them: same file name and same capture time mean the same picture. Provenance travels along into the .glissando file.</p>
     </div>
 
     <h2>Tests</h2>
     <div class="card">
       <ul>
-        <li><b>Reine Logik</b> mit Unit-Tests: wohin neue Bilder kommen (nach Datum oder ans Ende), Doppelte erkennen (Herkunft, Altbilder, Doppelte innerhalb derselben Auswahl), Rückgängig. Die Vorschau „Danach“ nutzt dieselbe Funktion wie der Player (<code>slideDurationsMs</code>).</li>
-        <li><b>Fortschritt ohne Warten</b>: der Test steuert das Verkleinern über einen Fake-Dekoder und wartet auf <code>settled()</code>, nicht auf die Uhr.</li>
-        <li><b>E2E-032</b> nach deinem OK am gebauten Stand: zwei erzeugte Bilder hinzufügen, eines davon doppelt, Platz in der Reihenfolge prüfen, Rückgängig. Nur mit erzeugten Bildern.</li>
+        <li><b>Pure logic</b> with unit tests: where new pictures go (by date or to the end), detecting duplicates (provenance, old pictures, duplicates within the same selection), undo. The “After adding” preview uses the same function as the player (<code>slideDurationsMs</code>).</li>
+        <li><b>Progress without waiting</b>: the test drives the downsizing through a fake decoder and waits on <code>settled()</code>, not the clock.</li>
+        <li><b>E2E-032</b> after your OK on the built change: add two generated pictures, one of them a duplicate, check its place in the order, undo. Only with generated pictures.</li>
       </ul>
     </div>
 
-    <h2>Offene Fragen</h2>
+    <h2>Decisions</h2>
     <div class="card q">
       <ol>
-        <li><b>Einstieg</b>: A über den Bildern (Vorschlag), B Kachel am Ende oder C in der Infotafel?</li>
-        <li><b>Doppelte</b>: überspringen mit Hinweis und „Trotzdem hinzufügen“ (Vorschlag), oder vorher fragen?</li>
-        <li><b>Eigene Reihenfolge</b>: neue Bilder ans Ende (Vorschlag) oder hinter das gerade gewählte Bild?</li>
+        <li><b>Entry point</b>: A, above the pictures.</li>
+        <li><b>Duplicates</b>: skipped, with a notice and “Add anyway”.</li>
+        <li><b>Own order</b>: new pictures go to the end.</li>
       </ol>
     </div>
   </div>
@@ -392,7 +392,7 @@ const icon = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hi
 const IMMICH = `<svg viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke-width="2"><circle cx="16" cy="10" r="5.5" stroke="#ff9f7f"/><circle cx="22" cy="16" r="5.5" stroke="#6fcfb4"/><circle cx="16" cy="22" r="5.5" stroke="#f5c94a"/><circle cx="10" cy="16" r="5.5" stroke="#9c8fd6"/></g></svg>`;
 
 /* ---------- Data: everything generated, no real photos ---------- */
-const TITLE = "Sommer 2025", MUSIC_S = 340, SECONDS = 5, MIN_S = 2;
+const TITLE = "Summer 2025", MUSIC_S = 340, SECONDS = 5, MIN_S = 2;
 const DAY = 86400000, START = Date.UTC(2025, 6, 12, 9);
 const srcCache = new Map();
 const srcOf = (seed) => {
@@ -413,7 +413,7 @@ function devicePick(many) {
 }
 /** Immich timeline: three days; the photos marked inShow came in with the import. */
 const IMMICH_DAYS = [
-  ["Sa., 2. Aug. 2025", 21 * DAY], ["So., 20. Juli 2025", 8 * DAY], ["Sa., 12. Juli 2025", 0],
+  ["Sat, 2 Aug 2025", 21 * DAY], ["Sun, 20 Jul 2025", 8 * DAY], ["Sat, 12 Jul 2025", 0],
 ].map(([label, off], d) => ({ label, photos: Array.from({ length: 12 }, (_, k) => {
   const inShow = (k + d) % 4 === 1;
   const base = BASE[(d * 7 + k * 5) % 24];
@@ -421,9 +421,9 @@ const IMMICH_DAYS = [
 }) }));
 
 const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
-const fmtSec = (s) => s.toFixed(1).replace(".", ",") + " s";
-const fmtInt = (n) => n.toLocaleString("de-DE");
-const fmtDate = (ms) => new Date(ms).toLocaleDateString("de-DE", { day: "numeric", month: "short", timeZone: "UTC" });
+const fmtSec = (s) => s.toFixed(1) + " s";
+const fmtInt = (n) => n.toLocaleString("en-GB");
+const fmtDate = (ms) => new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 const OWN_ORDER = (list) => { const l = [...list]; [l[2], l[9]] = [l[9], l[2]]; [l[15], l[5]] = [l[5], l[15]]; return l; };
 
 const S = { tab: "try", width: "desk", theme: "light", entry: "head", order: "date", music: "1", amount: "few",
@@ -440,34 +440,34 @@ function timing(n) {
 
 /* ---------- Slideshow screen ---------- */
 function bar(crumbs) {
-  return `<div class="bar"><button class="iconbtn" aria-label="Zurück" data-act="back">${icon("back")}</button>
-    <div class="crumbs">${crumbs}</div><div class="spacer"></div>${S.screen === "show" ? `<button class="iconbtn" aria-label="Mehr">${icon("more")}</button>` : ""}</div>`;
+  return `<div class="bar"><button class="iconbtn" aria-label="Back" data-act="back">${icon("back")}</button>
+    <div class="crumbs">${crumbs}</div><div class="spacer"></div>${S.screen === "show" ? `<button class="iconbtn" aria-label="More">${icon("more")}</button>` : ""}</div>`;
 }
-const addBtn = (cls = "btn sm") => `<button class="${cls}" data-act="add">${icon("plus")}<span class="lbl-long">Bilder hinzufügen</span><span class="lbl-short">Hinzufügen</span></button>`;
+const addBtn = (cls = "btn sm") => `<button class="${cls}" data-act="add">${icon("plus")}<span class="lbl-long">Add pictures</span><span class="lbl-short">Add</span></button>`;
 function infoPanel() {
   const t = timing(S.pics.length);
   return `<aside class="info">
-    <div><div class="eyebrow">Diashow</div><div class="name">${TITLE}</div><div class="muted mono" style="font-size: 12.5px">12. Juli – 6. Aug. 2025</div></div>
+    <div><div class="eyebrow">Slideshow</div><div class="name">${TITLE}</div><div class="muted mono" style="font-size: 12.5px">12 Jul – 6 Aug 2025</div></div>
     <div class="actions">
-      <button class="btn primary large block">${icon("play", "fill")}Abspielen</button>
-      <button class="btn large block">${icon("film")}Als Video sichern</button>
-      ${S.entry === "info" ? `<button class="btn large block" data-act="add">${icon("plus")}Bilder hinzufügen</button>` : ""}
+      <button class="btn primary large block">${icon("play", "fill")}Play</button>
+      <button class="btn large block">${icon("film")}Save as video</button>
+      ${S.entry === "info" ? `<button class="btn large block" data-act="add">${icon("plus")}Add pictures</button>` : ""}
     </div>
     <dl class="facts">
-      <dt>Bilder</dt><dd class="mono">${S.pics.length}</dd>
-      <dt>Dauer</dt><dd class="mono">${fmtTime(t.total)} <small>· je ${fmtSec(t.per)}</small></dd>
-      ${S.music === "1" ? `<button class="musicrow"><span class="lbl">Musik</span><span class="val"><b>Sommerwind.mp3</b><small>0:12 – 5:52</small></span><span class="go">Bearbeiten${icon("right")}</span></button>`
-        : `<dt>Musik</dt><dd>Keine <small>· ${SECONDS} s pro Bild</small></dd>`}
-      <dt>Übergänge</dt><dd>Überblenden</dd>
+      <dt>Pictures</dt><dd class="mono">${S.pics.length}</dd>
+      <dt>Duration</dt><dd class="mono">${fmtTime(t.total)} <small>· ${fmtSec(t.per)} each</small></dd>
+      ${S.music === "1" ? `<button class="musicrow"><span class="lbl">Music</span><span class="val"><b>Summerwind.mp3</b><small>0:12 – 5:52</small></span><span class="go">Edit${icon("right")}</span></button>`
+        : `<dt>Music</dt><dd>None <small>· ${SECONDS} s per picture</small></dd>`}
+      <dt>Transitions</dt><dd>Cross-fade</dd>
     </dl>
   </aside>`;
 }
 function showScreen() {
-  const tiles = S.pics.map((p, i) => `<div class="tile ${p.isNew ? "new" : ""}"><img alt="" src="${srcOf(p.seed)}"><span class="num">${i + 1}</span>${p.isNew ? `<span class="newbadge">neu</span>` : ""}</div>`).join("");
-  const addTile = S.entry === "tile" ? `<button class="tile add" data-act="add">${icon("plus")}Bilder hinzufügen</button>` : "";
-  return `${bar(`<span class="hide-narrow">Bibliothek</span><span class="sep hide-narrow">/</span><b>${TITLE}</b>`)}
+  const tiles = S.pics.map((p, i) => `<div class="tile ${p.isNew ? "new" : ""}"><img alt="" src="${srcOf(p.seed)}"><span class="num">${i + 1}</span>${p.isNew ? `<span class="newbadge">new</span>` : ""}</div>`).join("");
+  const addTile = S.entry === "tile" ? `<button class="tile add" data-act="add">${icon("plus")}Add pictures</button>` : "";
+  return `${bar(`<span class="hide-narrow">Library</span><span class="sep hide-narrow">/</span><b>${TITLE}</b>`)}
     <div class="scroll"><div class="show"><div class="pictures">
-      <div class="strip-head"><div><h2 class="eyebrow">Bilder</h2><p class="muted">${S.order === "own" ? "Eigene Reihenfolge" : "Nach Aufnahmedatum sortiert"}<span class="hide-narrow"> · Ziehen zum Umsortieren</span></p></div>
+      <div class="strip-head"><div><h2 class="eyebrow">Pictures</h2><p class="muted">${S.order === "own" ? "Own order" : "Sorted by capture date"}<span class="hide-narrow"> · Drag to reorder</span></p></div>
         <span class="mono muted">${S.pics.length}</span>${S.entry === "head" ? addBtn() : ""}</div>
       <div class="tiles">${tiles}${addTile}</div></div>${infoPanel()}</div></div>`;
 }
@@ -476,48 +476,48 @@ function showScreen() {
 function addScreen() {
   const B = S.busy, has = S.batch.length > 0 || B;
   const lead = S.order === "own"
-    ? "Sie kommen <b>ans Ende</b>, in Aufnahme-Reihenfolge; deine eigene Reihenfolge bleibt. Glissando verkleinert sie fürs Gerät, die Originale bleiben unberührt."
-    : "Sie kommen <b>nach Aufnahmedatum</b> an ihren Platz. Glissando verkleinert sie fürs Gerät, die Originale bleiben unberührt.";
-  let body = `<div><h1 class="title">Bilder hinzufügen</h1><p class="lead">${lead}</p></div>`;
+    ? "They go <b>to the end</b>, in capture order; your own order stays as it is. Glissando downsizes them for the device, the originals stay untouched."
+    : "They go <b>by capture date</b> to their place. Glissando downsizes them for the device, the originals stay untouched.";
+  let body = `<div><h1 class="title">Add pictures</h1><p class="lead">${lead}</p></div>`;
   if (!has) {
-    body += `<div class="drop"><span class="ic">${icon("image")}</span><button class="btn primary" data-act="pickDevice">Bilder auswählen</button>
-      <span>oder <b>einen Ordner wählen</b> · auf dem Desktop auch hierher ziehen</span><span class="fmt">JPEG, PNG, WebP, HEIC (wo der Browser es kann)</span></div>
-      <div class="sources"><div class="source"><span class="glyph">${IMMICH}</span><div class="txt"><b>Aus Immich</b><span>Fotos, die schon in der Diashow sind, sind dort markiert.</span></div><button class="btn" data-act="immich">Immich öffnen${icon("right")}</button></div></div>`;
+    body += `<div class="drop"><span class="ic">${icon("image")}</span><button class="btn primary" data-act="pickDevice">Choose pictures</button>
+      <span>or <b>choose a folder</b> · on a desktop, drop them here too</span><span class="fmt">JPEG, PNG, WebP, HEIC (where the browser supports it)</span></div>
+      <div class="sources"><div class="source"><span class="glyph">${IMMICH}</span><div class="txt"><b>From Immich</b><span>Photos already in the slideshow are marked there.</span></div><button class="btn" data-act="immich">Open Immich${icon("right")}</button></div></div>`;
   } else {
     const total = B ? B.total : S.batch.length, done = B ? B.done : total;
-    const from = B?.from === "immich" ? "aus Immich" : "";
-    body += `<div class="progress"><div class="row"><b>${B ? `${from ? "Lade" : "Verkleinere"} ${fmtInt(done)} von ${fmtInt(total)} ${from} …` : `${fmtInt(S.batch.length)} neue Bilder bereit`}</b><span class="spacer"></span>
-      ${B ? "" : `<button class="btn sm" data-act="pickDevice">${icon("plus")}Mehr vom Gerät</button><button class="btn sm" data-act="immich">${icon("plus")}Mehr aus Immich</button>`}</div>
+    const from = B?.from === "immich" ? "from Immich" : "";
+    body += `<div class="progress"><div class="row"><b>${B ? `${from ? "Loading" : "Downsizing"} ${fmtInt(done)} of ${fmtInt(total)} ${from} …` : `${fmtInt(S.batch.length)} new pictures ready`}</b><span class="spacer"></span>
+      ${B ? "" : `<button class="btn sm" data-act="pickDevice">${icon("plus")}More from the device</button><button class="btn sm" data-act="immich">${icon("plus")}More from Immich</button>`}</div>
       <div class="meter"><i style="width:${(done / Math.max(1, total)) * 100}%"></i></div>
-      <p class="small">${B ? "Original lesen, verkleinern, speichern. Die Diashow ändert sich erst mit „Hinzufügen“." : "Danach richtet sich die Kamerafahrt auf die Personen aus, wie nach dem Import."}</p></div>`;
+      <p class="small">${B ? "Read the original, downsize, save. The slideshow changes only with “Add”." : "After that, the Ken Burns motion is aimed at the people, as it is after the import."}</p></div>`;
     if (S.dups.length) {
       const names = S.dups.map((d) => d.name);
-      body += `<div class="notice warn"><b>${S.dups.length === 1 ? "1 Bild ist" : `${S.dups.length} Bilder sind`} schon in der Diashow</b> und ${S.dups.length === 1 ? "wird" : "werden"} übersprungen: ${names.slice(0, 3).join(", ")}${names.length > 3 ? " …" : ""}
-        <div class="row"><button class="btn sm" data-act="keepDups">Trotzdem hinzufügen</button></div></div>`;
+      body += `<div class="notice warn"><b>${S.dups.length === 1 ? "1 picture is" : `${S.dups.length} pictures are`} already in the slideshow</b> and ${S.dups.length === 1 ? "is" : "are"} skipped: ${names.slice(0, 3).join(", ")}${names.length > 3 ? " …" : ""}
+        <div class="row"><button class="btn sm" data-act="keepDups">Add anyway</button></div></div>`;
     }
     const shown = S.batch.slice(0, 36), pending = B ? Math.min(36 - shown.length, B.total - B.done) : 0;
     body += `<ul class="strip">${shown.map((p) => `<li class="tile"><img src="${srcOf(p.seed)}" alt=""><span class="date">${fmtDate(p.at)}</span></li>`).join("")}
       ${Array.from({ length: Math.max(0, pending) }, () => `<li class="tile pending"></li>`).join("")}</ul>
-      ${S.batch.length > 36 ? `<p class="small">und ${fmtInt(S.batch.length - 36)} weitere</p>` : ""}`;
+      ${S.batch.length > 36 ? `<p class="small">and ${fmtInt(S.batch.length - 36)} more</p>` : ""}`;
     if (!B) body += afterBox();
   }
   const n = S.batch.length;
-  return `${bar(`<span class="hide-narrow">${TITLE}</span><span class="sep hide-narrow">/</span><b>Bilder hinzufügen</b>`)}
+  return `${bar(`<span class="hide-narrow">${TITLE}</span><span class="sep hide-narrow">/</span><b>Add pictures</b>`)}
     <div class="scroll"><main class="content">${body}</main></div>
-    <div class="footer"><span class="count">${n && !B ? `${TITLE}: <b class="mono">${S.pics.length}</b> → <b class="mono">${S.pics.length + n}</b> Bilder` : ""}</span>
-      <button class="btn ghost" data-act="back">Abbrechen</button><button class="btn primary" ${n && !B ? "" : "disabled"} data-act="commit">${n && !B ? `${fmtInt(n)} hinzufügen` : "Hinzufügen"}</button></div>`;
+    <div class="footer"><span class="count">${n && !B ? `${TITLE}: <b class="mono">${S.pics.length}</b> → <b class="mono">${S.pics.length + n}</b> pictures` : ""}</span>
+      <button class="btn ghost" data-act="back">Cancel</button><button class="btn primary" ${n && !B ? "" : "disabled"} data-act="commit">${n && !B ? `Add ${fmtInt(n)}` : "Add"}</button></div>`;
 }
 function afterBox() {
   const before = timing(S.pics.length), after = timing(S.pics.length + S.batch.length);
   const arrow = `<span class="arrow">→</span>`;
   let note = "";
-  if (S.music === "1" && after.over) note = `<div class="notice warn"><b>Die Musik reicht nicht für alle Bilder.</b> Kürzer als ${MIN_S} s zeigt Glissando kein Bild; die Diashow dauert ${fmtTime(after.total)}, die Musik ${fmtTime(MUSIC_S)}. Danach läuft sie ohne Musik weiter.</div>`;
-  else if (S.music === "1") note = `<p class="small">Die Bilder teilen sich weiter die Musik; jedes wird etwas kürzer. Bilder mit eigener Dauer behalten sie.</p>`;
-  else note = `<p class="small">Ohne Musik bekommt jedes neue Bild ${SECONDS} s; die Diashow wird länger.</p>`;
-  return `<div class="after"><div class="eyebrow">Danach</div><dl class="facts">
-    <dt>Bilder</dt><dd class="mono">${S.pics.length}${arrow}${S.pics.length + S.batch.length}</dd>
-    <dt>Dauer</dt><dd class="mono">${fmtTime(before.total)}${arrow}${fmtTime(after.total)}</dd>
-    <dt>Pro Bild</dt><dd class="mono">${fmtSec(before.per)}${arrow}${fmtSec(after.per)}</dd></dl>${note}</div>`;
+  if (S.music === "1" && after.over) note = `<div class="notice warn"><b>The music is not long enough for all the pictures.</b> Glissando shows no picture for less than ${MIN_S} s; the slideshow runs ${fmtTime(after.total)}, the music ${fmtTime(MUSIC_S)}. After that it continues without music.</div>`;
+  else if (S.music === "1") note = `<p class="small">The pictures keep sharing the music; each gets a little shorter. Pictures with their own duration keep it.</p>`;
+  else note = `<p class="small">Without music each new picture gets ${SECONDS} s; the slideshow gets longer.</p>`;
+  return `<div class="after"><div class="eyebrow">After adding</div><dl class="facts">
+    <dt>Pictures</dt><dd class="mono">${S.pics.length}${arrow}${S.pics.length + S.batch.length}</dd>
+    <dt>Duration</dt><dd class="mono">${fmtTime(before.total)}${arrow}${fmtTime(after.total)}</dd>
+    <dt>Per picture</dt><dd class="mono">${fmtSec(before.per)}${arrow}${fmtSec(after.per)}</dd></dl>${note}</div>`;
 }
 
 /* ---------- Immich picker (ADR-0013), opened for this slideshow ---------- */
@@ -525,18 +525,18 @@ function immichScreen() {
   const days = IMMICH_DAYS.map((d, i) => {
     const free = d.photos.filter((p) => !p.inShow), all = free.every((p) => S.picked.has(p.id));
     return `<section class="day"><div class="day-head"><span class="d">${d.label}</span><span class="muted mono" style="font-size:12px">${d.photos.length}</span>
-      <button class="btn ghost sm" data-act="day" data-i="${i}">${all ? "Tag abwählen" : "Tag wählen"}</button></div>
+      <button class="btn ghost sm" data-act="day" data-i="${i}">${all ? "Deselect day" : "Select day"}</button></div>
       <ul class="grid ${S.picked.size ? "selecting" : ""}">${d.photos.map((p) => p.inShow
-        ? `<li><span class="ph inshow" aria-label="Schon in der Diashow"><img src="${srcOf(p.seed)}" alt=""><span class="in">${icon("check")}Schon drin</span></span></li>`
-        : `<li><button class="ph ${S.picked.has(p.id) ? "on" : ""}" data-act="pick" data-id="${p.id}" aria-pressed="${S.picked.has(p.id)}" aria-label="Foto"><img src="${srcOf(p.seed)}" alt=""><span class="check">${icon("check")}</span></button></li>`).join("")}</ul></section>`;
+        ? `<li><span class="ph inshow" aria-label="Already in the slideshow"><img src="${srcOf(p.seed)}" alt=""><span class="in">${icon("check")}Already in</span></span></li>`
+        : `<li><button class="ph ${S.picked.has(p.id) ? "on" : ""}" data-act="pick" data-id="${p.id}" aria-pressed="${S.picked.has(p.id)}" aria-label="Photo"><img src="${srcOf(p.seed)}" alt=""><span class="check">${icon("check")}</span></button></li>`).join("")}</ul></section>`;
   }).join("");
   const n = S.picked.size, inShow = IMMICH_DAYS.flatMap((d) => d.photos).filter((p) => p.inShow).length;
-  return `${bar(`<span class="hide-narrow">${TITLE}</span><span class="sep hide-narrow">/</span><span class="hide-narrow">Bilder hinzufügen</span><span class="sep hide-narrow">/</span><b>Immich</b>`)}
-    <div class="scroll"><main class="browse"><div class="browse-head"><div class="tabs" role="tablist"><button role="tab" aria-selected="true">Alle Fotos</button><button role="tab" aria-selected="false">Alben</button></div>
-      <span class="spacer"></span><span class="small">${inShow} Fotos sind schon in der Diashow</span></div>${days}</main></div>
-    <div class="footer"><span class="count">${n ? `<b class="mono">${n}</b> gewählt` : "Tippe Fotos an oder wähle einen ganzen Tag"}</span>
-      ${n ? `<button class="btn ghost" data-act="clear">Auswahl leeren</button>` : ""}
-      <button class="btn primary" ${n ? "" : "disabled"} data-act="takeImmich">${n ? `${n} hinzufügen` : "Hinzufügen"}</button></div>`;
+  return `${bar(`<span class="hide-narrow">${TITLE}</span><span class="sep hide-narrow">/</span><span class="hide-narrow">Add pictures</span><span class="sep hide-narrow">/</span><b>Immich</b>`)}
+    <div class="scroll"><main class="browse"><div class="browse-head"><div class="tabs" role="tablist"><button role="tab" aria-selected="true">All photos</button><button role="tab" aria-selected="false">Albums</button></div>
+      <span class="spacer"></span><span class="small">${inShow} photos are already in the slideshow</span></div>${days}</main></div>
+    <div class="footer"><span class="count">${n ? `<b class="mono">${n}</b> selected` : "Tap photos or select a whole day"}</span>
+      ${n ? `<button class="btn ghost" data-act="clear">Clear selection</button>` : ""}
+      <button class="btn primary" ${n ? "" : "disabled"} data-act="takeImmich">${n ? `Add ${n}` : "Add"}</button></div>`;
 }
 
 /* ---------- Simulation ---------- */
@@ -563,7 +563,7 @@ function commit() {
   S.pics = S.order === "date" ? [...old, ...added].sort(byDate) : [...old, ...added.sort(byDate)];
   const n = added.length;
   S.batch = []; S.dups = []; S.screen = "show";
-  toast(`${fmtInt(n)} ${n === 1 ? "Bild" : "Bilder"} hinzugefügt`, true);
+  toast(`${fmtInt(n)} ${n === 1 ? "picture" : "pictures"} added`, true);
 }
 function toast(text, undo) {
   clearTimeout(S.toastTimer); S.toast = { text, undo }; render();
@@ -586,7 +586,7 @@ function act(a, el) {
   else if (a === "takeImmich") return prepare(IMMICH_DAYS.flatMap((d) => d.photos).filter((p) => S.picked.has(p.id)), "immich");
   else if (a === "keepDups") { S.batch.push(...S.dups.map((p) => ({ ...p, id: p.id + "x" }))); S.dups = []; }
   else if (a === "commit") return commit();
-  else if (a === "undo") { S.pics = S.prev; clearTimeout(S.toastTimer); return toast("Rückgängig gemacht", false); }
+  else if (a === "undo") { S.pics = S.prev; clearTimeout(S.toastTimer); return toast("Undone", false); }
   render();
 }
 
@@ -599,7 +599,7 @@ function render() {
   const view = S.screen === "show" ? showScreen() : S.screen === "add" ? addScreen() : immichScreen();
   const keep = stage.querySelector(".scroll")?.scrollTop ?? 0;
   stage.innerHTML = `<div class="app ${S.width === "phone" ? "phone" : ""} ${S.theme}">${view}
-    ${S.toast ? `<div class="toast" role="status"><span>${S.toast.text}</span>${S.toast.undo ? `<button data-act="undo">Rückgängig</button>` : ""}</div>` : ""}</div>`;
+    ${S.toast ? `<div class="toast" role="status"><span>${S.toast.text}</span>${S.toast.undo ? `<button data-act="undo">Undo</button>` : ""}</div>` : ""}</div>`;
   const sc = stage.querySelector(".scroll"); if (sc && S.sameScreen) sc.scrollTop = keep;
 }
 document.addEventListener("click", (e) => {
