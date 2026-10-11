@@ -44,7 +44,10 @@ code { font-family: var(--mono); font-size: 12.5px; }
 .wave { position: relative; height: 120px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; display: flex; align-items: center; gap: 1px; padding: 0 2px; }
 .wave span { flex: 1; background: color-mix(in srgb, var(--accent) 70%, var(--surface)); border-radius: 1px; }
 .beats { position: absolute; inset: 0; pointer-events: none; }
-.beats i { position: absolute; bottom: 0; height: 10px; width: 1px; background: color-mix(in srgb, var(--ink) 30%, transparent); }
+.beats i { position: absolute; bottom: 0; height: 8px; width: 1px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
+.beats i.bar { height: 14px; background: color-mix(in srgb, var(--ink) 45%, transparent); }
+.lane b { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--lemon) 70%, var(--surface)) 0 4px, color-mix(in srgb, var(--lemon) 35%, var(--surface)) 4px 8px); transition: left .4s ease, width .4s ease; }
+.lane i.off { background: var(--coral); width: 2px; }
 .lanelbl { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
 .lane { position: relative; height: 26px; border-radius: 6px; background: color-mix(in srgb, var(--mint) 45%, var(--surface)); overflow: hidden; }
 .lane i { position: absolute; top: 5px; bottom: 5px; width: 1px; background: color-mix(in srgb, var(--ink) 45%, transparent); transition: left .4s ease; }
@@ -67,11 +70,12 @@ code { font-family: var(--mono); font-size: 12.5px; }
 <div class="page">
   <div class="intro">
     <h1>Beat sync — transitions on the music's beats</h1>
-    <p>Roadmap 6. The music editor gets one more section, <b>Picture changes</b>. Glissando finds the beat of the music on the device; the automatic picture changes then land on beats. Try the states and the choice; watch the ticks in the lane under the waveform.</p>
+    <p>Roadmap 6. The music editor gets one more section, <b>Picture changes</b>. Glissando finds the beats of the music on the device; the automatic picture changes then land on beats. Try the states, the choice and the own durations; watch the picture changes in the lane under the waveform move onto the beat ticks (taller tick: every fourth beat).</p>
   </div>
   <div class="controls">
     <div class="seg" id="theme"><button aria-pressed="true" data-v="light">Light</button><button aria-pressed="false" data-v="dark">Dark</button></div>
     <div class="seg" id="state"><button aria-pressed="false" data-v="detecting">Listening</button><button aria-pressed="true" data-v="found">Beat found</button><button aria-pressed="false" data-v="none">No steady beat</button></div>
+    <div class="seg" id="own"><button aria-pressed="true" data-v="0">No own durations</button><button aria-pressed="false" data-v="1">Pictures 5 and 12 with own durations</button></div>
   </div>
   <div class="app light" id="app">
     <div class="hdr">Library › Summer 2025 › <b>Music</b></div>
@@ -93,31 +97,46 @@ code { font-family: var(--mono); font-size: 12.5px; }
   <div class="concept">
     <h2>How it works</h2>
     <ul>
-      <li><b>Detection on the device</b>, once per music file, in the background when its slideshow opens: the track is decoded, an onset curve is built, the tempo is found by autocorrelation (60–200 BPM) and the beat grid's phase by a comb over the whole track. Stored with the music as a steady grid — first beat and beat length — so it travels in the <code>.glissando</code> file.</li>
-      <li><b>On the beat is the default</b> once a beat is found. Each automatic picture change moves to the nearest beat (never below the 2-second minimum); a crossfade lasts a whole number of beats, so it starts on a beat and lands on one.</li>
-      <li><b>Own durations stay exact</b> — a picture with its own duration keeps it; the next automatic change snaps again. The slideshow still ends with the music.</li>
-      <li><b>No steady beat</b> (speech, ambient, rubato): the section says so and the pictures share the music evenly, as before.</li>
+      <li><b>Detection on the device</b>, once per music file, in the background (a worker, ~1.5 s per 3 minutes on a phone): the track is decoded, an onset curve built, the tempo found (50–200 BPM) and then <b>each beat</b> tracked, so a song that speeds up or slows down is followed. Kept beside the music like the automatic focus; a <code>.glissando</code> file does not carry it, the receiver listens again.</li>
+      <li><b>On the beat is the default</b> once a beat is found. Each automatic picture change moves to the nearest beat (never below the 2-second minimum); a transition lasts a whole number of beats (within its usual 30 %, at most 1 s), so it starts on a beat and lands on one.</li>
+      <li><b>Own durations stay exact</b> — a picture with its own duration keeps it, so the change after it can fall between beats (red in the lane); the next automatic change snaps again. The slideshow still ends with the music.</li>
+      <li><b>Evenly</b> is stored with the track, like the excerpt and the fades, and travels with it.</li>
+      <li><b>No steady beat</b> (speech, ambient, free tempo): the section says so and the pictures share the music evenly, as before. No choice is offered.</li>
       <li>The same timing plays everywhere: player, video export, web page export.</li>
     </ul>
-    <div class="card rec"><b>Decided:</b> own detector (no dependency), a constant-tempo grid rather than a list of beats, "On the beat" on by default. See ADR-0021 in the PR.</div>
+    <div class="card rec"><b>Proposed</b> (ADR-0021 in the PR): an own detector, no dependency. On generated test music it found the right tempo on all 8 beat tracks (beat F-measure ≥ 0.99, within ±6 ms) and reported "no beat" for an ambient pad; the libraries measured misread slow, triple-metre or accelerating music and found a tempo in the ambient pad.</div>
   </div>
+</div>
 </div>
 <script>
 const app = document.getElementById('app');
 const N = 24, TOTAL = 192000, BEAT = 60000 / 124, FIRST = 180;
-let state = 'found', mode = 'beat';
+let state = 'found', mode = 'beat', own = false;
+const OWN = { 4: 11000, 11: 4000 }; // picture index -> own duration ms
+const beatAt = (k) => FIRST + k * BEAT + 900 * Math.sin(k / 70); // a slightly drifting tempo
 const wave = document.getElementById('wave');
 for (let i = 0; i < 160; i++) { const s = document.createElement('span'); s.style.height = (25 + 60 * Math.abs(Math.sin(i * 0.37) * Math.cos(i * 0.11))) + '%'; wave.appendChild(s); }
-function changes() {
-  const even = Array.from({ length: N - 1 }, (_, i) => (i + 1) * TOTAL / N);
-  if (state !== 'found' || mode !== 'beat') return even;
-  return even.map(t => FIRST + Math.round((t - FIRST) / BEAT) * BEAT);
+function slides() {
+  // [start, end, isOwn] per picture: own durations exact, the rest share what is left evenly
+  const ownMs = own ? Object.values(OWN).reduce((a, b) => a + b, 0) : 0;
+  const autoCount = N - (own ? Object.keys(OWN).length : 0), share = (TOTAL - ownMs) / autoCount;
+  const out = []; let t = 0;
+  for (let i = 0; i < N; i++) { const d = own && OWN[i] ? OWN[i] : share; out.push([t, t + d, !!(own && OWN[i])]); t += d; }
+  if (state !== 'found' || mode !== 'beat') return out;
+  const beats = []; for (let k = 0; beatAt(k) < TOTAL; k++) beats.push(beatAt(k));
+  for (let i = 0; i < N - 1; i++) {
+    if (out[i][2]) { out[i + 1][0] = out[i][1] = out[i][0] + OWN[i]; continue; }
+    const target = out[i][1]; const b = beats.reduce((a, c) => Math.abs(c - target) < Math.abs(a - target) ? c : a);
+    out[i][1] = b; out[i + 1][0] = b;
+  }
+  return out;
 }
 function render() {
-  document.getElementById('lane').innerHTML = changes().map(t => `<i style="left:${t / TOTAL * 100}%"></i>`).join('');
+  const sl = slides(), synced = state === 'found' && mode === 'beat';
+  document.getElementById('lane').innerHTML = sl.filter(x => x[2]).map(([a, b]) => `<b style="left:${a / TOTAL * 100}%;width:${(b - a) / TOTAL * 100}%"></b>`).join('') + sl.slice(0, -1).map(([, t, o]) => `<i class="${o && synced ? 'off' : ''}" style="left:${t / TOTAL * 100}%"></i>`).join('');
   const beats = document.getElementById('beats');
   beats.innerHTML = state === 'found' && mode === 'beat'
-    ? Array.from({ length: Math.floor((TOTAL - FIRST) / BEAT / 4) }, (_, k) => `<i style="left:${(FIRST + k * 4 * BEAT) / TOTAL * 100}%"></i>`).join('') : '';
+    ? Array.from({ length: Math.floor((TOTAL - FIRST) / BEAT) }, (_, k) => `<i class="${k % 4 ? '' : 'bar'}" style="left:${beatAt(k) / TOTAL * 100}%"></i>`).join('') : '';
   const sec = document.getElementById('beatsec');
   if (state === 'detecting') sec.innerHTML = `<h3>Picture changes</h3><p class="reason"><span class="pulse"></span>Listening for the beat… Until then the pictures share the music evenly.</p>`;
   else if (state === 'none') sec.innerHTML = `<h3>Picture changes</h3><p class="reason">No steady beat found in this music. The pictures share it evenly.</p>`;
@@ -125,12 +144,13 @@ function render() {
     <div class="radios" role="radiogroup" aria-label="Picture changes">
       <button role="radio" aria-checked="${mode === 'beat'}" data-m="beat">On the beat</button>
       <button role="radio" aria-checked="${mode === 'even'}" data-m="even">Evenly</button></div>
-    <p class="reason">${mode === 'beat' ? 'Every automatic change lands on a beat of the music; a transition lasts whole beats.' : 'The pictures share the music evenly, regardless of its beat.'}</p>`;
+    <p class="reason">${mode === 'beat' ? 'Every automatic change lands on a beat of the music; a transition lasts whole beats.' + (own ? ' Pictures 5 and 12 keep their own duration, so the change after each can fall between beats.' : '') : 'The pictures share the music evenly, regardless of its beat.'}</p>`;
   sec.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { mode = b.dataset.m; render(); });
 }
 function seg(id, f) { document.querySelectorAll(`#${id} button`).forEach(b => b.onclick = () => { document.querySelectorAll(`#${id} button`).forEach(o => o.setAttribute('aria-pressed', o === b)); f(b.dataset.v); }); }
 seg('theme', v => app.className = 'app ' + v);
 seg('state', v => { state = v; render(); });
+seg('own', v => { own = v === '1'; render(); });
 render();
 </script>
 </html>
