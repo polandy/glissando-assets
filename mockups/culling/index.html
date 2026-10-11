@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Culling — bursts and blurry pictures set aside</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --mint: #6fcfb4; --lemon: #f5c94a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 72ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; text-wrap: balance; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; }
+.concept p { margin: 0; }
+.concept ul { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.q { border-left: 3px solid var(--lemon); }
+kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--page-line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; background: var(--page-card); }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px; --on-photo: #ffffff; --photo-fade: rgba(0, 0, 0, 0.55);
+  width: 100%; max-width: 1100px; height: 720px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 800px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --mint: #3fae8f; --inverse-bg: #221d33; --inverse-text: #ffffff; --inverse-accent: #ffb59a;
+  --x-bg: rgba(20, 14, 30, 0.62); --x-hover: rgba(20, 14, 30, 0.85);
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --mint: #6fcfb4; --inverse-bg: #edeaf3; --inverse-text: #1a1723; --inverse-accent: #c4552f;
+  --x-bg: rgba(10, 8, 16, 0.66); --x-hover: rgba(10, 8, 16, 0.9);
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; }
+.crumbs b { color: var(--ink); font-weight: 600; }
+.crumbs .sep { color: var(--faint); }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.steps { display: flex; gap: 18px; padding: 14px 24px 0; font-weight: 600; font-size: 13px; color: var(--muted); }
+.phone .steps { padding: 12px 16px 0; }
+.steps span { display: inline-flex; align-items: center; gap: 7px; }
+.steps .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 500 12px var(--mono); border: 1.5px solid var(--faint); }
+.steps .on { color: var(--ink); }
+.steps .on .n { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.scroll { flex: 1; overflow: auto; min-height: 0; padding: 16px 24px 24px; display: grid; align-content: start; gap: 14px; }
+.phone .scroll { padding: 14px 16px 20px; }
+.summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.summary b { font-family: var(--display); font-size: 20px; letter-spacing: -0.01em; }
+.summary .range { color: var(--muted); font-family: var(--mono); font-size: 12.5px; }
+.link { padding: 0; border: 0; background: transparent; color: var(--ink); font: inherit; text-decoration: underline; cursor: pointer; }
+.drop { display: grid; justify-items: center; gap: 8px; padding: 36px 16px; border: 1.5px dashed var(--line); border-radius: var(--radius-lg); background: var(--surface); text-align: center; }
+.drop small { color: var(--muted); }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.phone .strip { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tile { position: relative; aspect-ratio: 4 / 3; max-width: 100%; overflow: hidden; border-radius: 8px; background: var(--hover); }
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tile .date { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 7px 5px; background: linear-gradient(transparent, var(--photo-fade)); color: var(--on-photo); font: 500 11px var(--mono); }
+.tile.gone { animation: out 0.16s ease-in forwards; }
+@keyframes out { to { opacity: 0; transform: scale(0.92); } }
+.tile.back { animation: in 0.2s ease-out; }
+@keyframes in { from { opacity: 0; transform: scale(0.92); } }
+@media (prefers-reduced-motion: reduce) { .tile.gone, .tile.back { animation: none; } }
+
+/* The ✕: a real button per tile. Touch (the phone frame) always shows it; a mouse sees it on hover, keyboard focus shows it too. */
+.x { position: absolute; top: 5px; right: 5px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: var(--x-bg); color: var(--on-photo); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.x::before { content: ""; position: absolute; inset: -8px; } /* 44px touch target */
+.x svg.i { width: 15px; height: 15px; stroke-width: 2.2; }
+.x:hover { background: var(--x-hover); }
+.app.desk .x { opacity: 0; transition: opacity 0.12s; }
+.app.desk .tile:hover .x, .app.desk .x:focus-visible { opacity: 1; }
+.app .x:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.foot { display: flex; gap: 10px; justify-content: space-between; align-items: center; padding: 12px 24px; border-top: 1px solid var(--line); background: var(--surface); flex: none; }
+.phone .foot { padding: 12px 16px 20px; }
+
+.toast { position: absolute; left: 50%; bottom: 78px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; background: var(--inverse-bg); color: var(--inverse-text); padding: 10px 10px 10px 16px; border-radius: 12px; box-shadow: 0 10px 30px rgba(10, 6, 20, 0.3); font-weight: 500; white-space: nowrap; }
+.phone .toast { bottom: 92px; width: calc(100% - 32px); justify-content: space-between; }
+.toast .undo { border: 0; background: transparent; color: var(--inverse-accent); font: 600 14px var(--ui); padding: 6px 8px; border-radius: 7px; cursor: pointer; }
+.toast .close { border: 0; background: transparent; color: inherit; opacity: 0.7; width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; cursor: pointer; }
+.toast .acts { display: flex; align-items: center; gap: 2px; }
+
+/* ---------- Culling ---------- */
+.meter { height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--mint); transition: width 0.2s; }
+.working { display: grid; gap: 8px; }
+.working .line { display: flex; align-items: baseline; gap: 10px; color: var(--muted); }
+.working .line > span { flex: 1 1 0; min-width: 0; }
+.working .count { font: 500 12.5px var(--mono); color: var(--ink); }
+.tile.pending { background: linear-gradient(100deg, var(--hover) 30%, var(--line) 50%, var(--hover) 70%); background-size: 300% 100%; animation: shimmer 1.2s linear infinite; }
+@keyframes shimmer { to { background-position: -150% 0; } }
+@media (prefers-reduced-motion: reduce) { .tile.pending { animation: none; } }
+.aside { display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.aside-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.aside-head b { font-family: var(--display); font-size: 17px; letter-spacing: -0.01em; }
+.aside-head .why { color: var(--muted); flex-basis: 100%; }
+.group { display: grid; gap: 7px; }
+.group h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.group h3 .when { font: 500 12px var(--mono); color: var(--ink); }
+.set { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.phone .set { grid-template-columns: repeat(3, 1fr); }
+.tile.aside-tile img { opacity: 0.62; }
+.tile.kept { outline: 2px solid var(--mint); outline-offset: -2px; }
+.chip { position: absolute; top: 6px; left: 6px; padding: 2px 7px; border-radius: 999px; font: 600 11px var(--ui); background: var(--x-bg); color: var(--on-photo); }
+.chip.k { background: var(--mint); color: #0d2a22; }
+.plus { position: absolute; top: 5px; right: 5px; width: 30px; height: 30px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.plus::before { content: ""; position: absolute; inset: -7px; }
+.plus svg.i { width: 16px; height: 16px; stroke-width: 2.4; }
+.plus:hover { background: var(--accent-hover); }
+.app .plus:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+</style>
+
+<div class="page">
+  <header class="intro">
+    <h1>Culling — bursts and blurry pictures are set aside</h1>
+    <p>Import wizard, step 1 (the same in “Add pictures”, from the device and from Immich). Right after the downscale, each picture is checked. Of a burst, only the sharpest stays; blurry shots are set aside. Set-aside pictures sit below the strip in groups and are not in the slideshow. One tap on <b>+</b> takes one in; “Take all in” undoes the whole cull. Try it below, or press <i>Replay import</i>. The images are generated.</p>
+  </header>
+  <div class="controls">
+    <div class="seg" data-k="device"><button data-v="desk" aria-pressed="true">Desktop</button><button data-v="phone">Phone</button></div>
+    <div class="seg" data-k="theme"><button data-v="light" aria-pressed="true">Light</button><button data-v="dark">Dark</button></div>
+    <div class="seg" data-k="act"><button data-v="replay">Replay import</button><button data-v="reset">Show result</button></div>
+  </div>
+  <div class="stage">
+    <div class="app light desk" id="app">
+      <div class="bar">
+        <button class="iconbtn" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="crumbs"><span>Glissando</span><span class="sep">/</span><b>New slideshow</b></div>
+      </div>
+      <div class="steps"><span class="on"><span class="n">1</span>Pictures</span><span><span class="n">2</span>Music</span></div>
+      <div class="scroll" id="scroll"></div>
+      <div class="foot"><button class="btn">Cancel</button><button class="btn primary" id="next">Next</button></div>
+    </div>
+  </div>
+
+  <section class="concept">
+    <h2>How it works</h2>
+    <ul>
+      <li><b>When:</b> each picture is checked as soon as it is downscaled, on its 480 px thumbnail, in a worker. The check is this screen's work, so it gets the inline progress line with a count, and <b>Next waits for it</b> as it waits for the downscale.</li>
+      <li><b>Burst:</b> pictures taken at most 2 s apart (chained), whose 64-bit difference hashes differ in at most 10 bits. The sharpest one stays; ties go to the earliest. Sharpness is the variance of the Laplacian on the grey thumbnail.</li>
+      <li><b>Blurry:</b> sharpness below a fixed floor <i>and</i> below a third of this import's median, so a whole set shot in dim light is not emptied. A burst's kept picture is never set aside as blurry, and if every picture would go, none does.</li>
+      <li><b>Set aside means not stored:</b> Next drops them, so they cost no storage. <b>+</b> moves one into the strip at its capture-date place; from then on it is an ordinary picture (✕ removes it as before). There is no model or <code>.glissando</code> format change: the slideshow only holds what was kept.</li>
+      <li><b>No switch in the settings:</b> “Take all in” is the way out, per import. Exact duplicates keep their own lemon notices (ADR-0016) and are skipped before the check.</li>
+      <li>On the phone the groups wrap in rows of three; + is a 44 px target and has the label “Take in picture from &lt;date&gt;”.</li>
+    </ul>
+    <div class="card q">
+      <b>Open questions</b>
+      <ul>
+        <li><b>Where culling lives:</b> set aside at import (this mockup) — or store everything and mark culled pictures as skipped in the slideshow, to be changed any time later (costs storage and a format change). Recommendation: at import.</li>
+        <li><b>Existing slideshows:</b> a “Find bursts and blurry shots” action for slideshows made before culling? Recommendation: not now.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+const T = (d, h, m, s) => new Date(Date.UTC(2025, 6, d, h, m, s));
+/* scene: shared by a burst; dx: camera drift; blur: px; sharp: the check's score. */
+const ALL = [
+  { t: T(1, 9, 10, 0), scene: 205, sharp: 410 },
+  { t: T(2, 14, 2, 10), scene: 195, dx: 0, blur: 0.8, sharp: 240, burst: "b1" },
+  { t: T(2, 14, 2, 11), scene: 195, dx: 4, sharp: 455, burst: "b1" },
+  { t: T(2, 14, 2, 12), scene: 195, dx: 7, blur: 1.6, sharp: 120, burst: "b1" },
+  { t: T(2, 18, 40, 0), scene: 22, sharp: 380 },
+  { t: T(3, 11, 5, 0), scene: 160, blur: 3.2, sharp: 38 },
+  { t: T(4, 13, 30, 0), scene: 150, sharp: 400 },
+  { t: T(5, 10, 20, 4), scene: 200, dx: 0, sharp: 430, burst: "b2" },
+  { t: T(5, 10, 20, 5), scene: 200, dx: 3, sharp: 410, burst: "b2" },
+  { t: T(5, 10, 20, 6), scene: 200, dx: 5, sharp: 395, burst: "b2" },
+  { t: T(6, 16, 45, 0), scene: 40, sharp: 360 },
+  { t: T(8, 12, 0, 0), scene: 185, blur: 2.6, sharp: 52 },
+  { t: T(9, 20, 15, 0), scene: 260, sharp: 330 },
+].map((p, i) => ({ dx: 0, blur: 0, burst: null, ...p, id: "p" + i }));
+
+/* The cull: per burst keep the sharpest, set the rest aside; then blurry singles. */
+function cull(list) {
+  const kept = new Set(), reason = new Map();
+  const bursts = new Map();
+  for (const p of list) if (p.burst) (bursts.get(p.burst) || bursts.set(p.burst, []).get(p.burst)).push(p);
+  for (const [, g] of bursts) {
+    const best = g.reduce((a, b) => (b.sharp > a.sharp ? b : a));
+    kept.add(best.id);
+    for (const p of g) if (p !== best) reason.set(p.id, "similar");
+  }
+  const sorted = list.map(p => p.sharp).sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  for (const p of list) if (!p.burst && p.sharp < 80 && p.sharp < median / 3) reason.set(p.id, "blurry");
+  return { kept, reason };
+}
+
+const thumbs = new Map();
+function thumb(p) {
+  if (thumbs.has(p.id)) return thumbs.get(p.id);
+  const c = document.createElement("canvas"); c.width = 160; c.height = 120;
+  const g = c.getContext("2d"); const h = p.t.getUTCHours(); const evening = h >= 18; const hue = p.scene;
+  g.filter = p.blur ? `blur(${p.blur}px)` : "none";
+  g.translate(-p.dx, 0); g.scale(1.06, 1.06);
+  const sky = g.createLinearGradient(0, 0, 0, 80);
+  sky.addColorStop(0, `hsl(${hue} ${evening ? 60 : 55}% ${evening ? 38 : 62}%)`);
+  sky.addColorStop(1, `hsl(${(hue + 30) % 360} 70% ${evening ? 66 : 84}%)`);
+  g.fillStyle = sky; g.fillRect(0, 0, 170, 120);
+  g.fillStyle = `hsl(${evening ? 40 : 50} 95% ${evening ? 70 : 92}%)`;
+  g.beginPath(); g.arc(30 + (h * 7) % 100, 30 + (evening ? 25 : 0), 11, 0, 7); g.fill();
+  let seed = hue * 13 + 7;
+  const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  g.fillStyle = `hsl(${(hue + 180) % 360} 22% ${evening ? 22 : 38}%)`;
+  g.beginPath(); g.moveTo(0, 80);
+  for (let x = 0; x <= 170; x += 20) g.lineTo(x, 45 + rnd() * 30);
+  g.lineTo(170, 80); g.fill();
+  g.fillStyle = `hsl(${hue} 45% ${evening ? 30 : 48}%)`; g.fillRect(0, 80, 170, 40);
+  g.fillStyle = `hsl(${(hue + 200) % 360} 35% ${evening ? 18 : 28}%)`;
+  g.fillRect(70, 62, 8, 26); g.beginPath(); g.arc(74, 56, 7, 0, 7); g.fill(); /* someone standing */
+  const url = c.toDataURL("image/jpeg", 0.85); thumbs.set(p.id, url); return url;
+}
+const day = t => t.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+const hm = t => t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+const hms = t => t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "UTC" });
+const ICON_X = '<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const ICON_PLUS = '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+
+const $ = id => document.getElementById(id);
+const app = $("app");
+const S = { phase: "done", downscaled: ALL.length, checked: ALL.length, inStrip: [], aside: new Map(), kept: new Set() };
+
+function settle() {
+  const { kept, reason } = cull(ALL);
+  S.kept = kept; S.aside = reason;
+  S.inStrip = ALL.filter(p => !reason.has(p.id));
+}
+
+function tileStrip(p) {
+  const label = (S.aside.size || S.phase !== "done") ? "" : "";
+  return `<li class="tile${p.back ? " back" : ""}"><img alt="" src="${thumb(p)}"><span class="date">${day(p.t)} ${hm(p.t)}</span>` +
+    (S.phase === "done" ? `<button class="x" data-remove="${p.id}" aria-label="Remove picture from ${day(p.t)} ${hm(p.t)}">${ICON_X}</button>` : "") + label + `</li>`;
+}
+function tileAside(p) {
+  return `<li class="tile aside-tile"><img alt="" src="${thumb(p)}"><span class="date">${hms(p.t)}</span>` +
+    `<span class="chip">${S.aside.get(p.id) === "blurry" ? "Blurry" : "Similar"}</span>` +
+    `<button class="plus" data-take="${p.id}" aria-label="Take in picture from ${day(p.t)} ${hms(p.t)}">${ICON_PLUS}</button></li>`;
+}
+function tileKept(p) {
+  return `<li class="tile kept"><img alt="" src="${thumb(p)}"><span class="date">${hms(p.t)}</span><span class="chip k">Kept</span></li>`;
+}
+
+function render() {
+  const n = ALL.length; let h = "";
+  if (S.phase !== "done") {
+    const downscaling = S.phase === "downscale";
+    const k = downscaling ? S.downscaled : S.checked;
+    h += `<div class="working"><div class="line">` +
+      (downscaling ? `<span><span class="count">${k} of ${n}</span> pictures are being downscaled …</span>`
+                   : `<span><span class="count">${k} of ${n}</span> checked for bursts and blur …</span>`) +
+      `<button class="link">Cancel</button></div><div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="${n}" aria-valuenow="${k}"><i style="width:${(k / n) * 100}%"></i></div></div>`;
+    h += `<ul class="strip">` + ALL.map((p, i) => i < S.downscaled ? tileStrip(p) : `<li class="tile pending"></li>`).join("") + `</ul>`;
+  } else {
+    const list = S.inStrip;
+    h += `<div class="summary"><b>${list.length} pictures</b><span class="range">${day(list[0].t)} – ${day(list[list.length - 1].t)}</span><button class="link">add more</button></div>`;
+    h += `<ul class="strip">` + list.map(tileStrip).join("") + `</ul>`;
+    const asideList = ALL.filter(p => S.aside.has(p.id));
+    if (asideList.length) {
+      h += `<section class="aside" aria-labelledby="aside-h"><div class="aside-head"><b id="aside-h">Set aside · ${asideList.length}</b><button class="link" data-takeall>Take all in</button>` +
+        `<span class="why">These are not in the slideshow. Take one in with +.</span></div>`;
+      const groups = new Map();
+      const bySort = [...asideList].sort((a, b) => (S.aside.get(a.id) === "blurry") - (S.aside.get(b.id) === "blurry"));
+      for (const p of bySort) {
+        const key = S.aside.get(p.id) === "blurry" ? "blurry" : p.burst;
+        (groups.get(key) || groups.set(key, []).get(key)).push(p);
+      }
+      for (const [key, g] of groups) {
+        if (key === "blurry") {
+          h += `<div class="group"><h3>Blurry</h3><ul class="set">${g.map(tileAside).join("")}</ul></div>`;
+        } else {
+          const keeper = S.inStrip.find(p => p.burst === key && S.kept.has(p.id));
+          h += `<div class="group"><h3>Burst <span class="when">${day(g[0].t)} ${hm(g[0].t)}</span>${keeper ? "· the sharpest is kept" : ""}</h3><ul class="set">` +
+            (keeper ? tileKept(keeper) : "") + g.map(tileAside).join("") + `</ul></div>`;
+        }
+      }
+      h += `</section>`;
+    }
+  }
+  $("scroll").innerHTML = h;
+  $("next").disabled = S.phase !== "done";
+  for (const p of ALL) p.back = false;
+}
+
+function takeIn(id) {
+  S.aside.delete(id);
+  const p = ALL.find(q => q.id === id); p.back = true;
+  S.inStrip = ALL.filter(q => S.inStrip.includes(q) || q.id === id);
+  render();
+}
+app.addEventListener("click", e => {
+  const take = e.target.closest("[data-take]"); if (take) return takeIn(take.dataset.take);
+  if (e.target.closest("[data-takeall]")) { for (const id of [...S.aside.keys()]) { S.aside.delete(id); ALL.find(q => q.id === id).back = true; } S.inStrip = ALL.filter(q => !S.removed?.has(q.id)); return render(); }
+  const rm = e.target.closest("[data-remove]");
+  if (rm) { (S.removed ||= new Set()).add(rm.dataset.remove); S.kept.delete(rm.dataset.remove); S.inStrip = S.inStrip.filter(p => p.id !== rm.dataset.remove); render(); }
+});
+
+let timer = null;
+function replay() {
+  clearInterval(timer); S.removed = new Set();
+  S.phase = "downscale"; S.downscaled = 0; S.checked = 0; render();
+  timer = setInterval(() => {
+    if (S.phase === "downscale") { if (++S.downscaled >= ALL.length) S.phase = "check"; }
+    else if (++S.checked >= ALL.length) { clearInterval(timer); S.phase = "done"; settle(); }
+    render();
+  }, 170);
+}
+
+document.querySelectorAll(".seg").forEach(seg => seg.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const k = seg.dataset.k, v = b.dataset.v;
+  if (k === "act") { if (v === "replay") replay(); else { clearInterval(timer); S.phase = "done"; S.removed = new Set(); settle(); render(); } return; }
+  seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  if (k === "device") { app.classList.toggle("phone", v === "phone"); app.classList.toggle("desk", v === "desk"); }
+  if (k === "theme") { app.classList.toggle("dark", v === "dark"); app.classList.toggle("light", v === "light"); }
+}));
+
+settle(); render();
+</script>
