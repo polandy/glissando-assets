@@ -1,0 +1,662 @@
+<title>Glissando share link</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --peach-soft: #ffb59a; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 70ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible, .app input:focus-visible, .frame:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; text-wrap: balance; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; }
+.concept p { margin: 0; }
+.concept ul, .concept ol { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.rec { border-left: 3px solid var(--mint); }
+.card.q { border-left: 3px solid var(--lemon); }
+.tbl { overflow-x: auto; }
+.tbl table { border-collapse: collapse; width: 100%; min-width: 640px; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-top: 1px solid var(--page-line); line-height: 1.45; }
+.tbl th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--page-muted); border-top: 0; }
+code, pre { font-family: var(--mono); font-size: 12.5px; }
+pre { margin: 0; white-space: pre; overflow-x: auto; line-height: 1.55; }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px; --well: #0b0a10;
+  --on-photo: #ffffff; --photo-badge: rgba(0, 0, 0, 0.5); --veil: rgba(0, 0, 0, 0.46);
+  width: 100%; max-width: 1200px; height: 760px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; container-type: inline-size; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 820px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --raised: #fbfafc; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --shadow: 0 1px 2px rgba(34, 29, 51, 0.06), 0 6px 18px rgba(34, 29, 51, 0.06);
+  --inverse-bg: #221d33; --inverse-text: #ffffff;
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --raised: #221e2d; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --inverse-bg: #edeaf3; --inverse-text: #1a1723;
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.app svg.i.fill { fill: currentColor; stroke: none; }
+
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; z-index: 3; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs .sep { color: var(--faint); }
+.spacer { flex: 1; }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.iconbtn:hover { background: var(--hover); }
+.iconbtn[aria-disabled="true"] { color: var(--faint); cursor: default; background: transparent; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--ink); background: var(--hover); }
+.btn.sm { height: 32px; padding: 0 11px; font-size: 13px; }
+.scroll { flex: 1; overflow: auto; position: relative; min-height: 0; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0; }
+/* Slideshow screen */
+.show { padding: 24px; display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tile { position: relative; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; background: var(--hover); }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile .num { position: absolute; left: 6px; top: 6px; background: var(--photo-badge); color: var(--on-photo); border-radius: 6px; font: 500 11px var(--mono); padding: 3px 6px; }
+.info { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; display: grid; gap: 14px; }
+.info .name { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 13px; align-items: center; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; }
+.facts dd small { color: var(--muted); font-weight: 400; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--hover); }
+.pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+.musicrow { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 14px; align-items: center; border: 1px solid var(--line); background: var(--raised); border-radius: var(--radius); padding: 9px 10px 9px 12px; margin: 2px -4px; cursor: pointer; text-align: left; color: var(--ink); font: 500 13px var(--ui); }
+.musicrow:hover { background: var(--hover); }
+.musicrow .lbl { color: var(--muted); font-weight: 400; }
+.musicrow .val { display: grid; gap: 2px; min-width: 0; }
+.musicrow .val b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.musicrow .val small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.musicrow .go { color: var(--muted); display: flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; }
+
+
+/* Info panel: the second action under "Abspielen" */
+.info .actions { display: grid; gap: 8px; }
+.btn.large { height: 44px; font-size: 15px; }
+.btn.block { width: 100%; }
+
+/* The export sheet: a dialog on desktop, a bottom sheet on the phone */
+.backdrop { position: absolute; inset: 0; background: rgba(18, 14, 28, 0.38); z-index: 10; display: grid; place-items: center; padding: 24px; }
+.sheet { width: 100%; max-width: 520px; max-height: 100%; overflow: auto; background: var(--surface); border-radius: 16px; box-shadow: 0 24px 60px rgba(10, 6, 20, 0.3); display: grid; gap: 16px; padding: 20px; color: var(--ink); }
+.sheet header { display: flex; align-items: start; gap: 10px; }
+.sheet header h2 { margin: 0; font-family: var(--display); font-size: 22px; letter-spacing: -0.01em; flex: 1; text-wrap: balance; }
+.sheet header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.presets { display: grid; gap: 8px; }
+.preset { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: center; text-align: left; border: 1px solid var(--line); background: var(--raised); color: var(--ink); border-radius: var(--radius); padding: 11px 14px; cursor: pointer; font: 500 13px var(--ui); }
+.preset:hover { background: var(--hover); }
+.preset[aria-checked="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.preset[aria-disabled="true"] { cursor: default; color: var(--faint); background: transparent; }
+.preset .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--faint); grid-row: span 2; }
+.preset[aria-checked="true"] .dot { border: 5px solid var(--accent); }
+.preset b { font-weight: 600; font-size: 14px; }
+.preset small { color: var(--muted); font-size: 12px; grid-column: 2; }
+.preset .size { grid-row: span 2; font: 500 13px var(--mono); color: var(--muted); text-align: right; }
+.preset[aria-disabled="true"] small, .preset[aria-disabled="true"] .size { color: var(--faint); }
+.spec { display: flex; flex-wrap: wrap; gap: 6px; }
+.spec span { font: 500 11.5px var(--mono); padding: 3px 8px; border-radius: 999px; background: var(--hover); color: var(--muted); }
+.note { background: var(--hover); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; line-height: 1.45; display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.note.warn { background: color-mix(in srgb, var(--lemon) 22%, var(--surface)); }
+.note.err { background: color-mix(in srgb, var(--coral) 18%, var(--surface)); }
+.note.ok { background: color-mix(in srgb, var(--mint) 22%, var(--surface)); }
+.note b { font-weight: 600; }
+.note p { margin: 0; }
+.foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.preview { position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #000; }
+.preview canvas { width: 100%; height: 100%; display: block; }
+.preview .stamp { position: absolute; right: 8px; bottom: 8px; background: rgba(0, 0, 0, 0.5); color: #fff; font: 500 11.5px var(--mono); padding: 3px 7px; border-radius: 6px; }
+.meter { height: 8px; border-radius: 999px; background: var(--hover); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--mint); border-radius: 999px; }
+.runrow { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.runrow b { color: var(--ink); font-weight: 600; }
+.file { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--raised); }
+.file .thumb { width: 64px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; grid-row: span 2; }
+.file .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.file b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file small { color: var(--muted); font: 500 12px var(--mono); }
+.status-ic { width: 20px; height: 20px; }
+
+
+@container (max-width: 720px) {
+  .show { grid-template-columns: 1fr; padding: 16px; gap: 18px; }
+  .show .info { order: -1; }
+  .tiles { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .hide-narrow { display: none !important; }
+  .backdrop { place-items: end stretch; padding: 0; }
+  .sheet { max-width: none; border-radius: 18px 18px 0 0; padding: 18px 16px 26px; }
+  .foot .btn { flex: 1; }
+}
+</style>
+<style>
+/* The exported page, as the recipient sees it */
+.web { position: absolute; inset: 0; background: #0b0a10; color: #fff; overflow: hidden; font-family: var(--ui); z-index: 20; }
+.web canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.web .start { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; background: radial-gradient(ellipse at center, rgba(11, 10, 16, 0.25), rgba(11, 10, 16, 0.75)); }
+.web .start .eyebrow { color: rgba(255, 255, 255, 0.75); }
+.web .start h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 6cqi, 52px); margin: 6px 0 4px; letter-spacing: -0.01em; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45); }
+.web .start p { margin: 0 0 22px; font: 500 13px var(--mono); color: rgba(255, 255, 255, 0.82); }
+.web .bigplay { width: 76px; height: 76px; border-radius: 50%; border: 0; background: #ff9f7f; color: #2a1a14; display: inline-grid; place-items: center; cursor: pointer; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+.web .bigplay svg.i { width: 30px; height: 30px; }
+.web .made { position: absolute; left: 0; right: 0; bottom: 16px; text-align: center; font-size: 12px; color: rgba(255, 255, 255, 0.6); }
+.web .caption { position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%); max-width: 80%; text-align: center; font-family: "Baloo 2", var(--ui); font-weight: 800; font-size: clamp(16px, 3cqi, 26px); text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55); transition: opacity 0.6s; }
+.web .ctl { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 14px; background: rgba(12, 10, 18, 0.55); backdrop-filter: blur(10px); transition: opacity 0.3s; }
+.web .ctl button { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: #fff; display: grid; place-items: center; cursor: pointer; flex: none; }
+.web .ctl button:hover { background: rgba(255, 255, 255, 0.12); }
+.web .ctl .time { font: 500 12px var(--mono); color: rgba(255, 255, 255, 0.85); white-space: nowrap; }
+.web .ctl .track { flex: 1; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.25); position: relative; cursor: pointer; }
+.web .ctl .track i { position: absolute; left: 0; top: 0; bottom: 0; background: #ff9f7f; border-radius: 999px; }
+.web.idle .ctl { opacity: 0; }
+.web .end { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; background: rgba(11, 10, 16, 0.72); }
+.web .end h2 { font-family: var(--display); font-size: 30px; margin: 0 0 16px; }
+.web .end .btn { background: #ff9f7f; color: #2a1a14; border: 0; }
+.backchip { position: absolute; left: 12px; top: 12px; z-index: 21; display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px 6px 6px; border-radius: 999px; border: 0; background: rgba(255, 255, 255, 0.16); color: #fff; font: 600 12px var(--ui); cursor: pointer; backdrop-filter: blur(8px); }
+@container (max-width: 720px) {
+  .web .ctl { left: 8px; right: 8px; bottom: 8px; gap: 6px; padding: 6px 8px; }
+  .web .caption { bottom: 64px; }
+}
+.saverow { display: grid; gap: 6px; }
+.saverow .lbl { font-size: 12px; font-weight: 600; color: var(--muted); }
+.saverow .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sheet { grid-template-columns: minmax(0, 1fr); }
+/* ---------- Share by link ---------- */
+.sharerow { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 10px; align-items: center; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: var(--radius); padding: 10px 12px; cursor: pointer; font: 500 13px var(--ui); }
+.sharerow:hover { background: var(--hover); }
+.sharerow > svg.i { grid-row: span 2; }
+.sharerow small { grid-column: 2; color: var(--muted); font-weight: 400; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sharerow .go { grid-row: 1 / span 2; grid-column: 3; color: var(--muted); display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+.sharerow[aria-disabled="true"] { cursor: default; color: var(--faint); background: transparent; border-style: dashed; }
+.sharerow[aria-disabled="true"] small { color: var(--muted); white-space: normal; }
+.onpill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--ink); background: color-mix(in srgb, var(--mint) 24%, var(--surface)); border-radius: 999px; padding: 2px 8px; }
+.onpill i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+.storage { display: grid; border: 1px solid var(--line); border-radius: var(--radius); }
+.storage .top { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.storage .text { display: grid; flex: 1; gap: 2px; min-width: 0; font-size: 12.5px; }
+.storage .text b { font-weight: 600; }
+.storage .text small { color: var(--muted); font-size: 12px; }
+.storage .status { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.storage .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); }
+.storage .sharerow { border: 0; border-top: 1px solid var(--line); border-radius: 0 0 var(--radius) var(--radius); }
+.what { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.what li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; font-size: 13.5px; line-height: 1.45; }
+.what li svg.i { color: var(--muted); margin-top: 1px; }
+.what b { font-weight: 600; }
+.linkbox { display: flex; gap: 8px; align-items: stretch; }
+.linkbox output { flex: 1; min-width: 0; display: flex; align-items: center; padding: 0 12px; height: 44px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--raised); font: 500 13px var(--mono); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; user-select: all; }
+.linkbox output span { overflow: hidden; text-overflow: ellipsis; }
+.linkbox .btn { height: 44px; min-width: 104px; }
+.linkbox .btn.copied { background: color-mix(in srgb, var(--mint) 26%, var(--surface)); border-color: transparent; }
+.ways { display: flex; gap: 8px; flex-wrap: wrap; }
+.ways .btn { flex: 1; min-width: 0; }
+.ways .btn[aria-pressed="true"] { background: var(--hover); border-color: var(--faint); }
+.qr { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: var(--raised); }
+.qr svg { width: 132px; height: 132px; background: #fff; border-radius: 6px; padding: 6px; }
+.qr p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.qr p b { color: var(--ink); font-weight: 600; }
+.since { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.since span + span::before { content: "·"; margin-right: 6px; }
+.foot.split { justify-content: space-between; }
+.btn.danger-text { border-color: transparent; background: transparent; color: #c4473a; }
+.app.dark .btn.danger-text { color: var(--coral); }
+.btn.danger-text:hover { background: color-mix(in srgb, var(--coral) 14%, var(--surface)); }
+.btn.danger { background: var(--coral); border-color: transparent; color: #2a1a14; }
+.btn.danger:hover { background: #ff8f84; }
+.toast { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 12; background: var(--inverse-bg); color: var(--inverse-text); border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow); display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+/* The recipient's page */
+.web .start .shared { color: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.web .made b { font-family: "Baloo 2", var(--ui); font-weight: 800; color: rgba(255, 255, 255, 0.85); font-size: 14px; }
+.web .loading { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; gap: 12px; align-content: center; font-size: 13px; color: rgba(255, 255, 255, 0.82); }
+.web .ring { width: 38px; height: 38px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); border-top-color: #ff9f7f; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .web .ring { animation: none; } }
+.web .gone { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; background: #121019; }
+.web .gone > div { display: grid; gap: 10px; justify-items: center; max-width: 34ch; }
+.web .gone h2 { font-family: var(--display); font-size: clamp(22px, 4.4cqi, 30px); margin: 4px 0 0; letter-spacing: -0.01em; text-wrap: balance; }
+.web .gone p { margin: 0; color: rgba(255, 255, 255, 0.72); line-height: 1.5; }
+.web .gone .badge { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.08); }
+.web .gone .badge svg.i { width: 26px; height: 26px; }
+.web .gone .btn { background: #ff9f7f; color: #2a1a14; border: 0; margin-top: 6px; }
+.web .made { margin: 0; }
+.web .buffer { position: absolute; right: 14px; top: 14px; display: flex; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 999px; background: rgba(12, 10, 18, 0.55); font-size: 12px; backdrop-filter: blur(8px); }
+.web .buffer .ring { width: 14px; height: 14px; border-width: 2px; }
+.tbl td.y { color: var(--page-ink); }
+</style></head><body>
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Share a server slideshow by link</h1>
+      <p>A slideshow on your Glissando server gets a link that anyone can open in a browser. They can watch it, but they can't change anything and can't see your Immich. Try it: “Share link” in the info panel, then “Open as viewer” to see what the recipient gets. The “Concept” tab has the 4K picture source measurements and the decisions that are still open.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="View"><button data-tab="try">Try it</button><button data-tab="concept">Concept</button></div>
+      <div class="seg" role="group" aria-label="Screen"><button data-screen="app">Glissando</button><button data-screen="web">Recipient</button></div>
+      <div class="seg" role="group" aria-label="Width"><button data-width="desk">Desktop</button><button data-width="phone">Phone</button></div>
+      <div class="seg" role="group" aria-label="Theme"><button data-theme-set="light">Light</button><button data-theme-set="dark">Dark</button></div>
+      <div class="seg only-app" role="group" aria-label="Where the button sits"><button data-place="row">Own row</button><button data-place="storage">In the server row</button></div>
+      <div class="seg only-app" role="group" aria-label="Slideshow"><button data-where="server">On the server</button><button data-where="device">On this device</button></div>
+      <div class="seg only-app" role="group" aria-label="Opened through"><button data-address="public">Public address</button><button data-address="lan">Home network address</button></div>
+      <div class="seg only-web" role="group" aria-label="Recipient sees"><button data-rcp="ok">Link works</button><button data-rcp="off">Link turned off</button><button data-rcp="down">Server not reachable</button></div>
+    </div>
+  </div>
+  <div class="stage" id="stage"></div>
+
+  <div class="concept" id="concept" hidden>
+    <h2>How it works</h2>
+    <div class="card">
+      <ul>
+        <li><b>Only server slideshows.</b> Their pictures live in Immich and the server already stores the slideshow and its music, so the link can serve everything without a device being online. A device slideshow shows the row dimmed: “Save it on your Glissando server to share it by link.”</li>
+        <li><b>Where</b>: the info panel, under the server row. Two placements to compare: its own row, or a second line inside the server row. Once the link is on, the row says “Shared by link” and shows the start of the address with a mint “On” pill.</li>
+        <li><b>The sheet</b> (a dialog on desktop, a bottom sheet on the phone). Off: what the link does in three lines, then “Create link”. On: the address with “Copy”, “Share …” (the system share menu, on phones and Safari), “Open as viewer”, and a QR code for a phone in the same room. “Turn off link” asks before it acts. Sharing again makes a new link, and the old one stays dead.</li>
+        <li><b>The link</b>: <code>https://&lt;your host&gt;/s/&lt;token&gt;</code>. The token is 128 random bits (22 characters), stored only as a hash. It stays valid until you turn it off, and it is <b>live</b>, so an edit shows up the next time the viewer starts the slideshow.</li>
+        <li><b>The address</b> is the one Glissando is open at. If that is a home network address (an IP, <code>.local</code>, plain HTTP), the sheet says the link only works at home.</li>
+        <li><b>The recipient</b> sees a start card (title, pictures, length, Play), then the slideshow with Ken Burns, transitions, captions and music, using the same player as the web page export, which loads the pictures a few ahead. If a picture is late, a small “Loading” chip appears. If the link is off, the page says so without the title. If the server can't be reached, it offers “Try again”.</li>
+        <li><b>What never reaches the recipient</b>: Immich ids, file names, places, dates of the photos, other slideshows. Pictures are fetched by their position in the slideshow (<code>/api/share/&lt;token&gt;/pictures/&lt;n&gt;</code>).</li>
+        <li><b>Your setup</b>: Traefik and Authelia stay as they are. One Authelia bypass rule for <code>/s/</code> and <code>/api/share/</code>, written up in the self-hosting guide. Inside the container, Caddy asks the Node service whether a token is valid before it fetches a picture from Immich (<code>forward_auth</code>), so the Immich key stays with Caddy.</li>
+      </ul>
+    </div>
+    <h2>The 4K picture source</h2>
+    <div id="fourk" style="display: grid; gap: 14px">
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Immich v3.3.1, generated 6000×4000 JPEG with GPS, camera, date, P3 profile</th><th>Size</th><th>Metadata</th><th>Orientation</th></tr></thead>
+        <tbody>
+          <tr><td><b>Preview</b>, as set up (short edge 1440, JPEG q 80)</td><td class="mono">2160×1440</td><td>GPS, camera, date stripped; colour profile kept</td><td>baked in</td></tr>
+          <tr><td><b>Preview, short edge raised to 2160</b></td><td class="mono">3240×2160</td><td>same, stripped</td><td>baked in (portrait: 2160×3240)</td></tr>
+          <tr><td>“Fullsize” (enabled, regenerated)</td><td colspan="3">for a JPEG it is a redirect to the <b>original</b>, GPS and all. It only exists for formats a browser can't show (HEIC, RAW).</td></tr>
+          <tr><td>Original</td><td class="mono">6000×4000</td><td>everything, including GPS</td><td>as a tag</td></tr>
+        </tbody>
+      </table>
+      <p>Immich's preview size is the <b>short edge</b>, so 2160 always covers what a 3840×2160 frame shows of a picture: a 3:2 landscape fills the height at 3240×2160, a portrait needs only 1440 of its 2160 width. A 1920×1080 picture is never scaled up. The setting has no upper limit. Alpha is flattened to JPEG. Measured in a throwaway Immich with generated images; your Immich was not touched.</p>
+    </div>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Source for the link's pictures</th><th>What it costs</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td><b>A. Immich's preview</b>, short edge 2160: Caddy fetches <code>assets/&lt;id&gt;/thumbnail?size=preview</code> once the token checks out</td><td>One setting in Immich (Administration → Settings → Image → Preview resolution 2160), then “Generate thumbnails → All” once. Previews take roughly twice the disk (2.25× the pixels), and Immich's own web view gets the sharper previews too. Quality is Immich's (q 80 for all).</td><td><b>Recommended.</b> No picture code on the server, HEIC and RAW work, metadata is already stripped. Without the setting change the link still works, at 1440 px (sharp on phones and laptops, soft on a 4K TV).</td></tr>
+          <tr><td>B. Glissando renders 3840×2160 itself on the server</td><td>An image library in the container (libvips/sharp or WebAssembly decoders, HEIC on top), CPU on every first view, and a disk cache. That reverses ADR-0018's “the server never renders and stores no pictures”.</td><td>Exact bound and its own quality, and could send phones a smaller size. A lot of server for what A already gives.</td></tr>
+          <tr><td>C. The original through Caddy</td><td>No rendering at all.</td><td><b>No</b>: GPS, camera and dates go to anyone with the link, HEIC doesn't play in Chrome or Firefox, and an original weighs 5–25 MB.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card q">
+      <ul>
+        <li><b>For you</b>: A, with the Immich setting documented in the self-hosting guide as “for 4K on a TV”? Or B, so it works without touching Immich?</li>
+        <li><b>Where the button sits</b>: its own row, or inside the server row (switch “Where the button sits”).</li>
+        <li><b>QR code</b> in the sheet: keep it, or leave it out for now?</li>
+      </ul>
+    </div>
+  </div>
+  </div>
+</div>
+<script>
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const PALETTES = [
+  ["#ffcfa8", "#ff8f70", "#fff1c9", "#5a3e64", "#2f2440", "#2b5d73"],
+  ["#9fd3f2", "#e7f4fb", "#fff6c2", "#5c8a6b", "#2f5a45", "#3d7fa0"],
+  ["#2a2350", "#c96b8a", "#ffd9a0", "#3a2d55", "#1d1830", "#4a3a6a"],
+  ["#b9e2f5", "#fbe9d0", "#ffe08a", "#8a9bb0", "#56677d", "#6aa0b8"],
+  ["#f6d0c4", "#f9efe4", "#fff3d6", "#b47a6a", "#7a4f48", "#a87a6e"],
+  ["#87c1e8", "#d6eef7", "#fff4b8", "#4f7d4a", "#2e5530", "#6b9c63"],
+  ["#ffb48a", "#ffe2b8", "#fff0c0", "#6a4a3a", "#3d2a24", "#8a6a5a"],
+  ["#a8c8e8", "#eef3f8", "#ffffff", "#7d8ea6", "#4a5872", "#9fb3c8"],
+];
+function scene(i, w, h) {
+  const r = rng(i * 977 + 13), [s1, s2, sun, m1, m2, water] = PALETTES[i % PALETTES.length];
+  const horizon = h * (0.55 + r() * 0.12);
+  const ridge = (base, amp, n) => { let d = `M0 ${h} L0 ${base}`; for (let k = 0; k <= n; k++) d += ` L${(w * k) / n} ${base - r() * amp}`; return d + ` L${w} ${h} Z`; };
+  const sx = w * (0.2 + r() * 0.6), sy = horizon * (0.3 + r() * 0.35), sr = Math.min(w, h) * 0.07;
+  const px = w * (0.25 + r() * 0.5), py = horizon + (h - horizon) * 0.35, ps = h * 0.11;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s1}"/><stop offset="1" stop-color="${s2}"/></linearGradient>
+<linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${water}"/><stop offset="1" stop-color="${m2}"/></linearGradient></defs>
+<rect width="${w}" height="${h}" fill="url(#s)"/><circle cx="${sx}" cy="${sy}" r="${sr}" fill="${sun}"/>
+<path d="${ridge(horizon - h * 0.04, h * 0.22, 7)}" fill="${m1}" opacity="0.75"/>
+<path d="${ridge(horizon, h * 0.12, 11)}" fill="${m2}"/>
+<rect y="${horizon}" width="${w}" height="${h - horizon}" fill="url(#w)"/>
+<g fill="#1b1622"><circle cx="${px}" cy="${py - ps * 0.82}" r="${ps * 0.17}"/><rect x="${px - ps * 0.2}" y="${py - ps * 0.62}" width="${ps * 0.4}" height="${ps * 0.62}" rx="${ps * 0.14}"/></g>
+</svg>`;
+}
+
+const ICON = {
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  play: '<path d="M8 5.5v13l11-6.5z"/>',
+  pause: '<path d="M8 5v14M16 5v14"/>',
+  film: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4"/>',
+  page: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 8.5h18"/><path d="M10 12.5l-2.2 2.2L10 17M14 12.5l2.2 2.2L14 17"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  share: '<path d="M12 4v11"/><path d="M8 8l4-4 4 4"/><path d="M6 12v6.5a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V12"/>',
+  download: '<path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 19h14"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 10"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  right: '<path d="M10 7l5 5-5 5"/>',
+  open: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/>',
+  volume: '<path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
+  full: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  replay: '<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/>',
+};
+const icon = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+Object.assign(ICON, {
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/>',
+  qr: '<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/>',
+  eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+  sync: '<path d="M20 11a8 8 0 0 0-14.3-4.3L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 13a8 8 0 0 0 14.3 4.3l1.7-1.8"/><path d="M20 20v-4.5h-4.5"/>',
+  server: '<rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01"/>',
+  device: '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 20h8M12 17v3"/>',
+  unlink: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/><path d="M4 4l16 16"/>',
+  cloudoff: '<path d="M7 18h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.6 9.2 4.5 4.5 0 0 0 7 18z"/><path d="M4 4l16 16"/>',
+});
+
+/* ---------- The slideshow: 50 generated pictures, 5 s each ---------- */
+const N = 50, SLIDE_S = 5, FADE_S = 1, SHOW_S = N * SLIDE_S, TITLE = "Summer 2025";
+const CAPTIONS = { 0: "Arrival at the lake", 7: "Grandma's birthday", 18: "The long hike", 33: "Last swim" };
+const pics = Array.from({ length: N }, (_, i) => {
+  const [w, h] = i % 5 === 2 ? [200, 300] : [300, 200];
+  return { src: "data:image/svg+xml;utf8," + encodeURIComponent(scene(i, w, h)), w, h };
+});
+const bitmaps = pics.map((p) => { const im = new Image(); im.src = p.src; return im; });
+const HOSTS = { public: "https://photos.example.org", lan: "http://192.168.1.20:8080" };
+const TOKEN = "q7Rk2vN8xT4mWp1Lc9Hb3A";
+const link = () => `${HOSTS[S.address]}/s/${TOKEN}`;
+const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+/** The first picture "arrives" this long after Play; a late picture shows the loading chip this long. */
+const FIRST_LOAD_MS = 1100, LATE_AT_S = [62, 63.2];
+
+const S = { tab: "try", screen: "app", width: "desk", theme: "light", place: "row", where: "server", address: "public", rcp: "ok",
+  shared: false, sheet: null, copied: false, qr: false, toast: null, web: "start", t: 0, playing: false, last: 0, idleAt: 0, from: null };
+
+/* ---------- Glissando ---------- */
+function bar() {
+  return `<div class="bar">
+    <button class="iconbtn" aria-label="Back">${icon("back")}</button>
+    <div class="crumbs"><span class="hide-narrow">Library</span><span class="sep hide-narrow">/</span><b>${TITLE}</b></div>
+    <div class="spacer"></div>
+    <button class="iconbtn" aria-label="More">${icon("more")}</button>
+  </div>`;
+}
+function shareRow() {
+  if (S.where === "device") {
+    return `<button class="sharerow" aria-disabled="true">${icon("link")}<span>Share link</span><small>Save it on your Glissando server to share it by link.</small></button>`;
+  }
+  if (S.shared) {
+    return `<button class="sharerow" data-open-share>${icon("link")}<span>Shared by link</span><small class="mono">${link().replace(/^https?:\/\//, "")}</small><span class="go"><span class="onpill"><i></i>On</span>${icon("right")}</span></button>`;
+  }
+  return `<button class="sharerow" data-open-share>${icon("link")}<span>Share link</span><small>Anyone with the link can watch</small><span class="go">${icon("right")}</span></button>`;
+}
+function storageRow() {
+  const server = S.where === "server";
+  const top = `<div class="top">${icon(server ? "server" : "device")}<span class="text"><b>${server ? "On your Glissando server" : "On this device"}</b>
+    <small>${server ? "Pictures linked from Immich · edits saved for everyone" : `All ${N} from Immich · plays offline`}</small></span>
+    ${server ? `<span class="status"><i></i>Saved</span>` : ""}</div>`;
+  return `<div class="storage">${top}${S.place === "storage" ? shareRow() : ""}</div>${S.place === "row" ? shareRow() : ""}`;
+}
+function infoPanel() {
+  return `<aside class="info">
+    <div><div class="eyebrow">Slideshow</div><div class="name">${TITLE}</div><div class="muted mono" style="font-size: 12.5px">12 Jul – 3 Aug 2025</div></div>
+    <div class="actions">
+      <button class="btn primary large block">${icon("play", "fill")}Play</button>
+      <div class="saverow"><span class="lbl">Save as</span><div class="pair">
+        <button class="btn">${icon("film")}Video</button><button class="btn">${icon("page")}Web page</button></div></div>
+      ${storageRow()}
+    </div>
+    <dl class="facts">
+      <dt>Pictures</dt><dd class="mono">${N}</dd>
+      <dt>Duration</dt><dd class="mono">${fmtTime(SHOW_S)}</dd>
+      <button class="musicrow"><span class="lbl">Music</span><span class="val"><b>Summer breeze.mp3</b><small>0:12 – 4:22</small></span><span class="go">Edit${icon("right")}</span></button>
+      <dt>Transitions</dt><dd>Crossfade</dd>
+      <dt>Captions</dt><dd class="mono">4</dd>
+    </dl>
+  </aside>`;
+}
+function showScreen() {
+  const tiles = pics.slice(0, 24).map((p, i) => `<div class="tile"><img alt="" src="${p.src}"><span class="num">${i + 1}</span></div>`).join("");
+  return `${bar()}<div class="scroll"><div class="show"><div class="tiles">${tiles}</div>${infoPanel()}</div></div>`;
+}
+function sheetHeader(title, sub) {
+  return `<header><div style="flex: 1"><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div>
+    <button class="iconbtn" data-close aria-label="Close">${icon("close")}</button></header>`;
+}
+const SUB = `${TITLE} · ${N} pictures · ${fmtTime(SHOW_S)} · with music`;
+function lanNote() {
+  if (S.address !== "lan") return "";
+  return `<div class="note warn">${icon("info", "status-ic")}<p><b>This link only works on your home network.</b> Glissando is open at a home address here. To share with someone elsewhere, open Glissando through its public address and share from there.</p></div>`;
+}
+function offSheet() {
+  return `${sheetHeader("Share by link", SUB)}
+    <ul class="what">
+      <li>${icon("globe")}<span><b>Anyone with the link can watch</b> in a browser, without signing in and without installing anything.</span></li>
+      <li>${icon("lock")}<span>They see the slideshow in 4K with its music and captions. <b>Nothing else</b>: not your Immich, your other slideshows, file names or places.</span></li>
+      <li>${icon("sync")}<span>Your edits show up in the link. <b>It works until you turn it off.</b></span></li>
+    </ul>
+    ${lanNote()}
+    <div class="foot"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" data-create>${icon("link")}Create link</button></div>`;
+}
+function qrSvg() {
+  const n = 25, r = rng(TOKEN.length * 31), cells = [];
+  const finder = (x, y) => x < 7 && y < 7 || x >= n - 7 && y < 7 || x < 7 && y >= n - 7;
+  const ring = (x, y) => { const fx = x >= n - 7 ? x - (n - 7) : x, fy = y >= n - 7 ? y - (n - 7) : y; return fx === 0 || fy === 0 || fx === 6 || fy === 6 || (fx >= 2 && fx <= 4 && fy >= 2 && fy <= 4); };
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const on = finder(x, y) ? ring(x, y) : (x === 7 || y === 7) && (finder(x - 1, y) || finder(x, y - 1) || finder(x + 1, y) || finder(x, y + 1)) ? false : r() > 0.52;
+    if (on) cells.push(`<rect x="${x}" y="${y}" width="1.02" height="1.02"/>`);
+  }
+  return `<svg viewBox="0 0 ${n} ${n}" aria-label="QR code of the link" fill="#14111c" shape-rendering="crispEdges">${cells.join("")}</svg>`;
+}
+function onSheet() {
+  const phone = S.width === "phone";
+  return `${sheetHeader("Share by link", SUB)}
+    <div class="linkbox"><output aria-label="Link"><span>${link()}</span></output>
+      <button class="btn ${S.copied ? "copied" : ""}" data-copy>${icon(S.copied ? "check" : "copy")}${S.copied ? "Copied" : "Copy"}</button></div>
+    <div class="ways">
+      ${phone ? `<button class="btn">${icon("share")}Share …</button>` : ""}
+      <button class="btn" data-open-web>${icon("eye")}Open as viewer</button>
+      <button class="btn" data-qr aria-pressed="${S.qr}">${icon("qr")}QR code</button>
+    </div>
+    ${S.qr ? `<div class="qr">${qrSvg()}<p><b>Scan with a phone</b> to watch there, for example when the TV is busy or a guest wants it on their own phone.</p></div>` : ""}
+    ${lanNote()}
+    <div class="since"><span>Created 11 Oct 2026</span><span>works until you turn it off</span></div>
+    <div class="foot split"><button class="btn danger-text" data-ask-off>${icon("unlink")}Turn off link</button><button class="btn primary" data-close>Done</button></div>`;
+}
+function confirmSheet() {
+  return `${sheetHeader("Turn off the link?")}
+    <p style="margin: 0; line-height: 1.5">Anyone who has it can no longer watch “${TITLE}”. If you share it again, it gets a new link and this one stays off.</p>
+    <div class="foot"><button class="btn ghost" data-back-share>Cancel</button><button class="btn danger" data-turn-off>Turn off link</button></div>`;
+}
+function sheet() {
+  if (!S.sheet) return "";
+  const body = S.sheet === "confirm" ? confirmSheet() : S.shared ? onSheet() : offSheet();
+  return `<div class="backdrop"><div class="sheet" role="dialog" aria-modal="true">${body}</div></div>`;
+}
+
+/* ---------- The recipient's page ---------- */
+function made() { return `<p class="made">Shared with <b>Glissando</b></p>`; }
+function recipientState() { return S.rcp === "ok" && !S.shared && S.from === "app" ? "off" : S.rcp; }
+function webPage() {
+  const state = recipientState();
+  let inner = "";
+  if (state === "off") {
+    inner = `<div class="gone"><div><span class="badge">${icon("unlink")}</span><h2>This link doesn't work any more</h2>
+      <p>Whoever shared the slideshow has turned the link off. Ask them for a new one.</p></div>${made()}</div>`;
+  } else if (state === "down") {
+    inner = `<div class="gone"><div><span class="badge">${icon("cloudoff")}</span><h2>Can't reach the slideshow right now</h2>
+      <p>The server it lives on isn't answering. It may be restarting; try again in a moment.</p>
+      <button class="btn" data-web-retry>${icon("replay")}Try again</button></div>${made()}</div>`;
+  } else {
+    const late = S.web === "play" && S.t >= LATE_AT_S[0] && S.t < LATE_AT_S[1];
+    const ctl = `<div class="ctl">
+      <button data-web-toggle aria-label="${S.playing ? "Pause" : "Play"}">${icon(S.playing ? "pause" : "play", S.playing ? "" : "fill")}</button>
+      <span class="time mono" id="w-time">${fmtTime(S.t)} / ${fmtTime(SHOW_S)}</span>
+      <span class="track" data-web-seek><i id="w-track" style="width: ${(S.t / SHOW_S) * 100}%"></i></span>
+      <button aria-label="Mute">${icon("volume")}</button><button aria-label="Full screen">${icon("full")}</button></div>`;
+    let overlay = "";
+    if (S.web === "start") {
+      overlay = `<div class="start"><div><div class="shared">Shared slideshow</div><h1>${TITLE}</h1><p>${N} pictures · ${fmtTime(SHOW_S)} · with music</p>
+        <button class="bigplay" data-web-play aria-label="Play">${icon("play", "fill")}</button></div>${made()}</div>`;
+    } else if (S.web === "loading") {
+      overlay = `<div class="loading"><span class="ring" aria-hidden="true"></span><span role="status">Loading the first pictures …</span></div>`;
+    } else if (S.web === "end") {
+      overlay = `<div class="end"><div><h2>${TITLE}</h2><button class="btn" data-web-replay>${icon("replay")}Play again</button></div></div>`;
+    }
+    inner = `<canvas id="wv"></canvas><div class="caption" id="w-cap"></div>
+      <div class="buffer" id="w-buf" ${late ? "" : "hidden"}><span class="ring" aria-hidden="true"></span>Loading</div>
+      ${S.web === "play" ? ctl : ""}${overlay}`;
+  }
+  return `<div class="web" id="web">${inner}</div>
+    ${S.from === "app" ? `<button class="backchip" data-close-web>${icon("back")}Glissando</button>` : ""}`;
+}
+function drawPicture(ctx, i, t, alpha) {
+  const im = bitmaps[i], W = ctx.canvas.width, H = ctx.canvas.height;
+  if (!im.complete) return;
+  const local = (t - i * SLIDE_S) / SLIDE_S, zoom = 1.04 + 0.12 * (i % 2 ? local : 1 - local);
+  const ar = pics[i].w / pics[i].h, fitH = ar >= W / H ? H : W / ar, fitW = fitH * ar;
+  const dw = fitW * zoom, dh = fitH * zoom, dx = (W - dw) / 2 + ((i % 3) - 1) * 0.02 * W * local, dy = (H - dh) / 2;
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(im, dx, dy, dw, dh);
+  ctx.globalAlpha = 1;
+}
+function drawWeb() {
+  const cv = document.getElementById("wv");
+  if (!cv) return;
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio);
+  if (cv.width !== Math.round(r.width * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+  const ctx = cv.getContext("2d"), t = Math.min(S.t, SHOW_S - 0.001), i = Math.floor(t / SLIDE_S);
+  ctx.fillStyle = "#0b0a10"; ctx.fillRect(0, 0, cv.width, cv.height);
+  if (S.web === "loading") return;
+  drawPicture(ctx, i, t, 1);
+  const into = t - ((i + 1) * SLIDE_S - FADE_S);
+  if (i < N - 1 && into > 0) drawPicture(ctx, i + 1, t, into / FADE_S);
+  const cap = document.getElementById("w-cap");
+  const shown = S.web === "play" ? CAPTIONS[into > FADE_S / 2 ? i + 1 : i] : null;
+  cap.textContent = shown ?? cap.textContent;
+  cap.style.opacity = shown ? 1 : 0;
+  const tm = document.getElementById("w-time");
+  if (tm) { tm.textContent = `${fmtTime(S.t)} / ${fmtTime(SHOW_S)}`; document.getElementById("w-track").style.width = `${(S.t / SHOW_S) * 100}%`; }
+  const late = S.web === "play" && S.t >= LATE_AT_S[0] && S.t < LATE_AT_S[1];
+  document.getElementById("w-buf").hidden = !late;
+  document.getElementById("web").classList.toggle("idle", S.playing && performance.now() - S.idleAt > 2500);
+}
+function tickWeb(now) {
+  if (!S.playing) return;
+  const late = S.t >= LATE_AT_S[0] && S.t < LATE_AT_S[1];
+  // A late picture holds the show on its predecessor while the chip says "Loading".
+  S.t += ((now - S.last) / 1000) * (late ? 0.15 : 1); S.last = now;
+  if (S.t >= SHOW_S) { S.t = SHOW_S; S.playing = false; S.web = "end"; render(); return; }
+  drawWeb();
+  requestAnimationFrame(tickWeb);
+}
+function playWeb() { S.web = "play"; S.playing = true; S.last = performance.now(); S.idleAt = S.last; render(); requestAnimationFrame(tickWeb); }
+function startWeb() {
+  S.t = 0; S.web = "loading"; render();
+  setTimeout(() => { if (S.web === "loading") playWeb(); }, FIRST_LOAD_MS);
+}
+function stopWeb() { S.playing = false; S.web = "start"; S.t = 0; }
+
+/* ---------- Render and events ---------- */
+let toastTimer = null;
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  for (const [attr, key] of [["tab", "tab"], ["screen", "screen"], ["width", "width"], ["theme-set", "theme"], ["place", "place"], ["where", "where"], ["address", "address"], ["rcp", "rcp"]]) {
+    document.querySelectorAll(`[data-${attr}]`).forEach((b) => b.setAttribute("aria-pressed", b.getAttribute(`data-${attr}`) === S[key]));
+  }
+  const web = S.screen === "web" || S.from === "app";
+  document.getElementById("stage").hidden = S.tab !== "try";
+  document.getElementById("concept").hidden = S.tab !== "concept";
+  document.querySelectorAll(".controls .seg:nth-child(n+2)").forEach((s) => (s.style.display = S.tab === "try" ? "" : "none"));
+  document.querySelectorAll(".only-app").forEach((s) => (s.style.display = S.tab === "try" && S.screen === "app" ? "" : "none"));
+  document.querySelectorAll(".only-web").forEach((s) => (s.style.display = S.tab === "try" && S.screen === "web" ? "" : "none"));
+  const scrollTop = document.querySelector(".app .scroll")?.scrollTop ?? 0;
+  const toast = S.toast ? `<div class="toast" role="status">${icon("check")}${S.toast}</div>` : "";
+  document.getElementById("stage").innerHTML = `<div class="app ${S.width === "phone" ? "phone" : ""} ${S.theme}">${S.screen === "web" ? "" : showScreen() + sheet() + toast}${web ? webPage() : ""}</div>`;
+  const sc = document.querySelector(".app .scroll");
+  if (sc) sc.scrollTop = scrollTop;
+  drawWeb();
+}
+function showToast(text) {
+  S.toast = text; clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { S.toast = null; render(); }, 2600);
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button, [data-web-seek]");
+  if (!t || t.getAttribute("aria-disabled") === "true") return;
+  const d = t.dataset;
+  if (d.tab) S.tab = d.tab;
+  else if (d.screen) { S.screen = d.screen; S.from = null; stopWeb(); }
+  else if (d.width) S.width = d.width;
+  else if (d.themeSet) S.theme = d.themeSet;
+  else if (d.place) S.place = d.place;
+  else if (d.where) { S.where = d.where; S.sheet = null; }
+  else if (d.address) S.address = d.address;
+  else if (d.rcp) { S.rcp = d.rcp; stopWeb(); }
+  else if ("openShare" in d) { S.sheet = "share"; S.copied = false; }
+  else if ("close" in d) { S.sheet = null; S.qr = false; }
+  else if ("create" in d) { S.shared = true; S.copied = false; }
+  else if ("copy" in d) { navigator.clipboard?.writeText(link()).catch(() => {}); S.copied = true; }
+  else if ("qr" in d) S.qr = !S.qr;
+  else if ("askOff" in d) S.sheet = "confirm";
+  else if ("backShare" in d) S.sheet = "share";
+  else if ("turnOff" in d) { S.shared = false; S.sheet = null; S.qr = false; showToast("Link turned off"); }
+  else if ("openWeb" in d) { stopWeb(); S.rcp = "ok"; S.from = "app"; }
+  else if ("closeWeb" in d) { stopWeb(); S.from = null; }
+  else if ("webPlay" in d || "webReplay" in d) return startWeb();
+  else if ("webRetry" in d) { S.rcp = "ok"; stopWeb(); }
+  else if ("webToggle" in d) { if (S.playing) { S.playing = false; } else { return playWeb(); } }
+  else if ("webSeek" in d) { const r = t.getBoundingClientRect(); S.t = ((e.clientX - r.left) / r.width) * SHOW_S; S.idleAt = performance.now(); drawWeb(); return; }
+  else return;
+  render();
+});
+document.addEventListener("pointermove", (e) => { if (e.target.closest(".web")) { S.idleAt = performance.now(); if (!S.playing) drawWeb(); } });
+addEventListener("resize", drawWeb);
+render();
+</script>
+</body></html>
