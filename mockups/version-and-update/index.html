@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glissando version and update notice</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --page:#f3f2f6;--page-ink:#221d33;--page-muted:#6b6580;--page-line:#dedbe6;--chip:#ebe9f1;--chip-on:#221d33;--chip-on-ink:#fff;
+  --ground:#f6f5f8;--surface:#fff;--raised:#fbfafc;--ink:#221d33;--muted:#6b6580;--faint:#9c97ad;--line:#e5e2eb;--hover:#efedf3;
+  --accent:#ff9f7f;--accent-ink:#2a1a14;--accent-hover:#ff8f6b;--mint:#6fcfb4;--lemon:#f5c94a;
+  --accent-tint:color-mix(in srgb,var(--accent) 22%,var(--surface));
+  --shadow:0 1px 2px rgb(34 29 51/.06),0 6px 18px rgb(34 29 51/.06);--backdrop:rgb(10 8 18/.38);
+  --ui:"Instrument Sans","Segoe UI",system-ui,sans-serif;--display:"Bricolage Grotesque","Instrument Sans",sans-serif;
+  --mono:"Geist Mono",ui-monospace,monospace;--word:"Baloo 2",sans-serif;
+}
+[data-theme=dark]{color-scheme:dark;
+  --page:#0e0c14;--page-ink:#ece9f3;--page-muted:#8e88a0;--page-line:#2a2636;--chip:#211d2c;--chip-on:#ece9f3;--chip-on-ink:#17141f;
+  --ground:#121019;--surface:#1a1723;--raised:#221e2d;--ink:#edeaf3;--muted:#9a94ab;--faint:#6c6680;--line:#2c2838;--hover:#26222f;
+  --accent:#ffb59a;--accent-hover:#ffc5af;--shadow:0 1px 2px rgb(0 0 0/.4),0 8px 24px rgb(0 0 0/.3);
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--page);color:var(--page-ink);font:14px var(--ui)}
+.page{max-width:1300px;margin:0 auto;padding:20px 16px 48px;display:grid;gap:18px}
+h1{font:700 26px var(--display);letter-spacing:-.015em;margin:0}
+.lead{color:var(--page-muted);max-width:70ch;margin:4px 0 0;line-height:1.45}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.seg{display:inline-flex;background:var(--chip);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;color:var(--page-ink);font:600 13px var(--ui);padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--chip-on);color:var(--chip-on-ink)}
+.ctl-label{font-size:12px;color:var(--page-muted);margin-right:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.variant{display:grid;gap:10px;padding-top:14px;border-top:1px solid var(--page-line)}
+.variant h2{font:700 18px var(--display);margin:0;display:flex;gap:10px;align-items:center}
+.variant p{margin:0;color:var(--page-muted);max-width:80ch;line-height:1.45}
+.tag{font:600 11px var(--ui);background:var(--mint);color:#16302a;border-radius:999px;padding:3px 8px}
+.frames{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.frame-cap{font-size:12px;color:var(--page-muted);margin-bottom:6px}
+
+/* ---------- app frame ---------- */
+.app{position:relative;overflow:hidden;background:var(--ground);color:var(--ink);border:1px solid var(--page-line);border-radius:14px;
+  display:flex;flex-direction:column;font-size:14px;container-type:inline-size}
+.app.phone{width:412px;height:800px;border-radius:28px}
+.app.desk{width:820px;height:560px}
+.top{display:flex;align-items:center;gap:10px;padding:14px 16px 14px 24px;background:var(--surface);border-bottom:1px solid var(--line)}
+.word{font:800 19px var(--word);flex:1}
+.word b{color:var(--accent)}
+.icon-btn{position:relative;width:38px;height:38px;border:0;border-radius:10px;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.icon-btn:hover{background:var(--hover)}
+.icon-btn .badge{position:absolute;top:7px;right:7px;width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.body{flex:1;overflow:auto;padding:20px 24px;display:grid;gap:16px;align-content:start}
+.app.phone .body{padding:16px}
+.h{font:700 23px var(--display);letter-spacing:-.015em;margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.app.phone .grid{grid-template-columns:1fr 1fr;gap:10px}
+.tile{display:grid;gap:6px}
+.thumb{aspect-ratio:4/3;border-radius:8px}
+.tile b{font-weight:600}.tile span{font-size:12.5px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 15px;border:1px solid var(--line);border-radius:10px;
+  font:600 14px var(--ui);color:var(--ink);background:var(--surface);cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.small{height:32px;padding:0 11px;font-size:13px;gap:6px}
+.btn.small svg.i{width:15px;height:15px;color:var(--accent)}
+.btn.primary{border-color:transparent;background:var(--accent);color:var(--accent-ink)}
+.btn.primary svg.i{color:var(--accent-ink)}
+.btn.primary:hover{background:var(--accent-hover)}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+
+/* status bar (today) */
+.status{flex:none;display:flex;align-items:center;gap:6px 12px;min-height:46px;padding:6px 10px 6px 24px;border-top:1px solid var(--line);
+  background:var(--surface);color:var(--muted);font-size:12.5px}
+.app.phone .status{padding:6px 6px 6px 16px}
+.status .text{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+.dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--mint)}
+.dot.accent{background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 30%,transparent)}
+
+/* variant A: the status bar turns into an update strip */
+.status.update{background:var(--accent-tint);border-top-color:color-mix(in srgb,var(--accent) 55%,var(--line));color:var(--ink);min-height:56px}
+.status.update .text{font-size:14px;font-weight:600}
+.status.update .sub{font-weight:400;color:var(--muted);font-size:12.5px}
+
+/* variant B: a card on top of the library */
+.card{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 14px 14px 16px;border-radius:14px;background:var(--surface);
+  border:1px solid color-mix(in srgb,var(--accent) 60%,var(--line));box-shadow:var(--shadow)}
+.card .ic{flex:none;width:38px;height:38px;border-radius:10px;background:var(--accent-tint);color:var(--ink);display:grid;place-items:center}
+.card .txt{flex:1;min-width:180px;display:grid;gap:2px}
+.card .txt b{font-weight:600}.card .txt span{font-size:12.5px;color:var(--muted)}
+.card .acts{display:flex;gap:6px;margin-left:auto}
+
+/* settings sheet */
+.scrim{position:absolute;inset:0;background:var(--backdrop)}
+.sheet{position:absolute;top:66px;right:16px;width:380px;max-height:calc(100% - 82px);overflow:auto;background:var(--surface);
+  border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;display:grid;gap:18px}
+.app.phone .sheet{top:auto;bottom:0;left:0;right:0;width:auto;max-height:85%;border-radius:14px 14px 0 0;border-width:1px 0 0}
+.sheet header{display:flex;align-items:center;justify-content:space-between}
+.sheet h3{margin:0;font:700 22px var(--display);letter-spacing:-.015em}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.group{display:grid;gap:8px}
+.radios{display:grid;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.radio{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}
+.radio:first-child{border-top:0}
+.radio .r{width:16px;height:16px;border-radius:50%;border:1.7px solid var(--faint)}
+.radio.on .r{border:5px solid var(--accent)}
+.radio small{color:var(--muted);margin-left:auto;font-size:12.5px}
+.foot{margin:0;color:var(--muted);font-size:12.5px}
+.links{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12.5px}
+.links a{color:inherit;text-underline-offset:3px}
+.ver{font-family:var(--mono);font-size:12px;color:var(--muted)}
+/* version row, a group of its own */
+.vrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.vrow .v{flex:1;display:grid;gap:2px;min-width:150px}
+.vrow .v b{font-weight:600}
+.vrow .v span{font:12px var(--mono);color:var(--muted)}
+.vrow.update{border-color:color-mix(in srgb,var(--accent) 60%,var(--line));background:var(--accent-tint)}
+.pill{font:600 11.5px var(--ui);border-radius:999px;padding:3px 9px;background:color-mix(in srgb,var(--mint) 24%,var(--surface));color:var(--ink)}
+</style></head>
+<body>
+<div class="page" id="page">
+  <div>
+    <h1>Version in settings · louder update notice</h1>
+    <p class="lead">Two wishes: settings show which version is deployed, and the "New version · Reload" hint, today a small button bottom right in the status bar, gets noticed. Click the gear to open settings. Toggle "Update waiting" to see both states.</p>
+  </div>
+  <div class="controls">
+    <span><span class="ctl-label">Update waiting</span><span class="seg" data-ctl="update"><button data-v="on" aria-pressed="true">Yes</button><button data-v="off">No</button></span></span>
+    <span><span class="ctl-label">Theme</span><span class="seg" data-ctl="theme"><button data-v="light" aria-pressed="true">Light</button><button data-v="dark">Dark</button></span></span>
+    <span><span class="ctl-label">Settings</span><span class="seg" data-ctl="sheet"><button data-v="closed" aria-pressed="true">Closed</button><button data-v="open">Open</button></span></span>
+  </div>
+  <div id="variants"></div>
+</div>
+
+<template id="icons">
+  <svg class="i" data-n="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  <svg class="i" data-n="refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/></svg>
+  <svg class="i" data-n="close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+  <svg class="i" data-n="spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>
+</template>
+
+<script>
+const S={update:"on",theme:"light",sheet:"closed"};
+const ic=n=>document.getElementById("icons").content.querySelector(`[data-n=${n}]`).outerHTML;
+const VERSION="0.0.1", COMMIT="87dd486", BUILT="12 Oct 2026";
+const VARIANTS=[
+ {id:"A",title:"A · The status bar becomes an update strip",rec:true,
+  text:"Stays where status lives today, but while an update waits the whole bar turns peach, the status line gives way to \"New version ready\" and the button is the filled accent button. The gear gets a dot; settings repeat it at the version row."},
+ {id:"B",title:"B · A card on top of the library",
+  text:"Loudest: a card above the slideshows with Reload and Later (Later hides it until the next start; the status bar keeps the small button). Breaks today's rule \"never a banner of our own\"."},
+ {id:"C",title:"C · Only a dot on the gear",
+  text:"Quietest change: the status bar stays as it is, the gear gets a peach dot, and the version row in settings carries the Reload button."}
+];
+const tiles=[["#ffb59a","#ffd95a","Summer at the lake","42 pictures · 3:10"],["#8fd9c4","#7fb8ff","Grandma's 80th","118 pictures · 7:45"],
+ ["#b9a6f2","#ff9f7f","Iceland","64 pictures · 4:20"],["#f5c94a","#6fcfb4","First day of school","23 pictures · 1:55"]];
+function statusBar(v){
+  const up=S.update==="on";
+  if(up&&v==="A") return `<footer class="status update"><span class="text"><span class="dot accent"></span><span>New version ready<span class="sub" data-wide> · reload to switch, slideshows stay as they are</span></span></span>
+    <button class="btn primary small">${ic("refresh")}Reload now</button></footer>`;
+  const act=up?`<button class="btn small">${ic("refresh")}New version · Reload</button>`:"";
+  return `<footer class="status"><span class="text"><span class="dot"></span><span>Installed · ready offline<span data-wide> · stored on this device</span></span></span>${act}</footer>`;
+}
+function card(v){
+  if(S.update!=="on"||v!=="B") return "";
+  return `<div class="card"><span class="ic">${ic("spark")}</span><span class="txt"><b>A new version of Glissando is ready</b><span>Reload to switch. Your slideshows stay as they are.</span></span>
+   <span class="acts"><button class="btn ghost small">Later</button><button class="btn primary small">${ic("refresh")}Reload</button></span></div>`;
+}
+function sheet(v){
+  if(S.sheet!=="open") return "";
+  const up=S.update==="on";
+  const vrow=up
+   ?`<div class="vrow update"><span class="v"><b>Glissando ${VERSION}</b><span>${COMMIT} · ${BUILT}</span></span><button class="btn primary small">${ic("refresh")}Reload to update</button></div>`
+   :`<div class="vrow"><span class="v"><b>Glissando ${VERSION}</b><span>${COMMIT} · ${BUILT}</span></span><span class="pill">Up to date</span></div>`;
+  return `<div class="scrim"></div><div class="sheet"><header><h3>Settings</h3><button class="icon-btn">${ic("close")}</button></header>
+   <section class="group"><div class="eyebrow">Appearance</div><div class="radios"><div class="radio on"><span class="r"></span>Like the system<small>follows the device</small></div><div class="radio"><span class="r"></span>Light</div><div class="radio"><span class="r"></span>Dark</div></div></section>
+   <section class="group"><div class="eyebrow">Language</div><div class="radios"><div class="radio on"><span class="r"></span>Automatic<small>currently English</small></div><div class="radio"><span class="r"></span>Deutsch</div><div class="radio"><span class="r"></span>English</div></div></section>
+   <section class="group"><div class="eyebrow">Version</div>${vrow}</section>
+   <p class="foot">Settings are stored on this device.</p>
+   <div class="links"><a href="#">Third-party licenses</a></div></div>`;
+}
+function app(v,kind){
+  const badge=S.update==="on"&&v!=="B"?`<span class="badge"></span>`:"";
+  const wide=kind==="desk";
+  return `<div class="app ${kind}" data-v="${v}"><div class="top"><span class="word">Gliss<b>a</b>ndo</span><button class="icon-btn gear" title="Settings">${ic("gear")}${badge}</button></div>
+   <div class="body">${card(v)}<h2 class="h">Slideshows</h2><div class="grid">${tiles.map(t=>`<div class="tile"><div class="thumb" style="background:linear-gradient(135deg,${t[0]},${t[1]})"></div><b>${t[2]}</b><span>${t[3]}</span></div>`).join("")}</div></div>
+   ${statusBar(v)}${sheet(v)}</div>`.replace(/<span data-wide>/g,wide?"<span>":"<span hidden>").replace(/<span class="sub" data-wide>/g,wide?'<span class="sub">':'<span class="sub" hidden>');
+}
+function render(){
+  document.documentElement.dataset.theme=S.theme;
+  document.getElementById("variants").innerHTML=VARIANTS.map(x=>`<section class="variant"><h2>${x.title}${x.rec?'<span class="tag">Recommended</span>':""}</h2><p>${x.text}</p>
+    <div class="frames"><div><div class="frame-cap">Phone · Pixel 9 Pro (412 px)</div>${app(x.id,"phone")}</div><div><div class="frame-cap">Desktop</div>${app(x.id,"desk")}</div></div></section>`).join("");
+}
+document.querySelectorAll(".seg").forEach(seg=>seg.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;S[seg.dataset.ctl]=b.dataset.v;
+  seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();}));
+document.getElementById("variants").addEventListener("click",e=>{
+  const seg=document.querySelector('[data-ctl=sheet]');
+  if(e.target.closest(".gear")) S.sheet="open";
+  else if(e.target.closest(".sheet .icon-btn")||e.target.classList.contains("scrim")) S.sheet="closed";
+  else return;
+  seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===S.sheet));render();
+});
+render();
+</script>
+</body></html>
