@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glissando on the TV, controlled from the phone</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --page:#f3f2f6;--page-ink:#221d33;--page-muted:#6b6580;--page-line:#dedbe6;--chip:#ebe9f1;--chip-on:#221d33;--chip-on-ink:#fff;
+  --ground:#f6f5f8;--surface:#fff;--ink:#221d33;--muted:#6b6580;--line:#e5e2eb;
+  --accent:#ff9f7f;--accent-ink:#2a1a14;--mint:#6fcfb4;--lemon:#f5c94a;
+  --accent-tint:color-mix(in srgb,var(--accent) 22%,var(--surface));
+  --ui:"Instrument Sans","Segoe UI",system-ui,sans-serif;--display:"Bricolage Grotesque","Instrument Sans",sans-serif;
+  --mono:"Geist Mono",ui-monospace,monospace;--word:"Baloo 2",sans-serif;
+}
+[data-theme=dark]{color-scheme:dark;
+  --page:#0e0c14;--page-ink:#ece9f3;--page-muted:#8e88a0;--page-line:#2a2636;--chip:#211d2c;--chip-on:#ece9f3;--chip-on-ink:#17141f;
+  --ground:#121019;--surface:#1a1723;--ink:#edeaf3;--muted:#9a94ab;--line:#2c2838;--accent:#ffb59a;
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--page);color:var(--page-ink);font:14px var(--ui)}
+.page{max-width:1300px;margin:0 auto;padding:20px 16px 48px;display:grid;gap:18px}
+h1{font:700 26px var(--display);margin:0}.lead{color:var(--page-muted);max-width:78ch;margin:4px 0 0;line-height:1.45}
+.seg{display:inline-flex;background:var(--chip);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;color:var(--page-ink);font:600 13px var(--ui);padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--chip-on);color:var(--chip-on-ink)}
+.variant{display:grid;gap:10px;padding-top:14px;border-top:1px solid var(--page-line)}
+.variant h2{font:700 18px var(--display);margin:0}.variant p{margin:0;color:var(--page-muted);max-width:82ch;line-height:1.45}
+.frames{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.cap{font-size:12px;color:var(--page-muted);margin-bottom:6px;max-width:412px}
+.app{position:relative;overflow:hidden;background:var(--ground);color:var(--ink);border:1px solid var(--page-line);border-radius:28px;width:412px;height:700px;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:10px;padding:14px 16px 14px 24px;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .back{border:0;background:none;color:var(--ink);font-size:20px;cursor:pointer;padding:0 6px 0 0}
+.top h3{font:700 17px var(--display);margin:0;flex:1}.word{font:800 20px var(--word)}
+.body{flex:1;overflow:auto;padding:16px 20px;display:grid;gap:14px;align-content:start}
+.sub{color:var(--muted);line-height:1.4;margin:0}.lab{font:600 11px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.card{display:flex;gap:14px;align-items:center;background:var(--surface);border-radius:14px;padding:12px;box-shadow:0 1px 2px rgb(34 29 51/.08);border:2px solid transparent;width:100%;text-align:left;color:var(--ink);font:inherit}
+button.card{cursor:pointer}button.card[aria-pressed=true]{border-color:var(--accent);background:var(--accent-tint)}
+.card .cv{flex:none;width:64px;height:48px;border-radius:8px}.card div{flex:1}.card small{display:block;color:var(--muted);margin-top:2px;font:400 12px var(--mono)}
+.foot{padding:12px 20px;background:var(--surface);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.foot .grow{flex:1;color:var(--muted);font-size:13px}
+.btn{border:0;border-radius:999px;padding:11px 20px;font:600 14px var(--ui);cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--chip);color:var(--ink)}.btn.danger{background:none;color:#d6563f}
+.notice{border-radius:12px;padding:12px 14px;background:color-mix(in srgb,var(--lemon) 25%,var(--surface));line-height:1.4}
+.code{display:flex;gap:8px;justify-content:center}
+.code input{width:52px;height:64px;text-align:center;font:500 30px var(--mono);border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);text-transform:uppercase}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:4px 10px;font:600 12px var(--ui);background:color-mix(in srgb,var(--mint) 28%,var(--surface))}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--mint)}.pill.warn{background:color-mix(in srgb,var(--lemon) 35%,var(--surface))}.pill.warn i{background:var(--lemon)}
+/* remote */
+.remote{display:grid;gap:18px;padding:18px 22px;align-content:start}
+.now{background:var(--surface);border-radius:16px;padding:14px;display:grid;gap:4px}
+.now b{font:700 20px var(--display)}.now span{font:400 12px var(--mono);color:var(--muted)}
+.scrub{display:grid;gap:6px}.scrub input{width:100%;accent-color:var(--accent);height:28px}
+.scrub div{display:flex;justify-content:space-between;font:400 12px var(--mono);color:var(--muted)}
+.pad{display:flex;justify-content:center;align-items:center;gap:22px}
+.pad button{border:0;border-radius:50%;background:var(--chip);color:var(--ink);width:64px;height:64px;font-size:24px;cursor:pointer}
+.pad button.big{width:92px;height:92px;background:var(--accent);color:var(--accent-ink);font-size:36px}
+.vol{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:14px;padding:10px 14px}.vol input{flex:1;accent-color:var(--accent)}
+/* TV */
+.tvwrap{width:960px;max-width:100%}
+.tv{position:relative;width:960px;height:540px;background:#000;border-radius:10px;overflow:hidden;color:#fff;border:6px solid #1c1a22}
+.tv .pic{position:absolute;inset:-4%;animation:kb 12s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.08) translate(-1.5%,-1%)}}
+.tv .veil{position:absolute;inset:0;background:radial-gradient(circle at 30% 40%,#2a2340,#0e0c14);display:flex;align-items:center;justify-content:center;gap:64px;padding:48px}
+.tv .veil .txt{max-width:420px}.tv .word{font:800 34px var(--word);color:var(--accent)}
+.tv h4{font:700 40px/1.1 var(--display);margin:14px 0 10px}.tv p{margin:0;font-size:22px;line-height:1.4;color:#cfc9de}
+.tv .url{font:500 26px var(--mono);color:#fff;margin-top:18px}.tv .big{font:500 64px var(--mono);letter-spacing:.18em;color:var(--accent)}
+.qr{width:230px;height:230px;background:#fff;border-radius:16px;padding:14px;flex:none}
+.qr svg{width:100%;height:100%;display:block}
+.tv .corner{position:absolute;right:22px;bottom:20px;display:flex;gap:14px;align-items:center;background:rgb(18 16 25/.78);border-radius:16px;padding:10px 14px;transition:opacity .4s}
+.tv .corner .q{width:84px;height:84px;background:#fff;border-radius:8px;padding:5px}.tv .corner span{font-size:17px;max-width:150px;line-height:1.3}
+.tv .toast{position:absolute;left:50%;top:34px;transform:translateX(-50%);background:rgb(18 16 25/.82);border-radius:99px;padding:12px 26px;font:600 24px var(--ui)}
+.tv .state{position:absolute;left:26px;bottom:22px;font:500 20px var(--mono);text-shadow:0 1px 8px #000a}
+</style></head><body><div class="page">
+<div><h1>On the TV, controlled from the phone</h1>
+<p class="lead">The TV only plays; everything you press happens on the phone. Needs the Glissando server (a slideshow stored there, ADR-0018), because the phone and the TV talk through it. Two ways in, both end on the same remote. The pictures are streamed to the TV from the server, never through the phone.</p>
+<div class="seg" id="theme" style="margin-top:10px"><button aria-pressed="true" data-t="light">Light</button><button aria-pressed="false" data-t="dark">Dark</button></div></div>
+
+<section class="variant"><h2>A · TV first: open the short address, pick on the phone (recommended)</h2>
+<p>On the TV's browser you type one short address, <b>glissando.example/tv</b> (a bookmark after the first time). The TV shows a QR code and a 4-letter code. On the phone, a new "Show on TV" button (on every server slideshow's screen) opens a sheet: scan the code with the camera, or type it. Then pick which slideshow to show. The phone you are signed in on is the owner's, so the whole library is on offer; the TV needs no sign-in, it only holds the code.</p>
+<div class="frames">
+ <div><div class="cap">1 · TV, short address opened (pairing)</div><div class="tvwrap"><div class="tv" id="tv-pair"></div></div></div>
+</div>
+<div class="frames">
+ <div><div class="cap">2 · Phone: slideshow screen → "Show on TV"</div><div class="app" id="p-code"></div></div>
+ <div><div class="cap">3 · Phone: connected, pick the slideshow</div><div class="app" id="p-pick"></div></div>
+ <div><div class="cap">Code not found or expired</div><div class="app" id="p-bad" style="height:340px"></div></div>
+</div></section>
+
+<section class="variant"><h2>B · The TV already plays a shared link: "Control with your phone"</h2>
+<p>If the TV is already on a share link (<b>/s/…</b>, sent to the TV or typed), its start card and a corner chip show a small QR code. Scanning it opens the same remote for that slideshow, without signing in, for anyone in the room (the grandparents' TV, a guest's phone). No library, no slideshow choice: only the remote.</p>
+<div class="frames"><div><div class="cap">TV on a shared link, paused at the start card</div><div class="tvwrap"><div class="tv" id="tv-share"></div></div></div></div></section>
+
+<section class="variant"><h2>The remote and the TV while it plays</h2>
+<p>One remote for both ways in. Play and pause, previous and next picture, a scrubber across the whole slideshow, and the music volume. The screen stays on while the remote is open. "Disconnect" stops showing on the TV (the TV returns to its pairing screen); closing the remote or losing the connection leaves the TV playing. Try the buttons: the TV below follows.</p>
+<div class="seg" id="conn"><button aria-pressed="true" data-c="on">Connected</button><button aria-pressed="false" data-c="re">Phone lost connection</button><button aria-pressed="false" data-c="tvoff">TV went away</button></div>
+<div class="frames">
+ <div><div class="cap">Phone: remote</div><div class="app" id="p-remote"></div></div>
+ <div><div class="cap">TV: playing (no controls on screen, just a short note per command)</div><div class="tvwrap"><div class="tv" id="tv-play"></div></div></div>
+</div></section>
+
+<section class="variant"><h2>Other TV states</h2>
+<div class="frames">
+ <div><div class="cap">Phone paired, nothing chosen yet</div><div class="tvwrap"><div class="tv" id="tv-wait"></div></div></div>
+ <div><div class="cap">Slideshow ended (the phone offers "Play again")</div><div class="tvwrap"><div class="tv" id="tv-end"></div></div></div>
+ <div><div class="cap">Server not answering</div><div class="tvwrap"><div class="tv" id="tv-err"></div></div></div>
+</div></section>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const grads=["#ff9f7f,#6fcfb4","#f5c94a,#ff9f7f","#6fcfb4,#3b3f8f","#c9a7ff,#ff9f7f"];
+const qr=`<svg viewBox="0 0 21 21" shape-rendering="crispEdges"><path fill="#17141f" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0zM1 1v5h5V1zm14 0v5h5V1zM1 15v5h5v-5zM2 2h3v3H2zm14 0h3v3h-3zM2 16h3v3H2zM8 0h2v2H8zm3 1h2v2h-2zM8 4h1v3H8zm3 2h2v2h-2zM0 8h2v2H0zm3 0h3v1H3zm5 0h2v2H8zm4 1h3v2h-3zm4-1h3v2h-3zm3 3h2v2h-2zM8 11h3v2H8zm5 3h2v2h-2zm3 1h3v3h-3zm-6 2h2v4h-2zm4 2h2v2h-2zM8 14h1v4H8z"/></svg>`;
+const hdr=(t,back)=>`<div class="top">${back?'<button class="back">←</button>':'<span class="word">glissando</span>'}${back?`<h3>${t}</h3>`:''}</div>`;
+$('#tv-pair').innerHTML=`<div class="veil"><div class="txt"><div class="word">glissando</div><h4>Show a slideshow here</h4><p>On your phone, open a slideshow and tap <b>Show on TV</b>. Scan the code, or type it.</p><div class="big">K7QM</div></div><div class="qr">${qr}</div></div>`;
+$('#p-code').innerHTML=hdr('Show on TV',1)+`<div class="body"><p class="sub">Open <b>glissando.example/tv</b> in the TV's browser, then scan the code on the screen or type it here.</p>
+<button class="btn" style="justify-self:start">Scan the code</button><p class="lab" style="margin-top:6px">Or type the code</p>
+<div class="code"><input value="K" maxlength=1><input value="7" maxlength=1><input value="Q" maxlength=1><input value="" maxlength=1 placeholder="·"></div></div>
+<div class="foot"><span class="grow">3 of 4 letters</span><button class="btn" disabled style="opacity:.45">Connect</button></div>`;
+$('#p-pick').innerHTML=hdr('Show on TV',1)+`<div class="body"><span class="pill"><i></i>Connected to TV K7QM</span><p class="sub">Which slideshow should the TV show?</p>
+<button class="card" aria-pressed="true"><div class="cv" style="background:linear-gradient(135deg,${grads[1]})"></div><div><b>July 2025</b><small>48 pictures · 3:20</small></div></button>
+<button class="card" aria-pressed="false"><div class="cv" style="background:linear-gradient(135deg,${grads[2]})"></div><div><b>Mountain hike</b><small>96 pictures · 6:40</small></div></button>
+<button class="card" aria-pressed="false"><div class="cv" style="background:linear-gradient(135deg,${grads[3]})"></div><div><b>Christmas 2024</b><small>31 pictures · 2:10</small></div></button></div>
+<div class="foot"><button class="btn danger">Disconnect</button><span class="grow"></span><button class="btn">Show on TV</button></div>`;
+$('#p-bad').innerHTML=hdr('Show on TV',1)+`<div class="body"><div class="notice"><b>That code doesn't match a TV</b><br>Check the letters on the TV screen. A code stops working after the TV is closed or has waited 15 minutes; reload the TV's page for a new one.</div><button class="btn ghost" style="justify-self:start">Type it again</button></div>`;
+const cornerQr=`<div class="q">${qr}</div><span>Control with your phone</span>`;
+$('#tv-share').innerHTML=`<div class="pic" style="background:linear-gradient(135deg,${grads[0]})"></div><div class="veil" style="background:rgb(14 12 20/.72)"><div class="txt"><div class="word">glissando</div><div style="font:600 18px var(--ui);letter-spacing:.08em;text-transform:uppercase;margin-top:18px;color:#cfc9de">Shared slideshow</div><h4>Summer at the lake</h4><p>50 pictures · 4:10 · with music</p><p style="margin-top:14px">Press <b>OK</b> on the TV remote, or use your phone.</p></div><div class="qr">${qr}</div></div>`;
+// remote + play
+let playing=true,pos=18,total=48,vol=70,conn='on';
+function remote(){
+ const lost=conn!='on';
+ $('#p-remote').innerHTML=hdr('Remote',0)+`<div class="remote">
+ <div><span class="pill ${lost?'warn':''}"><i></i>${conn=='on'?'Showing on TV K7QM':conn=='re'?'Reconnecting …':'The TV is not there'}</span></div>
+ <div class="now"><b>July 2025</b><span>Picture ${pos+1} of ${total} · ${playing?'Playing':'Paused'}</span></div>
+ <div class="scrub"><input type="range" min="0" max="${total-1}" value="${pos}" id="sc" ${lost?'disabled':''}><div><span>${(pos*4.3/60|0)}:${String(pos*4.3%60|0).padStart(2,'0')}</span><span>3:20</span></div></div>
+ <div class="pad"><button id="pv" ${lost?'disabled':''}>⏮</button><button class="big" id="pp" ${lost?'disabled':''}>${playing?'❚❚':'▶'}</button><button id="nx" ${lost?'disabled':''}>⏭</button></div>
+ <div class="vol"><span>♪</span><input type="range" id="vo" min="0" max="100" value="${vol}" ${lost?'disabled':''}><span style="font:400 12px var(--mono);width:34px;text-align:right">${vol}%</span></div>
+ ${conn=='tvoff'?'<div class="notice">The TV closed its page. Open glissando.example/tv on it again to carry on.</div>':''}
+ <div style="display:flex;justify-content:space-between"><button class="btn ghost">Start over</button><button class="btn danger">Disconnect</button></div></div>`;
+ $('#pp').onclick=()=>{playing=!playing;note(playing?'▶ Playing':'❚❚ Paused');all()};
+ $('#pv').onclick=()=>{pos=Math.max(0,pos-1);note('⏮ Previous');all()};$('#nx').onclick=()=>{pos=Math.min(total-1,pos+1);note('⏭ Next');all()};
+ $('#sc').oninput=e=>{pos=+e.target.value;paint()};$('#sc').onchange=all;
+ $('#vo').onchange=e=>{vol=+e.target.value;note('♪ Volume '+vol+'%');all()};
+}
+let nt;function note(t){$('#toast')&&($('#toast').textContent=t,$('#toast').hidden=false,clearTimeout(nt),nt=setTimeout(()=>$('#toast').hidden=true,1800))}
+function paint(){
+ $('#tv-play').innerHTML=`<div class="pic" style="background:linear-gradient(${120+pos*20}deg,${grads[pos%4]});${playing?'':'animation-play-state:paused'}"></div>
+ <div class="toast" id="toast" hidden></div>
+ ${conn=='on'?'':`<div class="corner">${cornerQr}</div>`}`;
+}
+function all(){remote();paint()}all();
+document.querySelectorAll('#conn button').forEach(b=>b.onclick=()=>{conn=b.dataset.c;document.querySelectorAll('#conn button').forEach(x=>x.setAttribute('aria-pressed',x==b));all()});
+$('#tv-wait').innerHTML=`<div class="veil"><div class="txt"><div class="word">glissando</div><h4>Phone connected</h4><p>Choose a slideshow on your phone.</p></div></div>`;
+$('#tv-end').innerHTML=`<div class="veil"><div class="txt"><div class="word">glissando</div><h4>That was “July 2025”</h4><p>Press “Play again” on your phone, or pick another slideshow.</p></div></div>`;
+$('#tv-err').innerHTML=`<div class="veil"><div class="txt"><div class="word">glissando</div><h4>Can't reach the server</h4><p>It may be restarting. This page tries again by itself.</p></div></div>`;
+document.querySelectorAll('#theme button').forEach(b=>b.onclick=()=>{document.documentElement.dataset.theme=b.dataset.t;document.querySelectorAll('#theme button').forEach(x=>x.setAttribute('aria-pressed',x==b))});
+</script></body></html>
