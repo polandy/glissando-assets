@@ -106,7 +106,7 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .show { padding: 24px; display: grid; gap: 14px; }
 .show .head { display: grid; gap: 4px; }
 .tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-.tile { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; border: 0; padding: 0; cursor: pointer; background: var(--hover); }
+.tile { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; border: 0; padding: 0; cursor: pointer; background: var(--hover); container-type: inline-size; }
 .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tile .num { position: absolute; left: 6px; top: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border-radius: 6px; font: 500 11px var(--mono); padding: 3px 6px; }
 .tile.end { border: 1.5px dashed var(--faint); display: grid; place-items: center; background: var(--raised); color: var(--muted); gap: 4px; }
@@ -426,7 +426,7 @@ render();
 function frame(innerHtml, cls) {
   const d = document.createElement("div");
   d.className = "app " + cls;
-  d.style.cssText = "position:static; box-shadow:0 10px 28px rgba(20,14,40,.14);";
+  d.style.cssText = "box-shadow:0 10px 28px rgba(20,14,40,.14);";
   d.innerHTML = innerHtml;
   return d;
 }
