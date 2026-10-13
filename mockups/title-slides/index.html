@@ -39,7 +39,11 @@ html, body { overflow-x: hidden; }
 .intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
 .intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
 .intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 70ch; line-height: 1.5; }
-.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.controls .toggle { color: var(--page-ink); }
+.controls .toggle .box { background: var(--chip); }
+.controls .toggle .box::after { background: var(--page-card); }
+.controls .toggle input:checked + .box { background: var(--peach); }
 .seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
 .seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
@@ -140,6 +144,25 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 @keyframes riseIn { from { opacity: 0; transform: translateY(0.4em); } to { opacity: 1; transform: translateY(0); } }
 @keyframes bgfade { from { filter: brightness(0); } to { filter: brightness(1); } }
 @keyframes slowzoom { from { transform: scale(1); } to { transform: scale(1.09); } }
+
+/* Entrance: Word by word — each word rises in on its own, 120ms apart; reverses with its own stagger. */
+.slide.entrance-word.enter .title, .slide.entrance-word.enter .subtitle { animation: none; opacity: 1; }
+.slide.entrance-word .title .word, .slide.entrance-word .subtitle .word { display: inline-block; }
+.slide.entrance-word.enter .title .word { animation: riseIn 0.5s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i) * 0.12s); }
+.slide.entrance-word.enter .subtitle .word { animation: riseIn 0.5s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(0.1s + var(--i) * 0.12s); }
+.slide.entrance-word.dissolve .title, .slide.entrance-word.dissolve .subtitle { opacity: 1; filter: none; transform: none; letter-spacing: normal; }
+.slide.entrance-word.dissolve .title .word, .slide.entrance-word.dissolve .subtitle .word { opacity: 0; filter: blur(7px); transition: opacity 0.4s, filter 0.4s; transition-delay: calc(var(--ri) * 0.08s); }
+
+/* Entrance: Focus — text sharpens from a blur and wide letter-spacing to normal; reverses the same way. */
+.slide.entrance-focus.enter .title, .slide.entrance-focus.enter .subtitle { animation: focusIn 1s cubic-bezier(.2,.7,.2,1) both; }
+.slide.entrance-focus.dissolve .title, .slide.entrance-focus.dissolve .subtitle { opacity: 0; filter: blur(12px); letter-spacing: 0.08em; transform: none; transition: opacity 1s, filter 1s, letter-spacing 1s; }
+@keyframes focusIn { from { opacity: 0; filter: blur(12px); letter-spacing: 0.08em; } to { opacity: 1; filter: blur(0); letter-spacing: normal; } }
+
+/* Closing slide's mirrored sequence: starts unveiled (no transition), then settles in and later
+   fades the whole frame to black as the music fades out with it. */
+.slide.closing-start .title, .slide.closing-start .subtitle { opacity: 0 !important; transition: none !important; }
+.slide.closing-fadeout { animation: closingFade 1.5s ease both; }
+@keyframes closingFade { to { filter: brightness(0); } }
 .slide.style-modern .title { font: 700 9.5cqw/1.02 var(--display); letter-spacing: -0.02em; }
 .slide.style-modern .subtitle { font: 500 4.4cqw/1.3 var(--ui); }
 .slide.style-quiet .title { font: 400 5.2cqw/1.2 var(--ui); letter-spacing: 0.12em; text-transform: uppercase; }
@@ -152,7 +175,7 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 
 /* Editing panel: a dialog on desktop, a bottom sheet on a narrow app frame */
 .backdrop { position: absolute; inset: 0; background: var(--backdrop); z-index: 10; display: grid; place-items: center; padding: 24px; }
-.sheet { width: 100%; max-width: 420px; max-height: 100%; overflow: auto; background: var(--surface); border-radius: 16px; box-shadow: 0 24px 60px rgba(10, 6, 20, 0.3); display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 18px; color: var(--ink); }
+.sheet { width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; overflow-x: hidden; background: var(--surface); border-radius: 16px; box-shadow: 0 24px 60px rgba(10, 6, 20, 0.3); display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 18px; color: var(--ink); }
 .sheet .shead { display: flex; align-items: start; gap: 10px; }
 .sheet .shead b { font-family: var(--display); font-size: 18px; letter-spacing: -0.01em; flex: 1; }
 @container (max-width: 720px) {
@@ -167,7 +190,7 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .roundbtn { width: 32px; height: 32px; border-radius: 50%; border: 0; background: var(--inverse-bg); color: var(--inverse-text); display: inline-flex; align-items: center; gap: 7px; padding: 0 13px; width: auto; height: 32px; cursor: pointer; font: 600 12.5px var(--ui); }
 .roundbtn svg.i { width: 14px; height: 14px; }
 
-.sec { display: grid; gap: 10px; }
+.sec { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .sec + .sec { border-top: 1px solid var(--line); padding-top: 16px; }
 .sec .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .field { height: 38px; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 11px; background: var(--raised); color: var(--ink); font: 14px var(--ui); width: 100%; }
@@ -186,7 +209,7 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .stylecard .note { font-size: 10.5px; line-height: 1.3; color: var(--lemon-ink, #8a6d1e); background: color-mix(in srgb, var(--lemon) 30%, var(--raised)); border-radius: 5px; padding: 2px 6px; display: inline-block; max-width: 100%; white-space: normal; overflow-wrap: break-word; }
 
 .aseg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; background: var(--hover); border-radius: var(--radius); padding: 4px; }
-.aseg button { border: 0; background: transparent; color: var(--ink); border-radius: 7px; padding: 7px 8px; cursor: pointer; font-size: 13px; font-weight: 500; }
+.aseg button { border: 0; background: transparent; color: var(--ink); border-radius: 7px; padding: 7px 8px; cursor: pointer; font-size: 13px; font-weight: 500; min-width: 0; white-space: normal; text-align: center; }
 .aseg button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); font-weight: 600; }
 
 .swrow { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -208,6 +231,17 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .fade-row { display: grid; gap: 6px; }
 .fade-row input[type="range"] { width: 100%; accent-color: var(--accent); height: 20px; }
 .fade-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.tint-row { display: grid; gap: 6px; margin-top: 4px; }
+.sw-hairline { width: 1px; flex: none; align-self: stretch; background: var(--line); margin: 0 2px; }
+
+.beatbar { position: relative; height: 22px; margin-top: 2px; }
+.beatbar[hidden] { display: none; }
+.beatbar .ticks { display: flex; justify-content: space-between; align-items: flex-end; height: 100%; padding: 0 1px; }
+.beatbar .tick { width: 2px; height: 7px; background: var(--faint); border-radius: 1px; }
+.beatbar .tick.down { height: 14px; background: var(--muted); }
+.beatbar .accent { position: absolute; bottom: -1px; left: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); transform: translateX(-50%); }
+.beatbar .beatlabel { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--muted); white-space: nowrap; }
+.beatbar .playhead { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--accent); opacity: 0.8; }
 
 .gallery-style-btn { border: 0; padding: 0; margin: 0; cursor: pointer; background: transparent; display: block; border-radius: var(--radius-lg, 14px); }
 .gallery-style-btn:focus-visible { outline: 2px solid var(--peach); outline-offset: 3px; }
@@ -230,6 +264,7 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
     <div class="controls">
       <div class="seg" role="group" aria-label="Width"><button id="w-desk" data-width="desk">Desktop</button><button id="w-phone" data-width="phone">Phone</button></div>
       <div class="seg" role="group" aria-label="Theme"><button id="t-light" data-theme-set="light">Light</button><button id="t-dark" data-theme-set="dark">Dark</button></div>
+      <label class="toggle"><input type="checkbox" id="music-switch" checked><span class="box"></span>Music</label>
     </div>
   </div>
 
@@ -244,6 +279,7 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
     <div class="row-wrap" id="gal-styles"></div>
     <div class="row-wrap" id="gal-bg"></div>
     <div class="row-wrap" id="gal-reveal"></div>
+    <div class="row-wrap" id="gal-closing"></div>
   </div>
 </div>
 
@@ -285,6 +321,17 @@ function scene(i, w, h) {
 }
 const PICS = Array.from({ length: 6 }, (_, i) => ({ id: i, src: "data:image/svg+xml;utf8," + encodeURIComponent(scene(i, 480, 320)) }));
 
+/* ---------- Dominant tint per picture: warm scenes (sunset, dusk) get a warm veil tint, cool
+   scenes (blue sky, lake) get a cool one, each with its own readable text colour. ---------- */
+const PIC_TINTS = [
+  { hex: "#4a2a1a", text: "#FFF3E2" },
+  { hex: "#16323a", text: "#EAF6FB" },
+  { hex: "#3a1f3a", text: "#FCEFEF" },
+  { hex: "#1d3344", text: "#EAF3FA" },
+  { hex: "#4a2f24", text: "#FFF3E2" },
+  { hex: "#17322a", text: "#EAF8F2" },
+];
+
 /* ---------- Background colours: the 6 curated swatches, each with its own readable text colour ---------- */
 const SWATCHES = [
   { key: "plum", hex: "#2A2340", text: "#F6F3FF" },
@@ -294,7 +341,12 @@ const SWATCHES = [
   { key: "mint", hex: "#8FD9C4", text: "#13332A" },
   { key: "lemon", hex: "#FFD95A", text: "#3A2E08" },
 ];
-const swatchByKey = (k) => SWATCHES.find((s) => s.key === k);
+// Two swatches derived from the first picture's own palette, offered alongside the curated ones.
+const FROM_PICTURE_SWATCHES = [
+  { key: "pic-tint", hex: PIC_TINTS[0].hex, text: PIC_TINTS[0].text },
+  { key: "pic-accent", hex: PALETTES[0][2], text: "#2A2340" },
+];
+const swatchByKey = (k) => SWATCHES.find((s) => s.key === k) || FROM_PICTURE_SWATCHES.find((s) => s.key === k);
 
 const STYLES = [
   { key: "modern", name: "Modern", cls: "f-modern" },
@@ -305,40 +357,58 @@ const STYLES = [
 
 function defaultSlide(kind, titleText, subtitleText) {
   const isTitle = kind === "title";
-  return { kind, title: titleText, subtitle: subtitleText, style: "modern", position: "centre", reveal: isTitle,
+  return { kind, title: titleText, subtitle: subtitleText, style: "modern", position: "centre", reveal: true,
+    entrance: "rise", tint: "auto",
     bg: isTitle
       ? { type: "picture", colour: "plum", picture: 0, fade: 60 }
-      : { type: "colour", colour: "plum", picture: 0, fade: 60 } };
+      : { type: "picture", colour: "plum", picture: PICS.length - 1, fade: 60 } };
 }
 const SLIDESHOW = { title: "Summer at the Lake", range: "June 2026" };
 
 /* ---------- Rendering a slide: shared by tiles, the live preview and the gallery ---------- */
 /* A picture background is veiled (lowered contrast/saturation, a slight blur, a tint lifted toward cream in light
    theme / plum in dark theme) so the picture doesn't dominate; --fade (0-100, "Subtle" to "Strong") drives how much. */
+// The veil's tint: "auto" takes the selected picture's own dominant colour, or the picture can be
+// overridden to a fixed light/dark tint instead (the Tint chips in the Background section).
+function pictureTintFor(slide) {
+  if (slide.tint === "light") return swatchByKey("cream");
+  if (slide.tint === "dark") return swatchByKey("plum");
+  return PIC_TINTS[slide.bg.picture] || PIC_TINTS[0];
+}
+function escapeHtml(s) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
+// Word-by-word entrance: each word in its own span, carrying its forward (--i) and reverse (--ri)
+// index so CSS can stagger the rise-in and the reverse stagger on the way out.
+function wordsHtml(text) {
+  const words = escapeHtml(text).split(" ");
+  return words.map((w, i) => `<span class="word" style="--i:${i};--ri:${words.length - 1 - i}">${w}</span>`).join(" ");
+}
 function slideHtml(slide, { enter = false, id = "", theme = "light" } = {}) {
   const empty = !slide.title.trim();
   const sw = swatchByKey(slide.bg.colour);
   const isPicture = slide.bg.type === "picture";
-  const pictureTint = theme === "dark" ? swatchByKey("plum") : swatchByKey("cream");
+  const pictureTint = isPicture ? pictureTintFor(slide) : null;
   const fade = typeof slide.bg.fade === "number" ? slide.bg.fade : 60;
   const bg = isPicture
     ? `<div class="bg veil" style="--fade:${fade}; --tint:${pictureTint.hex}"><img src="${PICS[slide.bg.picture].src}" alt=""><div class="scrim"></div></div>`
     : `<div class="bg" style="background:${sw.hex}"></div>`;
   const textColor = isPicture ? pictureTint.text : sw.text;
-  return `<div class="slide style-${slide.style} pos-${slide.position} ${enter ? "enter" : ""}" id="${id}" style="color:${textColor}">
+  const entrance = slide.entrance || "rise";
+  const titleHtml = entrance === "word" ? wordsHtml(slide.title) : escapeHtml(slide.title);
+  const subtitleHtml = entrance === "word" ? wordsHtml(slide.subtitle) : escapeHtml(slide.subtitle);
+  return `<div class="slide style-${slide.style} pos-${slide.position} entrance-${entrance} ${enter ? "enter" : ""}" id="${id}" style="color:${textColor}">
     ${bg}
     <div class="text">
-      ${empty ? "" : `<p class="title">${escapeHtml(slide.title)}</p>${slide.subtitle.trim() ? `<p class="subtitle">${escapeHtml(slide.subtitle)}</p>` : ""}`}
+      ${empty ? "" : `<p class="title">${titleHtml}</p>${slide.subtitle.trim() ? `<p class="subtitle">${subtitleHtml}</p>` : ""}`}
     </div>
   </div>`;
 }
-function escapeHtml(s) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
 
 /* ---------- Interactive demo state ---------- */
 const S = {
   width: innerWidth < 760 ? "phone" : "desk",
   theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
   editing: null,
+  music: true,
   title: defaultSlide("title", SLIDESHOW.title, SLIDESHOW.range),
   closing: defaultSlide("closing", "", ""),
 };
@@ -374,22 +444,50 @@ function styleCardsHtml(slide) {
 }
 
 function bgControlsHtml(kind, slide) {
+  const picSwatches = FROM_PICTURE_SWATCHES.map((sw) => `<button class="sw" data-act="colour" data-colour="${sw.key}" aria-pressed="${slide.bg.colour === sw.key}" style="background:${sw.hex}" aria-label="${sw.key}"></button>`).join("");
   const swatches = SWATCHES.map((sw) => `<button class="sw" data-act="colour" data-colour="${sw.key}" aria-pressed="${slide.bg.colour === sw.key}" style="background:${sw.hex}" aria-label="${sw.key}"></button>`).join("");
   const picOpts = PICS.map((p, i) => `<button class="pic-opt" data-act="picture" data-picture="${i}" aria-pressed="${slide.bg.picture === i}" aria-label="Picture ${i + 1}"><img src="${p.src}" alt=""></button>`).join("");
-  return slide.bg.type === "colour" ? `<div class="swrow">${swatches}</div>` : `<div class="picrow">${picOpts}</div>
+  const toggleLabel = kind === "title" ? "Reveal" : "Fade in";
+  if (slide.bg.type === "colour") {
+    return `<div class="swrow">${picSwatches}<span class="sw-hairline" aria-hidden="true"></span>${swatches}</div>`;
+  }
+  const tint = slide.tint || "auto";
+  const tintRow = `<div class="tint-row">
+      <span class="eyebrow">Tint</span>
+      <div class="aseg" role="group" aria-label="Tint">
+        <button data-act="tint" data-tint="auto" aria-pressed="${tint === "auto"}">From picture</button>
+        <button data-act="tint" data-tint="light" aria-pressed="${tint === "light"}">Light</button>
+        <button data-act="tint" data-tint="dark" aria-pressed="${tint === "dark"}">Dark</button>
+      </div>
+    </div>`;
+  return `<div class="picrow">${picOpts}</div>
       <div class="fade-row">
         <div class="row"><label class="eyebrow" for="f-fade">Fade</label><span class="count mono" id="cnt-fade">${slide.bg.fade}%</span></div>
         <input type="range" id="f-fade" min="0" max="100" step="5" value="${slide.bg.fade}" data-act="fade">
         <div class="fade-labels"><span>Subtle</span><span>Strong</span></div>
       </div>
-      ${kind === "title" ? `<label class="toggle"><input type="checkbox" data-act="reveal" ${slide.reveal ? "checked" : ""}><span class="box"></span>Reveal</label>` : ""}`;
+      ${tintRow}
+      <label class="toggle"><input type="checkbox" data-act="reveal" ${slide.reveal ? "checked" : ""}><span class="box"></span>${toggleLabel}</label>`;
 }
 
 function hintText(kind, slide) {
   const isFirstPicture = slide.bg.type === "picture" && slide.bg.picture === 0;
-  return kind === "title"
-    ? `Title slide: about 4 s, on the beat. With Reveal, the picture takes over.${slide.reveal && isFirstPicture ? " As the show's first picture, it then continues seamlessly from here." : ""}`
+  if (kind === "title") {
+    const revealHint = slide.reveal ? (S.music ? " With music, the reveal lands on a downbeat." : " With Reveal, the picture takes over.") : "";
+    return `Title slide: about 4 s, on the beat.${revealHint}${slide.reveal && isFirstPicture ? " As the show's first picture, it then continues seamlessly from here." : ""}`;
+  }
+  return slide.reveal && slide.bg.type === "picture"
+    ? "Shown for about 4 s, on the beat. It fades to black as music fades out with it."
     : "Shown for about 4 s, on the beat.";
+}
+function beatBarHtml() {
+  const ticks = Array.from({ length: 8 }, (_, i) => `<span class="tick ${i % 4 === 0 ? "down" : ""}"></span>`).join("");
+  return `<div class="beatbar" id="beatbar" hidden>
+      <div class="ticks">${ticks}</div>
+      <div class="accent"></div>
+      <span class="beatlabel">Reveal on beat</span>
+      <div class="playhead"></div>
+    </div>`;
 }
 
 function panelHtml(kind) {
@@ -398,7 +496,7 @@ function panelHtml(kind) {
   return `<div class="backdrop" data-act="close-backdrop"><div class="sheet" role="dialog" aria-label="${label}">
       <div class="shead"><b>${label}</b><button class="iconbtn" data-act="close" aria-label="Close">${icon("close")}</button></div>
       <div class="pv-wrap"><div class="pv" id="pv">${slideHtml(slide, { id: "pv-slide", theme: S.theme })}</div>
-        <div class="pvbar"><button class="roundbtn" data-act="play">${icon("play", "fill")}Play</button></div></div>
+        <div class="pvbar"><button class="roundbtn" data-act="play">${icon("play", "fill")}Play</button></div>${beatBarHtml()}</div>
       <section class="sec">
         <div class="row"><label class="eyebrow" for="f-title">Title</label><span class="count mono" id="cnt-title">${slide.title.length} / 80</span></div>
         <input class="field" id="f-title" maxlength="80" data-act="title" value="${escapeHtml(slide.title)}" placeholder="Title">
@@ -406,6 +504,14 @@ function panelHtml(kind) {
         <input class="field" id="f-sub" maxlength="80" data-act="subtitle" value="${escapeHtml(slide.subtitle)}" placeholder="Subtitle">
       </section>
       <section class="sec"><span class="eyebrow">Style</span><div class="stylecards" id="style-cards">${styleCardsHtml(slide)}</div></section>
+      <section class="sec">
+        <span class="eyebrow">Entrance</span>
+        <div class="aseg" role="group" aria-label="Entrance">
+          <button data-act="entrance" data-entrance="rise" aria-pressed="${slide.entrance === "rise"}">Rise</button>
+          <button data-act="entrance" data-entrance="word" aria-pressed="${slide.entrance === "word"}">Word by word</button>
+          <button data-act="entrance" data-entrance="focus" aria-pressed="${slide.entrance === "focus"}">Focus</button>
+        </div>
+      </section>
       <section class="sec">
         <span class="eyebrow">Background</span>
         <div class="aseg" role="group" aria-label="Background type">
@@ -430,23 +536,59 @@ function panelHtml(kind) {
    leaving the picture to stand alone. Play replays this exact sequence from the start. ---------- */
 let revealTimer = null;
 function clearRevealTimer() { if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; } }
+// A simulated 100 BPM music bar: two 4-beat bars (4800ms), every 4th tick a downbeat. With Music
+// on, the title's reveal snaps to the downbeat at 2400ms instead of the plain 2500ms.
+const BEAT_BAR_MS = 4800;
+function updateBeatBar(active, delayMs) {
+  const bar = document.getElementById("beatbar");
+  if (!bar) return;
+  if (!active || !S.music) { bar.hidden = true; return; }
+  bar.hidden = false;
+  const accent = bar.querySelector(".accent");
+  if (accent) accent.style.left = `${(delayMs / BEAT_BAR_MS) * 100}%`;
+  const playhead = bar.querySelector(".playhead");
+  if (playhead) {
+    playhead.style.transition = "none";
+    playhead.style.left = "0%";
+    void playhead.offsetWidth;
+    playhead.style.transition = `left ${BEAT_BAR_MS}ms linear`;
+    playhead.style.left = "100%";
+  }
+}
 function playSequence(pvEl, slide) {
   if (!pvEl) return;
   clearRevealTimer();
   const el = pvEl.querySelector(".slide");
   if (!el) return;
-  el.classList.remove("enter", "dissolve");
+  el.classList.remove("enter", "dissolve", "closing-start", "closing-fadeout");
   void el.offsetWidth;
   const bgEl = el.querySelector(".bg.veil");
   const fade = typeof slide.bg.fade === "number" ? slide.bg.fade : 60;
+  updateBeatBar(false);
+
+  if (slide.kind === "closing" && slide.reveal && slide.bg.type === "picture") {
+    // Mirrors the reveal in reverse: starts unveiled, the veil settles in as the text rises,
+    // holds, then the whole frame fades to black as the music fades out with it.
+    if (bgEl) bgEl.style.setProperty("--fade", "0");
+    el.classList.add("closing-start");
+    void el.offsetWidth;
+    el.classList.remove("closing-start");
+    el.classList.add("enter");
+    requestAnimationFrame(() => { if (bgEl) bgEl.style.setProperty("--fade", fade); });
+    revealTimer = setTimeout(() => { el.classList.add("closing-fadeout"); }, 1400 + 3000);
+    return;
+  }
+
   if (bgEl) bgEl.style.setProperty("--fade", fade);
   el.classList.add("enter");
-  if (slide.reveal && slide.bg.type === "picture") {
+  if (slide.kind === "title" && slide.reveal && slide.bg.type === "picture") {
+    const delay = S.music ? 2400 : 2500;
+    updateBeatBar(true, delay);
     revealTimer = setTimeout(() => {
       el.classList.remove("enter");
       el.classList.add("dissolve");
       if (bgEl) bgEl.style.setProperty("--fade", "0");
-    }, 2500);
+    }, delay);
   }
 }
 
@@ -464,13 +606,23 @@ function render() {
 // the timed sequence.
 function settlePreview() {
   clearRevealTimer();
+  updateBeatBar(false);
   const el = document.querySelector("#pv .slide");
-  if (el) el.classList.remove("enter", "dissolve");
+  if (el) el.classList.remove("enter", "dissolve", "closing-start", "closing-fadeout");
 }
 function updatePreview() {
   settlePreview();
   const pv = document.getElementById("pv");
   if (pv) pv.innerHTML = slideHtml(currentSlide(), { id: "pv-slide", theme: S.theme });
+}
+// Entrance is the one control where picking a new value plays it once in the preview, instead of
+// landing straight on the settled state like every other control.
+function replayEntranceOnly() {
+  const el = document.querySelector("#pv .slide");
+  if (!el) return;
+  el.classList.remove("enter", "dissolve", "closing-start", "closing-fadeout");
+  void el.offsetWidth;
+  el.classList.add("enter");
 }
 function updateBgControls() {
   const el = document.getElementById("bg-controls");
@@ -485,6 +637,7 @@ function syncPressedStates() {
   document.querySelectorAll(".stylecard").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.style === slide.style)));
   document.querySelectorAll('[data-act="bgtype"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.bgtype === slide.bg.type)));
   document.querySelectorAll('[data-act="position"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.position === slide.position)));
+  document.querySelectorAll('[data-act="entrance"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.entrance === slide.entrance)));
 }
 
 stage.addEventListener("click", (e) => {
@@ -501,6 +654,8 @@ stage.addEventListener("click", (e) => {
   if (a === "colour") { slide.bg.colour = act.dataset.colour; updateBgControls(); updatePreview(); return; }
   if (a === "picture") { slide.bg.picture = Number(act.dataset.picture); updateBgControls(); updatePreview(); updateHint(); return; }
   if (a === "position") { slide.position = act.dataset.position; syncPressedStates(); updatePreview(); return; }
+  if (a === "entrance") { slide.entrance = act.dataset.entrance; syncPressedStates(); updatePreview(); replayEntranceOnly(); return; }
+  if (a === "tint") { slide.tint = act.dataset.tint; updateBgControls(); updatePreview(); return; }
   if (a === "reveal") { slide.reveal = act.checked; updateHint(); updatePreview(); return; }
   if (a === "remove") { slide.title = ""; slide.subtitle = ""; S.editing = null; render(); return; }
   if (a === "play") { playSequence(document.getElementById("pv"), currentSlide()); return; }
@@ -520,6 +675,10 @@ stage.addEventListener("input", (e) => {
 });
 for (const btn of document.querySelectorAll("[data-width]")) btn.onclick = () => { S.width = btn.dataset.width; render(); };
 for (const btn of document.querySelectorAll("[data-theme-set]")) btn.onclick = () => { S.theme = btn.dataset.themeSet; render(); };
+document.getElementById("music-switch").addEventListener("change", (e) => {
+  S.music = e.target.checked;
+  if (S.editing) updateHint();
+});
 render();
 
 /* ---------- Static gallery: fixed snapshots, independent of the interactive demo above ---------- */
@@ -668,6 +827,28 @@ const galReveal = document.getElementById("gal-reveal");
   const afterBg = after.querySelector(".bg.veil"); if (afterBg) afterBg.style.setProperty("--fade", "0");
   const afterText = after.querySelector(".text"); if (afterText) afterText.style.display = "none";
   galReveal.appendChild(labelled(after, "After — the picture stands alone"));
+}
+
+// 7. The closing slide's mirrored sequence: picture alone, then veiled with text, then faded to black.
+const galClosing = document.getElementById("gal-closing");
+{
+  const base = defaultSlide("closing", "Thank you for watching", "Made with Glissando");
+  base.bg = { type: "picture", colour: "plum", picture: PICS.length - 1, fade: 60 };
+
+  const start = document.createElement("div"); start.className = "pv standalone-16x9";
+  start.innerHTML = slideHtml(base, { theme: "light" });
+  const startBg = start.querySelector(".bg.veil"); if (startBg) startBg.style.setProperty("--fade", "0");
+  const startText = start.querySelector(".text"); if (startText) startText.style.display = "none";
+  galClosing.appendChild(labelled(start, "Closing: picture, unveiled"));
+
+  const settled = document.createElement("div"); settled.className = "pv standalone-16x9";
+  settled.innerHTML = slideHtml(base, { theme: "light" });
+  galClosing.appendChild(labelled(settled, "Veiled + text — holds"));
+
+  const black = document.createElement("div"); black.className = "pv standalone-16x9";
+  black.innerHTML = slideHtml(base, { theme: "light" });
+  black.style.filter = "brightness(0)";
+  galClosing.appendChild(labelled(black, "Black — music fades out with it"));
 }
 </script>
 </body>
