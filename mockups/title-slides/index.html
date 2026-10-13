@@ -152,12 +152,13 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 
 /* Editing panel: a dialog on desktop, a bottom sheet on a narrow app frame */
 .backdrop { position: absolute; inset: 0; background: var(--backdrop); z-index: 10; display: grid; place-items: center; padding: 24px; }
-.sheet { width: 100%; max-width: 420px; max-height: 100%; overflow: auto; background: var(--surface); border-radius: 16px; box-shadow: 0 24px 60px rgba(10, 6, 20, 0.3); display: grid; gap: 16px; padding: 18px; color: var(--ink); }
+.sheet { width: 100%; max-width: 420px; max-height: 100%; overflow: auto; background: var(--surface); border-radius: 16px; box-shadow: 0 24px 60px rgba(10, 6, 20, 0.3); display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 18px; color: var(--ink); }
 .sheet .shead { display: flex; align-items: start; gap: 10px; }
 .sheet .shead b { font-family: var(--display); font-size: 18px; letter-spacing: -0.01em; flex: 1; }
 @container (max-width: 720px) {
   .backdrop { place-items: end stretch; padding: 0; }
   .sheet { max-width: none; border-radius: 18px 18px 0 0; padding: 16px 16px 24px; max-height: 92%; }
+  .pv-wrap { position: sticky; top: 0; z-index: 3; background: var(--surface); padding-bottom: 10px; margin-bottom: -10px; }
 }
 
 .pv-wrap { display: grid; gap: 8px; }
@@ -366,18 +367,34 @@ function editorScreen() {
     ${S.editing ? panelHtml(S.editing) : ""}`;
 }
 
+function styleCardsHtml(slide) {
+  return STYLES.map((st) => `<button class="stylecard" data-act="style" data-style="${st.key}" aria-pressed="${slide.style === st.key}">
+      <span class="aa ${st.cls}">Aa</span><span class="name">${st.name}</span>${st.note ? `<span class="note">${st.note}</span>` : ""}
+    </button>`).join("");
+}
+
+function bgControlsHtml(kind, slide) {
+  const swatches = SWATCHES.map((sw) => `<button class="sw" data-act="colour" data-colour="${sw.key}" aria-pressed="${slide.bg.colour === sw.key}" style="background:${sw.hex}" aria-label="${sw.key}"></button>`).join("");
+  const picOpts = PICS.map((p, i) => `<button class="pic-opt" data-act="picture" data-picture="${i}" aria-pressed="${slide.bg.picture === i}" aria-label="Picture ${i + 1}"><img src="${p.src}" alt=""></button>`).join("");
+  return slide.bg.type === "colour" ? `<div class="swrow">${swatches}</div>` : `<div class="picrow">${picOpts}</div>
+      <div class="fade-row">
+        <div class="row"><label class="eyebrow" for="f-fade">Fade</label><span class="count mono" id="cnt-fade">${slide.bg.fade}%</span></div>
+        <input type="range" id="f-fade" min="0" max="100" step="5" value="${slide.bg.fade}" data-act="fade">
+        <div class="fade-labels"><span>Subtle</span><span>Strong</span></div>
+      </div>
+      ${kind === "title" ? `<label class="toggle"><input type="checkbox" data-act="reveal" ${slide.reveal ? "checked" : ""}><span class="box"></span>Reveal</label>` : ""}`;
+}
+
+function hintText(kind, slide) {
+  const isFirstPicture = slide.bg.type === "picture" && slide.bg.picture === 0;
+  return kind === "title"
+    ? `Title slide: about 4 s, on the beat. With Reveal, the picture takes over.${slide.reveal && isFirstPicture ? " As the show's first picture, it then continues seamlessly from here." : ""}`
+    : "Shown for about 4 s, on the beat.";
+}
+
 function panelHtml(kind) {
   const slide = kind === "title" ? S.title : S.closing;
   const label = kind === "title" ? "Title slide" : "Closing slide";
-  const styleCards = STYLES.map((st) => `<button class="stylecard" data-act="style" data-style="${st.key}" aria-pressed="${slide.style === st.key}">
-      <span class="aa ${st.cls}">Aa</span><span class="name">${st.name}</span>${st.note ? `<span class="note">${st.note}</span>` : ""}
-    </button>`).join("");
-  const swatches = SWATCHES.map((sw) => `<button class="sw" data-act="colour" data-colour="${sw.key}" aria-pressed="${slide.bg.colour === sw.key}" style="background:${sw.hex}" aria-label="${sw.key}"></button>`).join("");
-  const picOpts = PICS.map((p, i) => `<button class="pic-opt" data-act="picture" data-picture="${i}" aria-pressed="${slide.bg.picture === i}" aria-label="Picture ${i + 1}"><img src="${p.src}" alt=""></button>`).join("");
-  const isFirstPicture = slide.bg.type === "picture" && slide.bg.picture === 0;
-  const hint = kind === "title"
-    ? `Title slide: about 4 s, on the beat. With Reveal, the picture takes over.${slide.reveal && isFirstPicture ? " As the show's first picture, it then continues seamlessly from here." : ""}`
-    : "Shown for about 4 s, on the beat.";
   return `<div class="backdrop" data-act="close-backdrop"><div class="sheet" role="dialog" aria-label="${label}">
       <div class="shead"><b>${label}</b><button class="iconbtn" data-act="close" aria-label="Close">${icon("close")}</button></div>
       <div class="pv-wrap"><div class="pv" id="pv">${slideHtml(slide, { id: "pv-slide", theme: S.theme })}</div>
@@ -388,20 +405,14 @@ function panelHtml(kind) {
         <div class="row"><label class="eyebrow" for="f-sub">Subtitle</label><span class="count mono" id="cnt-sub">${slide.subtitle.length} / 80</span></div>
         <input class="field" id="f-sub" maxlength="80" data-act="subtitle" value="${escapeHtml(slide.subtitle)}" placeholder="Subtitle">
       </section>
-      <section class="sec"><span class="eyebrow">Style</span><div class="stylecards">${styleCards}</div></section>
+      <section class="sec"><span class="eyebrow">Style</span><div class="stylecards" id="style-cards">${styleCardsHtml(slide)}</div></section>
       <section class="sec">
         <span class="eyebrow">Background</span>
         <div class="aseg" role="group" aria-label="Background type">
           <button data-act="bgtype" data-bgtype="colour" aria-pressed="${slide.bg.type === "colour"}">Colour</button>
           <button data-act="bgtype" data-bgtype="picture" aria-pressed="${slide.bg.type === "picture"}">Picture</button>
         </div>
-        ${slide.bg.type === "colour" ? `<div class="swrow">${swatches}</div>` : `<div class="picrow">${picOpts}</div>
-          <div class="fade-row">
-            <div class="row"><label class="eyebrow" for="f-fade">Fade</label><span class="count mono" id="cnt-fade">${slide.bg.fade}%</span></div>
-            <input type="range" id="f-fade" min="0" max="100" step="5" value="${slide.bg.fade}" data-act="fade">
-            <div class="fade-labels"><span>Subtle</span><span>Strong</span></div>
-          </div>
-          ${kind === "title" ? `<label class="toggle"><input type="checkbox" data-act="reveal" ${slide.reveal ? "checked" : ""}><span class="box"></span>Reveal</label>` : ""}`}
+        <div id="bg-controls">${bgControlsHtml(kind, slide)}</div>
       </section>
       <section class="sec">
         <span class="eyebrow">Position</span>
@@ -410,7 +421,7 @@ function panelHtml(kind) {
           <button data-act="position" data-position="bottomleft" aria-pressed="${slide.position === "bottomleft"}">Bottom left</button>
         </div>
       </section>
-      <p class="small">${hint}</p>
+      <p class="small" id="hint-text">${hintText(kind, slide)}</p>
       <button class="btn danger" data-act="remove">${icon("trash")}Remove ${label.toLowerCase()}</button>
     </div></div>`;
 }
@@ -446,6 +457,36 @@ function render() {
   if (S.editing) playSequence(document.getElementById("pv"), currentSlide());
 }
 
+// While the panel is open, a setting change must not rebuild the sheet (that would reset its
+// scroll position) and must not replay the entrance/reveal animation (that "black flash" is the
+// bgfade keyframe restarting). It patches only the preview and the affected controls in place,
+// landing on the settled (held) state immediately. Only Play, and first opening the panel, replay
+// the timed sequence.
+function settlePreview() {
+  clearRevealTimer();
+  const el = document.querySelector("#pv .slide");
+  if (el) el.classList.remove("enter", "dissolve");
+}
+function updatePreview() {
+  settlePreview();
+  const pv = document.getElementById("pv");
+  if (pv) pv.innerHTML = slideHtml(currentSlide(), { id: "pv-slide", theme: S.theme });
+}
+function updateBgControls() {
+  const el = document.getElementById("bg-controls");
+  if (el) el.innerHTML = bgControlsHtml(S.editing, currentSlide());
+}
+function updateHint() {
+  const el = document.getElementById("hint-text");
+  if (el) el.textContent = hintText(S.editing, currentSlide());
+}
+function syncPressedStates() {
+  const slide = currentSlide();
+  document.querySelectorAll(".stylecard").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.style === slide.style)));
+  document.querySelectorAll('[data-act="bgtype"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.bgtype === slide.bg.type)));
+  document.querySelectorAll('[data-act="position"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.position === slide.position)));
+}
+
 stage.addEventListener("click", (e) => {
   const openTile = e.target.closest("[data-open]");
   if (openTile) { S.editing = openTile.dataset.open; render(); return; }
@@ -455,30 +496,28 @@ stage.addEventListener("click", (e) => {
   const a = act.dataset.act;
   const slide = currentSlide();
   if (a === "close") { clearRevealTimer(); S.editing = null; render(); return; }
-  if (a === "style") { slide.style = act.dataset.style; render(); return; }
-  if (a === "bgtype") { slide.bg.type = act.dataset.bgtype; render(); return; }
-  if (a === "colour") { slide.bg.colour = act.dataset.colour; render(); return; }
-  if (a === "picture") { slide.bg.picture = Number(act.dataset.picture); render(); return; }
-  if (a === "position") { slide.position = act.dataset.position; render(); return; }
-  if (a === "reveal") { slide.reveal = act.checked; render(); return; }
+  if (a === "style") { slide.style = act.dataset.style; syncPressedStates(); updatePreview(); return; }
+  if (a === "bgtype") { slide.bg.type = act.dataset.bgtype; syncPressedStates(); updateBgControls(); updatePreview(); updateHint(); return; }
+  if (a === "colour") { slide.bg.colour = act.dataset.colour; updateBgControls(); updatePreview(); return; }
+  if (a === "picture") { slide.bg.picture = Number(act.dataset.picture); updateBgControls(); updatePreview(); updateHint(); return; }
+  if (a === "position") { slide.position = act.dataset.position; syncPressedStates(); updatePreview(); return; }
+  if (a === "reveal") { slide.reveal = act.checked; updateHint(); updatePreview(); return; }
   if (a === "remove") { slide.title = ""; slide.subtitle = ""; S.editing = null; render(); return; }
   if (a === "play") { playSequence(document.getElementById("pv"), currentSlide()); return; }
 });
 stage.addEventListener("input", (e) => {
   const a = e.target.dataset.act, slide = currentSlide();
-  if (a === "title") { slide.title = e.target.value; document.getElementById("cnt-title").textContent = `${slide.title.length} / 80`; syncPreviewText(); }
-  if (a === "subtitle") { slide.subtitle = e.target.value; document.getElementById("cnt-sub").textContent = `${slide.subtitle.length} / 80`; syncPreviewText(); }
+  if (a === "title") { slide.title = e.target.value; document.getElementById("cnt-title").textContent = `${slide.title.length} / 80`; updatePreview(); }
+  if (a === "subtitle") { slide.subtitle = e.target.value; document.getElementById("cnt-sub").textContent = `${slide.subtitle.length} / 80`; updatePreview(); }
   if (a === "fade") {
     slide.bg.fade = Number(e.target.value);
     const label = document.getElementById("cnt-fade");
     if (label) label.textContent = `${slide.bg.fade}%`;
-    syncPreviewText();
+    settlePreview();
+    const bgEl = document.querySelector("#pv .bg.veil");
+    if (bgEl) bgEl.style.setProperty("--fade", slide.bg.fade);
   }
 });
-function syncPreviewText() {
-  const pv = document.getElementById("pv");
-  if (pv) pv.innerHTML = slideHtml(currentSlide(), { id: "pv-slide", theme: S.theme });
-}
 for (const btn of document.querySelectorAll("[data-width]")) btn.onclick = () => { S.width = btn.dataset.width; render(); };
 for (const btn of document.querySelectorAll("[data-theme-set]")) btn.onclick = () => { S.theme = btn.dataset.themeSet; render(); };
 render();
