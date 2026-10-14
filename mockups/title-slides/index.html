@@ -140,7 +140,7 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .slide .subtitle { margin: 0.35em 0 0; opacity: 0.88; max-width: 100%; overflow: hidden; transition: opacity 1.4s cubic-bezier(.4, 0, .2, 1), filter 1.4s cubic-bezier(.4, 0, .2, 1), transform 1.4s cubic-bezier(.4, 0, .2, 1); }
 .slide.enter .title, .slide.enter .subtitle { animation: riseIn 0.8s cubic-bezier(.2,.7,.2,1) both; }
 .slide.enter .subtitle { animation-delay: 0.08s; }
-.slide.dissolve .title, .slide.dissolve .subtitle { opacity: 0; filter: blur(7px); transform: translateY(-0.3em); letter-spacing: 0.08em; }
+.slide.dissolve .title, .slide.dissolve .subtitle { opacity: 0; transform: translateY(-0.3em); }
 @keyframes riseIn { from { opacity: 0; transform: translateY(0.4em); } to { opacity: 1; transform: translateY(0); } }
 @keyframes bgfade { from { filter: brightness(0); } to { filter: brightness(1); } }
 @keyframes slowzoom { from { transform: scale(1); } to { transform: scale(1.09); } }
@@ -151,12 +151,51 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .slide.entrance-word.enter .title .word { animation: riseIn 0.5s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i) * 0.12s); }
 .slide.entrance-word.enter .subtitle .word { animation: riseIn 0.5s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(0.1s + var(--i) * 0.12s); }
 .slide.entrance-word.dissolve .title, .slide.entrance-word.dissolve .subtitle { opacity: 1; filter: none; transform: none; letter-spacing: normal; }
-.slide.entrance-word.dissolve .title .word, .slide.entrance-word.dissolve .subtitle .word { opacity: 0; filter: blur(7px); transition: opacity 0.4s, filter 0.4s; transition-delay: calc(var(--ri) * 0.08s); }
+.slide.entrance-word.dissolve .title .word, .slide.entrance-word.dissolve .subtitle .word { opacity: 0; transition: opacity 0.4s; transition-delay: calc(var(--ri) * 0.08s); }
 
-/* Entrance: Focus — text sharpens from a blur and wide letter-spacing to normal; reverses the same way. */
+/* Entrance: Focus — text sharpens from a blur and a slight scale to normal size; reverses the same way. */
 .slide.entrance-focus.enter .title, .slide.entrance-focus.enter .subtitle { animation: focusIn 1s cubic-bezier(.2,.7,.2,1) both; }
-.slide.entrance-focus.dissolve .title, .slide.entrance-focus.dissolve .subtitle { opacity: 0; filter: blur(12px); letter-spacing: 0.08em; transform: none; transition: opacity 1s, filter 1s, letter-spacing 1s; }
-@keyframes focusIn { from { opacity: 0; filter: blur(12px); letter-spacing: 0.08em; } to { opacity: 1; filter: blur(0); letter-spacing: normal; } }
+.slide.entrance-focus.dissolve .title, .slide.entrance-focus.dissolve .subtitle { opacity: 0; filter: blur(12px); transform: scale(1.04); transition: opacity 1s, filter 1s, transform 1s; }
+@keyframes focusIn { from { opacity: 0; filter: blur(12px); transform: scale(1.04); } to { opacity: 1; filter: blur(0); transform: scale(1); } }
+
+/* Entrance: Letter by letter — each grapheme fades in with a tiny rise, 40ms apart (capped so an
+   80-char title still finishes within ~2s); the subtitle starts after the title's last letter.
+   Dissolve fades letters out in reverse order, 25ms apart. */
+.slide.entrance-letter.enter .title, .slide.entrance-letter.enter .subtitle { animation: none; opacity: 1; }
+.slide.entrance-letter .title .letter, .slide.entrance-letter .subtitle .letter { display: inline-block; }
+.slide.entrance-letter.enter .title .letter, .slide.entrance-letter.enter .subtitle .letter { animation: letterIn 0.35s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--d) * 1ms); }
+.slide.entrance-letter.dissolve .title, .slide.entrance-letter.dissolve .subtitle { opacity: 1; transform: none; }
+.slide.entrance-letter.dissolve .title .letter, .slide.entrance-letter.dissolve .subtitle .letter { opacity: 0; transition: opacity 0.3s; transition-delay: calc(var(--ri) * 25ms); }
+@keyframes letterIn { from { opacity: 0; transform: translateY(0.15em); } to { opacity: 1; transform: translateY(0); } }
+
+/* Entrance: Slow fade — opacity only, no drift, no blur. */
+.slide.entrance-fade.enter .title, .slide.entrance-fade.enter .subtitle { animation: slowFadeIn 1.6s ease both; }
+.slide.entrance-fade.dissolve .title, .slide.entrance-fade.dissolve .subtitle { opacity: 0; filter: none; transform: none; transition: opacity 1.6s ease; }
+@keyframes slowFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Respects the OS-level request for less motion: every entrance becomes a plain, short fade. */
+@media (prefers-reduced-motion: reduce) {
+  .slide.enter .title, .slide.enter .subtitle,
+  .slide.entrance-word.enter .title .word, .slide.entrance-word.enter .subtitle .word,
+  .slide.entrance-focus.enter .title, .slide.entrance-focus.enter .subtitle,
+  .slide.entrance-letter.enter .title .letter, .slide.entrance-letter.enter .subtitle .letter,
+  .slide.entrance-fade.enter .title, .slide.entrance-fade.enter .subtitle {
+    animation: reducedFadeIn 0.4s ease both !important;
+    animation-delay: 0s !important;
+  }
+  .slide.dissolve .title, .slide.dissolve .subtitle,
+  .slide.entrance-word.dissolve .title .word, .slide.entrance-word.dissolve .subtitle .word,
+  .slide.entrance-focus.dissolve .title, .slide.entrance-focus.dissolve .subtitle,
+  .slide.entrance-letter.dissolve .title .letter, .slide.entrance-letter.dissolve .subtitle .letter,
+  .slide.entrance-fade.dissolve .title, .slide.entrance-fade.dissolve .subtitle {
+    opacity: 0 !important;
+    filter: none !important;
+    transform: none !important;
+    transition: opacity 0.4s ease !important;
+    transition-delay: 0s !important;
+  }
+  @keyframes reducedFadeIn { from { opacity: 0; } to { opacity: 1; } }
+}
 
 /* Closing slide's mirrored sequence: starts unveiled (no transition), then settles in and later
    fades the whole frame to black as the music fades out with it. */
@@ -211,6 +250,12 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .aseg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; background: var(--hover); border-radius: var(--radius); padding: 4px; }
 .aseg button { border: 0; background: transparent; color: var(--ink); border-radius: 7px; padding: 7px 8px; cursor: pointer; font-size: 13px; font-weight: 500; min-width: 0; white-space: normal; text-align: center; }
 .aseg button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); font-weight: 600; }
+
+/* Entrance control: five options don't fit one row on a narrow phone, so it wraps as chips
+   instead of a fixed-column segmented control, in the same visual language as .aseg. */
+.chiprow { display: flex; flex-wrap: wrap; gap: 6px; background: var(--hover); border-radius: var(--radius); padding: 4px; }
+.chiprow button { border: 0; background: transparent; color: var(--ink); border-radius: 7px; padding: 7px 10px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.chiprow button[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow); font-weight: 600; }
 
 .swrow { display: flex; gap: 8px; flex-wrap: wrap; }
 .sw { width: 34px; height: 34px; border-radius: 9px; border: 1.5px solid var(--line); cursor: pointer; position: relative; }
@@ -382,6 +427,27 @@ function wordsHtml(text) {
   const words = escapeHtml(text).split(" ");
   return words.map((w, i) => `<span class="word" style="--i:${i};--ri:${words.length - 1 - i}">${w}</span>`).join(" ");
 }
+// Letter-by-letter entrance: each grapheme gets its own span carrying a forward delay --d (ms,
+// capped at 40ms apart so an 80-char title still settles within ~2s) and a reverse index --ri for
+// the dissolve stagger; spaces stay literal so the line still wraps between words. `startMs` lets
+// the subtitle begin only after the title's last letter has finished fading in.
+function lettersHtml(text, startMs) {
+  const chars = Array.from(text);
+  const letters = chars.filter((c) => c !== " ");
+  const perLetter = letters.length ? Math.min(40, 1600 / letters.length) : 0;
+  let i = 0;
+  const html = chars
+    .map((c) => {
+      if (c === " ") return " ";
+      const ri = letters.length - 1 - i;
+      const d = Math.round(startMs + i * perLetter);
+      i++;
+      return `<span class="letter" style="--d:${d};--ri:${ri}">${escapeHtml(c)}</span>`;
+    })
+    .join("");
+  const endMs = startMs + (letters.length ? (letters.length - 1) * perLetter + 350 : 0);
+  return { html, endMs };
+}
 function slideHtml(slide, { enter = false, id = "", theme = "light" } = {}) {
   const empty = !slide.title.trim();
   const sw = swatchByKey(slide.bg.colour);
@@ -393,8 +459,18 @@ function slideHtml(slide, { enter = false, id = "", theme = "light" } = {}) {
     : `<div class="bg" style="background:${sw.hex}"></div>`;
   const textColor = isPicture ? pictureTint.text : sw.text;
   const entrance = slide.entrance || "rise";
-  const titleHtml = entrance === "word" ? wordsHtml(slide.title) : escapeHtml(slide.title);
-  const subtitleHtml = entrance === "word" ? wordsHtml(slide.subtitle) : escapeHtml(slide.subtitle);
+  let titleHtml, subtitleHtml;
+  if (entrance === "word") {
+    titleHtml = wordsHtml(slide.title);
+    subtitleHtml = wordsHtml(slide.subtitle);
+  } else if (entrance === "letter") {
+    const title = lettersHtml(slide.title, 0);
+    titleHtml = title.html;
+    subtitleHtml = lettersHtml(slide.subtitle, title.endMs).html;
+  } else {
+    titleHtml = escapeHtml(slide.title);
+    subtitleHtml = escapeHtml(slide.subtitle);
+  }
   return `<div class="slide style-${slide.style} pos-${slide.position} entrance-${entrance} ${enter ? "enter" : ""}" id="${id}" style="color:${textColor}">
     ${bg}
     <div class="text">
@@ -506,10 +582,12 @@ function panelHtml(kind) {
       <section class="sec"><span class="eyebrow">Style</span><div class="stylecards" id="style-cards">${styleCardsHtml(slide)}</div></section>
       <section class="sec">
         <span class="eyebrow">Entrance</span>
-        <div class="aseg" role="group" aria-label="Entrance">
+        <div class="chiprow" role="group" aria-label="Entrance">
           <button data-act="entrance" data-entrance="rise" aria-pressed="${slide.entrance === "rise"}">Rise</button>
           <button data-act="entrance" data-entrance="word" aria-pressed="${slide.entrance === "word"}">Word by word</button>
           <button data-act="entrance" data-entrance="focus" aria-pressed="${slide.entrance === "focus"}">Focus</button>
+          <button data-act="entrance" data-entrance="letter" aria-pressed="${slide.entrance === "letter"}">Letter by letter</button>
+          <button data-act="entrance" data-entrance="fade" aria-pressed="${slide.entrance === "fade"}">Slow fade</button>
         </div>
       </section>
       <section class="sec">
