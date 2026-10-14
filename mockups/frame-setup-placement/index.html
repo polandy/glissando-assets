@@ -52,6 +52,7 @@ h1 { font:700 28px/1.2 "Bricolage Grotesque",system-ui,sans-serif; margin:0 0 6p
 .ibtn { width:36px; height:36px; display:grid; place-items:center; border:0; background:none; border-radius:var(--gl-radius); color:var(--gl-muted); position:relative; }
 .ibtn:hover, .ibtn[aria-expanded="true"] { background:var(--gl-hover); color:var(--gl-ink); }
 .body { flex:1; overflow:auto; padding:22px 20px 28px; display:flex; flex-direction:column; gap:20px; }
+.body > * { flex:none; }
 .eyebrow { font:500 11px "Geist Mono",monospace; letter-spacing:.06em; text-transform:uppercase; color:var(--gl-muted); }
 .ttl { font:700 22px/1.2 "Bricolage Grotesque",sans-serif; letter-spacing:-.015em; margin:2px 0 0; display:flex; align-items:center; gap:10px; }
 .lead2 { margin:4px 0 12px; color:var(--gl-muted); font-size:12.5px; }
@@ -102,6 +103,14 @@ h1 { font:700 28px/1.2 "Bricolage Grotesque",system-ui,sans-serif; margin:0 0 6p
 .menu .i { color:var(--gl-muted); }
 .menu small { display:block; color:var(--gl-muted); font-size:12px; }
 
+/* Switch and toast */
+.sw { margin-left:auto; width:38px; height:22px; border-radius:999px; background:var(--gl-hover); border:1px solid var(--gl-line); position:relative; flex:none; }
+.sw::after { content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:var(--gl-faint); transition:.15s; }
+.sw.on { background:var(--gl-mint); border-color:transparent; }
+.sw.on::after { left:18px; background:#fff; }
+.toast { position:absolute; left:16px; right:16px; bottom:16px; z-index:7; display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:var(--gl-radius); background:var(--gl-ink); color:var(--gl-surface); font-size:13px; }
+.toast button { margin-left:auto; border:0; background:none; font-weight:600; color:inherit; text-decoration:underline; }
+
 /* Frame set-up stub: proves the entry point reaches the same screen from every option */
 .setup { position:absolute; inset:0; z-index:8; background:var(--gl-ground); display:flex; flex-direction:column; }
 .albums { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px; }
@@ -128,6 +137,12 @@ h1 { font:700 28px/1.2 "Bricolage Grotesque",system-ui,sans-serif; margin:0 0 6p
     <h2>Today <span class="tag">for reference</span></h2>
     <p class="lead" style="margin-bottom:10px">A full-width card with its own heading and a button, above the library.</p>
     <div class="devices" data-opt="today"></div>
+  </section>
+
+  <section class="opt" id="optD">
+    <h2>D · Stays on top, but can be dismissed with ✕ <span class="tag">your idea</span></h2>
+    <div class="pc"><p><b>Pro:</b> people who want the frame see it right away; everyone else removes it once with ✕ and the choice is kept in the browser. Nothing is hidden for good — Settings brings it back, and the set-up stays reachable from there.</p><p><b>Con:</b> every new visitor still meets the big card first, until they dismiss it; the dismissal is per browser, and after it the frame lives in Settings like option B. Try it: click ✕, then open the gear.</p></div>
+    <div class="devices" data-opt="D"></div>
   </section>
 
   <section class="opt" id="optA">
@@ -181,14 +196,15 @@ const newTile = '<button class="new" type="button">' + icon('plus') + 'New slide
 const logo = '<svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="5" width="13" height="10" rx="2" transform="rotate(-14 7 10)" fill="#ffb59a" stroke="#2a2340" stroke-width="1.2"/><rect x="6" y="5" width="13" height="10" rx="2" transform="rotate(-2 12 10)" fill="#8fd9c4" stroke="#2a2340" stroke-width="1.2"/><rect x="10" y="6" width="13" height="10" rx="2" transform="rotate(10 16 11)" fill="#ffd95a" stroke="#2a2340" stroke-width="1.2"/></svg>';
 
 const frameCardToday = `<div class="show" style="display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:default"><span class="ico" style="width:44px;height:44px;border-radius:10px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--gl-accent) 16%,var(--gl-surface));color:var(--gl-accent)">${icon('frame')}</span><span style="flex:1;min-width:0"><b style="font-weight:600">Picture frame</b><br><span style="color:var(--gl-muted);font-size:12.5px">Shows an Immich album, endlessly, on this screen</span></span><button class="btn" data-open="setup" type="button">Set up</button></div>`;
+const frameCardD = `<div class="show" style="display:flex;align-items:center;gap:14px;padding:14px 12px 14px 16px;cursor:default"><span class="ico" style="width:44px;height:44px;border-radius:10px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--gl-accent) 16%,var(--gl-surface));color:var(--gl-accent)">${icon('frame')}</span><span style="flex:1;min-width:0"><b style="font-weight:600">Picture frame</b><br><span style="color:var(--gl-muted);font-size:12.5px">Shows an Immich album, endlessly, on this screen</span></span><button class="btn" data-open="setup" type="button">Set up</button><button class="ibtn" data-act="dismiss" aria-label="Hide the picture frame card" title="Hide" type="button">${icon('close')}</button></div>`;
 const frameRowA = `<button class="frame-row" data-open="setup" type="button"><span class="ico">${icon('frame')}</span><span class="t"><b>Picture frame</b>Show an Immich album endlessly on a spare screen</span><span class="go">Set up ${icon('chevronRight')}</span></button>`;
 
-function library(opt, compact){
+function library(opt, compact, st){
   const dev = `<div><div class="eyebrow">Library</div><h1 class="ttl" style="font-size:22px">${icon('device')}On this device</h1></div>
     <ul class="grid"><li>${card('Lake weekend',42,'3:30',0)}</li><li>${card('Autumn walk',28,'2:10',1)}</li><li>${newTile}</li></ul>`;
   const srv = `<div><h2 class="ttl" style="font-size:22px">${icon('server')}On the server</h2><p class="lead2">Shared with everyone who uses this server.</p>
     <ul class="grid"><li>${card('Summer roadtrip',96,'7:45',2,true)}</li><li>${card('Old town at night',31,'2:40',3,true)}</li><li>${newTile}</li></ul></div>`;
-  return (opt === 'today' ? frameCardToday : '') + dev + srv + (opt === 'A' ? frameRowA : '');
+  return (opt === 'today' ? frameCardToday : '') + (opt === 'D' && !st.dismissed ? frameCardD : '') + dev + srv + (opt === 'A' ? frameRowA : '');
 }
 
 function header(opt){
@@ -196,12 +212,13 @@ function header(opt){
   return `<div class="hdr"><span class="word">${logo}Glissando</span>${more}<button class="ibtn" data-act="settings" aria-label="Settings" type="button">${icon('gear')}</button><button class="btn primary" type="button">${icon('plus')}<span class="lbl">New slideshow</span></button></div>`;
 }
 
-function settings(opt){
+function settings(opt, st){
   const frame = opt === 'B' ? `<div class="sec"><h3>Picture frame</h3><button class="row" data-open="setup" type="button"><span class="ico">${icon('frame')}</span><span><b>Set up a picture frame</b><small>Show an Immich album endlessly on this screen</small></span><span class="go">${icon('chevronRight')}</span></button></div>` : '';
+  const frameD = opt === 'D' ? `<div class="sec"><h3>Picture frame</h3><button class="row" data-open="setup" type="button"><span class="ico">${icon('frame')}</span><span><b>Set up a picture frame</b><small>Show an Immich album endlessly on this screen</small></span><span class="go">${icon('chevronRight')}</span></button><button class="row" data-act="toggleCard" role="switch" aria-checked="${!st.dismissed}" type="button"><span><b>Show the card on the start page</b><small>${st.dismissed ? 'Hidden in this browser' : 'Shown above your slideshows'}</small></span><span class="sw ${st.dismissed ? '' : 'on'}"></span></button></div>` : '';
   return `<div class="scrim"><div class="panel"><div class="hdr"><button class="ibtn" data-act="close" aria-label="Close" type="button">${icon('close')}</button><span class="word" style="transform:none">Settings</span></div>
     <div class="body" style="gap:16px">
       <div class="sec"><h3>Appearance</h3><div class="row"><span><b>Theme</b><small>Same as device</small></span><span class="pills"><span class="on">Auto</span><span>Light</span><span>Dark</span></span></div><div class="row"><span><b>Language</b><small>Same as browser</small></span><span class="pills"><span class="on">Auto</span><span>EN</span><span>DE</span></span></div></div>
-      ${frame}
+      ${frame}${frameD}
       <div class="sec"><h3>Server</h3><div class="row"><span><b>Quality of server slideshows</b><small>Automatic</small></span><span class="go">${icon('chevronRight')}</span></div></div>
       <div class="sec"><h3>About</h3><div class="row"><span><b>Version</b><small>Glissando 0.0.5</small></span></div></div>
     </div></div></div>`;
@@ -217,17 +234,22 @@ const setupScreen = `<div class="setup"><div class="hdr"><button class="ibtn" da
 function build(mount, opt, kind){
   const compact = kind === 'phone';
   const box = document.createElement('div');
-  box.innerHTML = `<div class="dev-label">${kind === 'phone' ? 'Phone · 390 px' : 'Desktop · 900 px'}${opt === 'A' ? '<button type="button" data-scroll="top">top</button><button type="button" data-scroll="end">bottom</button>' : ''}</div><div class="${kind}"><div class="app ${compact ? 'compact' : ''}" data-theme="light">${header(opt)}<div class="body">${library(opt, compact)}</div></div></div>`;
+  box.innerHTML = `<div class="dev-label">${kind === 'phone' ? 'Phone · 390 px' : 'Desktop · 900 px'}${opt === 'A' ? '<button type="button" data-scroll="top">top</button><button type="button" data-scroll="end">bottom</button>' : ''}</div><div class="${kind}"><div class="app ${compact ? 'compact' : ''}" data-theme="light">${header(opt)}<div class="body">${library(opt, compact, {dismissed:false})}</div></div></div>`;
   mount.appendChild(box);
   const app = box.querySelector('.app'), body = app.querySelector('.body');
+  const st = { dismissed: false };
+  const paint = () => { const y = body.scrollTop; body.innerHTML = library(opt, compact, st); body.scrollTop = y; };
   const close = () => { app.querySelectorAll('.scrim,.menu,.setup').forEach(e => e.remove()); app.querySelector('[data-act=menu]')?.setAttribute('aria-expanded','false'); };
   box.addEventListener('click', e => {
     const t = e.target.closest('[data-act],[data-open],[data-scroll]'); if (!t) return;
     if (t.dataset.scroll) { body.scrollTo({top: t.dataset.scroll === 'end' ? 1e5 : 0, behavior:'smooth'}); return; }
     if (t.dataset.open === 'setup') { app.querySelectorAll('.scrim,.menu').forEach(x => x.remove()); app.insertAdjacentHTML('beforeend', setupScreen); return; }
     const a = t.dataset.act;
-    if (a === 'settings') { close(); app.insertAdjacentHTML('beforeend', settings(opt)); }
+    if (a === 'settings') { close(); app.querySelector('.toast')?.remove(); app.insertAdjacentHTML('beforeend', settings(opt, st)); }
     else if (a === 'menu') { const was = app.querySelector('.menu'); close(); if (!was) { app.insertAdjacentHTML('beforeend', menu); t.setAttribute('aria-expanded','true'); } }
+    else if (a === 'dismiss') { st.dismissed = true; paint(); app.querySelector('.toast')?.remove(); app.insertAdjacentHTML('beforeend', '<div class="toast">Picture frame hidden. Bring it back in Settings.<button data-act="undo" type="button">Undo</button></div>'); }
+    else if (a === 'undo') { st.dismissed = false; paint(); app.querySelector('.toast')?.remove(); }
+    else if (a === 'toggleCard') { st.dismissed = !st.dismissed; paint(); app.querySelector('.scrim')?.remove(); app.insertAdjacentHTML('beforeend', settings(opt, st)); }
     else if (a === 'close') close();
     else if (a === 'back') app.querySelector('.setup')?.remove();
   });
