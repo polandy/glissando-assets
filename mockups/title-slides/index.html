@@ -140,8 +140,9 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .slide .subtitle { margin: 0.35em 0 0; opacity: 0.88; max-width: 100%; overflow: hidden; transition: opacity 1.4s cubic-bezier(.4, 0, .2, 1), filter 1.4s cubic-bezier(.4, 0, .2, 1), transform 1.4s cubic-bezier(.4, 0, .2, 1); }
 .slide.enter .title, .slide.enter .subtitle { animation: riseIn 0.8s cubic-bezier(.2,.7,.2,1) both; }
 .slide.enter .subtitle { animation-delay: 0.08s; }
-.slide.dissolve .title, .slide.dissolve .subtitle { opacity: 0; transform: translateY(-0.3em); }
+.slide.dissolve .title, .slide.dissolve .subtitle { animation: riseOut 1.4s ease-in-out both; }
 @keyframes riseIn { from { opacity: 0; transform: translateY(0.4em); } to { opacity: 1; transform: translateY(0); } }
+@keyframes riseOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-0.3em); } }
 @keyframes bgfade { from { filter: brightness(0); } to { filter: brightness(1); } }
 @keyframes slowzoom { from { transform: scale(1); } to { transform: scale(1.09); } }
 
@@ -156,8 +157,9 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 
 /* Entrance: Focus — text sharpens from a blur and a slight scale to normal size; reverses the same way. */
 .slide.entrance-focus.enter .title, .slide.entrance-focus.enter .subtitle { animation: focusIn 1s cubic-bezier(.2,.7,.2,1) both; }
-.slide.entrance-focus.dissolve .title, .slide.entrance-focus.dissolve .subtitle { opacity: 0; filter: blur(12px); transform: scale(1.04); transition: opacity 1s, filter 1s, transform 1s; }
+.slide.entrance-focus.dissolve .title, .slide.entrance-focus.dissolve .subtitle { animation: focusOut 1.4s ease-in-out both; }
 @keyframes focusIn { from { opacity: 0; filter: blur(12px); transform: scale(1.04); } to { opacity: 1; filter: blur(0); transform: scale(1); } }
+@keyframes focusOut { from { opacity: 1; filter: blur(0); transform: scale(1); } to { opacity: 0; filter: blur(12px); transform: scale(1.04); } }
 
 /* Entrance: Letter by letter — each grapheme fades in with a tiny rise, 40ms apart (capped so an
    80-char title still finishes within ~2s); the subtitle starts after the title's last letter.
@@ -172,8 +174,9 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 
 /* Entrance: Slow fade — opacity only, no drift, no blur. */
 .slide.entrance-fade.enter .title, .slide.entrance-fade.enter .subtitle { animation: slowFadeIn 1.6s ease both; }
-.slide.entrance-fade.dissolve .title, .slide.entrance-fade.dissolve .subtitle { opacity: 0; filter: none; transform: none; transition: opacity 1.6s ease; }
+.slide.entrance-fade.dissolve .title, .slide.entrance-fade.dissolve .subtitle { animation: slowFadeOut 1.4s ease-in-out both; }
 @keyframes slowFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slowFadeOut { from { opacity: 1; } to { opacity: 0; } }
 
 /* Respects the OS-level request for less motion: every entrance becomes a plain, short fade. */
 @media (prefers-reduced-motion: reduce) {
@@ -187,17 +190,13 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
   }
   .slide.dissolve .title, .slide.dissolve .subtitle,
   .slide.entrance-focus.dissolve .title, .slide.entrance-focus.dissolve .subtitle,
-  .slide.entrance-fade.dissolve .title, .slide.entrance-fade.dissolve .subtitle {
-    opacity: 0 !important;
-    filter: none !important;
-    transform: none !important;
-    transition: opacity 0.4s ease !important;
-    transition-delay: 0s !important;
-  }
+  .slide.entrance-fade.dissolve .title, .slide.entrance-fade.dissolve .subtitle,
   .slide.entrance-word.dissolve .title .word, .slide.entrance-word.dissolve .subtitle .word,
   .slide.entrance-letter.dissolve .title .letter, .slide.entrance-letter.dissolve .subtitle .letter {
     animation: reducedFadeOut 0.4s ease both !important;
     animation-delay: 0s !important;
+    filter: none !important;
+    transform: none !important;
   }
   @keyframes reducedFadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes reducedFadeOut { from { opacity: 1; } to { opacity: 0; } }
