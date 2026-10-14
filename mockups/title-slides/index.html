@@ -151,7 +151,8 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .slide.entrance-word.enter .title .word { animation: riseIn 0.5s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i) * 0.12s); }
 .slide.entrance-word.enter .subtitle .word { animation: riseIn 0.5s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(0.1s + var(--i) * 0.12s); }
 .slide.entrance-word.dissolve .title, .slide.entrance-word.dissolve .subtitle { opacity: 1; filter: none; transform: none; letter-spacing: normal; }
-.slide.entrance-word.dissolve .title .word, .slide.entrance-word.dissolve .subtitle .word { opacity: 0; transition: opacity 0.4s; transition-delay: calc(var(--ri) * 0.08s); }
+.slide.entrance-word.dissolve .title .word, .slide.entrance-word.dissolve .subtitle .word { animation: wordOut 0.6s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--od) * 1ms); }
+@keyframes wordOut { from { opacity: 1; } to { opacity: 0; } }
 
 /* Entrance: Focus — text sharpens from a blur and a slight scale to normal size; reverses the same way. */
 .slide.entrance-focus.enter .title, .slide.entrance-focus.enter .subtitle { animation: focusIn 1s cubic-bezier(.2,.7,.2,1) both; }
@@ -165,7 +166,8 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
 .slide.entrance-letter .title .letter, .slide.entrance-letter .subtitle .letter { display: inline-block; }
 .slide.entrance-letter.enter .title .letter, .slide.entrance-letter.enter .subtitle .letter { animation: letterIn 0.35s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--d) * 1ms); }
 .slide.entrance-letter.dissolve .title, .slide.entrance-letter.dissolve .subtitle { opacity: 1; transform: none; }
-.slide.entrance-letter.dissolve .title .letter, .slide.entrance-letter.dissolve .subtitle .letter { opacity: 0; transition: opacity 0.3s; transition-delay: calc(var(--ri) * 25ms); }
+.slide.entrance-letter.dissolve .title .letter, .slide.entrance-letter.dissolve .subtitle .letter { animation: letterOut 0.4s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--od) * 1ms); }
+@keyframes letterOut { from { opacity: 1; } to { opacity: 0; } }
 @keyframes letterIn { from { opacity: 0; transform: translateY(0.15em); } to { opacity: 1; transform: translateY(0); } }
 
 /* Entrance: Slow fade — opacity only, no drift, no blur. */
@@ -184,9 +186,7 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
     animation-delay: 0s !important;
   }
   .slide.dissolve .title, .slide.dissolve .subtitle,
-  .slide.entrance-word.dissolve .title .word, .slide.entrance-word.dissolve .subtitle .word,
   .slide.entrance-focus.dissolve .title, .slide.entrance-focus.dissolve .subtitle,
-  .slide.entrance-letter.dissolve .title .letter, .slide.entrance-letter.dissolve .subtitle .letter,
   .slide.entrance-fade.dissolve .title, .slide.entrance-fade.dissolve .subtitle {
     opacity: 0 !important;
     filter: none !important;
@@ -194,7 +194,13 @@ h2.t { font-family: var(--display); font-weight: 700; font-size: 26px; letter-sp
     transition: opacity 0.4s ease !important;
     transition-delay: 0s !important;
   }
+  .slide.entrance-word.dissolve .title .word, .slide.entrance-word.dissolve .subtitle .word,
+  .slide.entrance-letter.dissolve .title .letter, .slide.entrance-letter.dissolve .subtitle .letter {
+    animation: reducedFadeOut 0.4s ease both !important;
+    animation-delay: 0s !important;
+  }
   @keyframes reducedFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes reducedFadeOut { from { opacity: 1; } to { opacity: 0; } }
 }
 
 /* Closing slide's mirrored sequence: starts unveiled (no transition), then settles in and later
@@ -421,31 +427,39 @@ function pictureTintFor(slide) {
   return PIC_TINTS[slide.bg.picture] || PIC_TINTS[0];
 }
 function escapeHtml(s) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
-// Word-by-word entrance: each word in its own span, carrying its forward (--i) and reverse (--ri)
-// index so CSS can stagger the rise-in and the reverse stagger on the way out.
+// Word-by-word entrance: each word in its own span, carrying its forward index --i for the rise-in
+// stagger and a reverse out-delay --od (ms) for the dissolve, each word fading out 600ms, 80ms
+// apart and capped at 800ms / (n-1) so a many-word title still clears in reasonable time.
 function wordsHtml(text) {
   const words = escapeHtml(text).split(" ");
-  return words.map((w, i) => `<span class="word" style="--i:${i};--ri:${words.length - 1 - i}">${w}</span>`).join(" ");
+  const n = words.length;
+  const outStep = n > 1 ? Math.min(80, 800 / (n - 1)) : 0;
+  return words
+    .map((w, i) => `<span class="word" style="--i:${i};--od:${Math.round((n - 1 - i) * outStep)}">${w}</span>`)
+    .join(" ");
 }
 // Letter-by-letter entrance: each grapheme gets its own span carrying a forward delay --d (ms,
-// capped at 40ms apart so an 80-char title still settles within ~2s) and a reverse index --ri for
-// the dissolve stagger; spaces stay literal so the line still wraps between words. `startMs` lets
-// the subtitle begin only after the title's last letter has finished fading in.
+// capped at 40ms apart so an 80-char title still settles within ~2s) and a reverse out-delay --od
+// (ms) for the dissolve, each letter fading out 400ms, 25ms apart and capped at 1000ms / (n-1);
+// spaces stay literal so the line still wraps between words. `startMs` lets the subtitle begin only
+// after the title's last letter has finished fading in.
 function lettersHtml(text, startMs) {
   const chars = Array.from(text);
   const letters = chars.filter((c) => c !== " ");
-  const perLetter = letters.length ? Math.min(40, 1600 / letters.length) : 0;
+  const n = letters.length;
+  const perLetter = n ? Math.min(40, 1600 / n) : 0;
+  const outStep = n > 1 ? Math.min(25, 1000 / (n - 1)) : 0;
   let i = 0;
   const html = chars
     .map((c) => {
       if (c === " ") return " ";
-      const ri = letters.length - 1 - i;
       const d = Math.round(startMs + i * perLetter);
+      const od = Math.round((n - 1 - i) * outStep);
       i++;
-      return `<span class="letter" style="--d:${d};--ri:${ri}">${escapeHtml(c)}</span>`;
+      return `<span class="letter" style="--d:${d};--od:${od}">${escapeHtml(c)}</span>`;
     })
     .join("");
-  const endMs = startMs + (letters.length ? (letters.length - 1) * perLetter + 350 : 0);
+  const endMs = startMs + (n ? (n - 1) * perLetter + 350 : 0);
   return { html, endMs };
 }
 function slideHtml(slide, { enter = false, id = "", theme = "light" } = {}) {
