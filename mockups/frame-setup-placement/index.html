@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glissando · Where does the picture-frame set-up go?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome (not the app): follows the viewer's theme. All pictures are generated SVG scenes. */
+:root { --page:#f3f2f6; --page-ink:#221d33; --page-muted:#6b6580; --page-line:#dedbe6; --page-card:#fff; --chip:#ebe9f1; --chip-on:#221d33; --chip-on-ink:#fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-page="light"]) { --page:#0e0c14; --page-ink:#ece9f3; --page-muted:#8e88a0; --page-line:#2a2636; --page-card:#17141f; --chip:#211d2c; --chip-on:#ece9f3; --chip-on-ink:#17141f; } }
+:root[data-page="dark"] { --page:#0e0c14; --page-ink:#ece9f3; --page-muted:#8e88a0; --page-line:#2a2636; --page-card:#17141f; --chip:#211d2c; --chip-on:#ece9f3; --chip-on-ink:#17141f; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--page); color:var(--page-ink); font:14px/1.5 "Instrument Sans","Segoe UI",system-ui,sans-serif; }
+.wrap { max-width:1280px; margin:0 auto; padding:24px 20px 80px; }
+h1 { font:700 28px/1.2 "Bricolage Grotesque",system-ui,sans-serif; margin:0 0 6px; letter-spacing:-.015em; }
+.lead { color:var(--page-muted); max-width:760px; margin:0 0 18px; }
+.bar { position:sticky; top:0; z-index:20; background:var(--page); padding:10px 0; border-bottom:1px solid var(--page-line); display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
+.seg { display:inline-flex; background:var(--chip); border-radius:999px; padding:3px; gap:2px; }
+.seg button { border:0; background:none; color:var(--page-muted); font:500 13px "Instrument Sans",system-ui,sans-serif; padding:6px 14px; border-radius:999px; cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--chip-on); color:var(--chip-on-ink); }
+.bar label { color:var(--page-muted); font-size:12.5px; }
+.opt { margin-top:36px; }
+.opt h2 { font:700 22px/1.2 "Bricolage Grotesque",system-ui,sans-serif; margin:0 0 4px; display:flex; gap:10px; align-items:center; }
+.tag { font:500 11px "Geist Mono",monospace; background:#ff9f7f; color:#2a1a14; padding:2px 8px; border-radius:999px; }
+.pc { display:grid; grid-template-columns:1fr 1fr; gap:10px 28px; margin:10px 0 18px; max-width:860px; }
+.pc p { margin:0; color:var(--page-muted); font-size:13px; }
+.pc b { color:var(--page-ink); font-weight:600; }
+.devices { display:flex; flex-wrap:wrap; gap:28px; align-items:flex-start; }
+.dev-label { font:500 11px "Geist Mono",monospace; color:var(--page-muted); margin:0 0 6px; text-transform:uppercase; letter-spacing:.06em; display:flex; gap:10px; align-items:center; }
+.dev-label button { font:inherit; border:1px solid var(--page-line); background:none; color:var(--page-muted); border-radius:999px; padding:1px 8px; cursor:pointer; }
+.phone { width:390px; height:780px; border-radius:34px; border:8px solid #2a2340; overflow:hidden; position:relative; background:#000; }
+.desktop { width:min(900px, calc(100vw - 40px)); height:600px; border-radius:12px; border:1px solid var(--page-line); overflow:hidden; position:relative; }
+.note { margin-top:36px; padding:16px 18px; background:var(--page-card); border:1px solid var(--page-line); border-radius:14px; color:var(--page-muted); max-width:860px; }
+.note b { color:var(--page-ink); }
+
+/* ---- The app, with the Glissando "studio" tokens ---- */
+.app { --gl-ground:#f6f5f8; --gl-surface:#fff; --gl-raised:#fbfafc; --gl-ink:#221d33; --gl-muted:#6b6580; --gl-faint:#9c97ad; --gl-line:#e5e2eb; --gl-hover:#efedf3; --gl-accent:#ff9f7f; --gl-accent-hover:#ff8f6b; --gl-accent-ink:#2a1a14; --gl-mint:#6fcfb4; --gl-shadow:0 1px 2px rgb(34 29 51/.06),0 6px 18px rgb(34 29 51/.06); --gl-backdrop:rgb(10 8 18/.38);
+  --gl-radius:10px; --gl-radius-large:14px; --gl-radius-tile:8px; --gl-radius-pill:999px;
+  position:absolute; inset:0; display:flex; flex-direction:column; background:var(--gl-ground); color:var(--gl-ink); font:400 14px/1.45 "Instrument Sans","Segoe UI",system-ui,sans-serif; }
+.app[data-theme="dark"] { --gl-ground:#121019; --gl-surface:#1a1723; --gl-raised:#221e2d; --gl-ink:#edeaf3; --gl-muted:#9a94ab; --gl-faint:#6c6680; --gl-line:#2c2838; --gl-hover:#26222f; --gl-accent:#ffb59a; --gl-accent-hover:#ffc5af; --gl-shadow:0 1px 2px rgb(0 0 0/.4),0 8px 24px rgb(0 0 0/.3); }
+.app svg.i { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+.app button { font:inherit; color:inherit; cursor:pointer; }
+.hdr { flex:none; display:flex; align-items:center; gap:8px; padding:10px 16px; background:var(--gl-surface); border-bottom:1px solid var(--gl-line); }
+.hdr .word { font:800 19px "Baloo 2",sans-serif; transform:rotate(-3deg); display:flex; align-items:center; gap:8px; margin-right:auto; }
+.btn { display:inline-flex; align-items:center; gap:7px; border:1px solid var(--gl-line); background:var(--gl-surface); border-radius:var(--gl-radius); padding:8px 14px; font-weight:500; font-size:13px; }
+.btn:hover { background:var(--gl-hover); }
+.btn.primary { background:var(--gl-accent); border-color:transparent; color:var(--gl-accent-ink); font-weight:600; }
+.btn.primary:hover { background:var(--gl-accent-hover); }
+.ibtn { width:36px; height:36px; display:grid; place-items:center; border:0; background:none; border-radius:var(--gl-radius); color:var(--gl-muted); position:relative; }
+.ibtn:hover, .ibtn[aria-expanded="true"] { background:var(--gl-hover); color:var(--gl-ink); }
+.body { flex:1; overflow:auto; padding:22px 20px 28px; display:flex; flex-direction:column; gap:20px; }
+.eyebrow { font:500 11px "Geist Mono",monospace; letter-spacing:.06em; text-transform:uppercase; color:var(--gl-muted); }
+.ttl { font:700 22px/1.2 "Bricolage Grotesque",sans-serif; letter-spacing:-.015em; margin:2px 0 0; display:flex; align-items:center; gap:10px; }
+.lead2 { margin:4px 0 12px; color:var(--gl-muted); font-size:12.5px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:18px; list-style:none; margin:0; padding:0; }
+.compact .grid { grid-template-columns:1fr; gap:14px; }
+.show { display:block; width:100%; text-align:left; padding:0; border:0; background:var(--gl-surface); border-radius:var(--gl-radius-large); box-shadow:var(--gl-shadow); overflow:hidden; }
+.cover { display:block; aspect-ratio:16/9; position:relative; background-size:cover; }
+.compact .cover { aspect-ratio:21/9; }
+.cover img { width:100%; height:100%; display:block; object-fit:cover; }
+.chip { position:absolute; left:8px; top:8px; display:inline-flex; gap:5px; align-items:center; font-size:11px; font-weight:500; padding:2px 8px; border-radius:999px; background:rgb(0 0 0/.45); color:#fff; }
+.chip .i { width:12px; height:12px; }
+.meta { display:block; padding:10px 14px 12px; }
+.name { display:block; font:700 17px "Bricolage Grotesque",sans-serif; }
+.facts { font:400 12px "Geist Mono",monospace; color:var(--gl-muted); display:flex; gap:12px; margin-top:2px; }
+.new { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; height:100%; min-height:90px; border:1.5px dashed var(--gl-line); background:none; border-radius:var(--gl-radius-large); color:var(--gl-muted); }
+.new:hover { background:var(--gl-hover); }
+.nobox { display:none; }
+
+/* Option A: the quiet row below the shelves */
+.frame-row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-top:1px solid var(--gl-line); margin-top:4px; background:none; border-left:0; border-right:0; border-bottom:0; width:100%; text-align:left; color:var(--gl-muted); }
+.frame-row .ico { width:32px; height:32px; border-radius:var(--gl-radius); display:grid; place-items:center; background:var(--gl-hover); color:var(--gl-muted); }
+.frame-row b { color:var(--gl-ink); font-weight:600; font-size:13.5px; display:block; }
+.frame-row span.t { font-size:12.5px; flex:1; min-width:0; }
+.frame-row:hover b { text-decoration:underline; }
+.frame-row .go { margin-left:auto; display:flex; align-items:center; gap:2px; font-size:13px; font-weight:500; color:var(--gl-ink); }
+
+/* Option B / C: settings panel, menu */
+.scrim { position:absolute; inset:0; background:var(--gl-backdrop); display:flex; z-index:5; }
+.panel { background:var(--gl-ground); display:flex; flex-direction:column; }
+.phone .panel { width:100%; }
+.desktop .scrim { justify-content:flex-end; }
+.desktop .panel { width:420px; border-left:1px solid var(--gl-line); }
+.panel .hdr .word { font:700 17px "Bricolage Grotesque",sans-serif; transform:none; }
+.sec { background:var(--gl-surface); border:1px solid var(--gl-line); border-radius:var(--gl-radius-large); overflow:hidden; }
+.sec h3 { margin:0; padding:12px 14px 4px; font:500 11px "Geist Mono",monospace; letter-spacing:.06em; text-transform:uppercase; color:var(--gl-muted); }
+.row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-top:1px solid var(--gl-line); width:100%; background:none; border-left:0; border-right:0; border-bottom:0; text-align:left; }
+.row:first-of-type { border-top:0; }
+.row .ico { width:36px; height:36px; border-radius:var(--gl-radius); display:grid; place-items:center; background:color-mix(in srgb,var(--gl-accent) 16%,var(--gl-surface)); color:var(--gl-accent); flex:none; }
+.row b { display:block; font-weight:600; }
+.row small { color:var(--gl-muted); font-size:12.5px; display:block; }
+.row .go { margin-left:auto; color:var(--gl-faint); }
+.pills { display:flex; gap:4px; background:var(--gl-hover); padding:3px; border-radius:var(--gl-radius); margin-left:auto; }
+.pills span { padding:4px 10px; border-radius:7px; font-size:12.5px; color:var(--gl-muted); }
+.pills span.on { background:var(--gl-surface); color:var(--gl-ink); font-weight:500; box-shadow:var(--gl-shadow); }
+.menu { position:absolute; right:12px; top:58px; z-index:6; min-width:250px; background:var(--gl-surface); border:1px solid var(--gl-line); border-radius:var(--gl-radius-large); box-shadow:var(--gl-shadow); padding:6px; }
+.menu button { display:flex; gap:12px; align-items:center; width:100%; text-align:left; border:0; background:none; padding:9px 10px; border-radius:var(--gl-radius); }
+.menu button:hover { background:var(--gl-hover); }
+.menu .i { color:var(--gl-muted); }
+.menu small { display:block; color:var(--gl-muted); font-size:12px; }
+
+/* Frame set-up stub: proves the entry point reaches the same screen from every option */
+.setup { position:absolute; inset:0; z-index:8; background:var(--gl-ground); display:flex; flex-direction:column; }
+.albums { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px; }
+.album { background:var(--gl-surface); border-radius:var(--gl-radius-large); box-shadow:var(--gl-shadow); overflow:hidden; font-weight:500; font-size:13px; }
+.album .cover { aspect-ratio:4/3; }
+.album span.n { display:block; padding:8px 10px; }
+.deeplink { font:400 12px "Geist Mono",monospace; color:var(--gl-muted); background:var(--gl-hover); padding:6px 10px; border-radius:var(--gl-radius); }
+@media (max-width:860px) { .pc { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Where does the picture-frame set-up go?</h1>
+  <p class="lead">Today a "Picture frame" card sits above everything on the start page (only while the server library is on). Glissando's main job is creating and playing slideshows, so the frame should step back — but stay reachable, and <span style="font-family:'Geist Mono',monospace">#frame=&lt;albumId&gt;</span> keeps working in every option because the deep link never touches the start page. Everything below is clickable: open the entry, reach the set-up screen, go back. All pictures are generated art.</p>
+  <div class="bar">
+    <div class="seg" id="theme" role="group" aria-label="App theme">
+      <button type="button" data-v="light" aria-pressed="true">Light</button>
+      <button type="button" data-v="dark" aria-pressed="false">Dark</button>
+    </div>
+    <label>Theme of the app mockups (the page itself follows your system)</label>
+  </div>
+
+  <section class="opt" id="optToday">
+    <h2>Today <span class="tag">for reference</span></h2>
+    <p class="lead" style="margin-bottom:10px">A full-width card with its own heading and a button, above the library.</p>
+    <div class="devices" data-opt="today"></div>
+  </section>
+
+  <section class="opt" id="optA">
+    <h2>A · A quiet row below the slideshows <span class="tag">recommended</span></h2>
+    <div class="pc"><p><b>Pro:</b> still on the page where people look for things, but after the slideshows, with no card chrome, no button and no accent colour. The only option that needs no extra tap to discover.</p><p><b>Con:</b> it still occupies a line of the start page, and on a phone it is below the fold for a long library.</p></div>
+    <div class="devices" data-opt="A"></div>
+  </section>
+
+  <section class="opt" id="optB">
+    <h2>B · A "Picture frame" section in Settings</h2>
+    <div class="pc"><p><b>Pro:</b> the start page is completely clean; Settings already holds the other server-dependent choice (quality of server slideshows), so the frame sits next to a sibling.</p><p><b>Con:</b> hidden behind the gear — someone who never opens Settings never learns the frame exists — and a frame is something you launch, not a preference.</p></div>
+    <div class="devices" data-opt="B"></div>
+  </section>
+
+  <section class="opt" id="optC">
+    <h2>C · An overflow menu "⋯" in the header</h2>
+    <div class="pc"><p><b>Pro:</b> one tap from the start page, nothing on the page itself, and it is the natural home for other occasional actions later (open file, export).</p><p><b>Con:</b> today the menu would hold only this one item, which is thin; and it adds a second icon button next to the gear.</p></div>
+    <div class="devices" data-opt="C"></div>
+  </section>
+
+  <div class="note"><b>Why not an entry on each slideshow card?</b> A picture frame does not play a slideshow: it reads an Immich album through the server and shows it endlessly (<span style="font-family:'Geist Mono',monospace">dev-docs/app/FRAME.md</span>). A "Picture frame" action on a slideshow card would suggest the wrong thing, so it is left out of the options. In all three options the entry only exists while the server is on, exactly as today.</div>
+</div>
+
+<script>
+"use strict";
+const ICONS = {
+  plus:'<path d="M12 5v14M5 12h14"/>', chevronRight:'<path d="M9 6l6 6-6 6"/>', chevronLeft:'<path d="M15 6l-6 6 6 6"/>',
+  frame:'<rect x="3" y="6" width="13" height="9" rx="1"/><rect x="8" y="9" width="13" height="9" rx="1"/>',
+  more:'<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+  server:'<rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/><path d="M8 7h.01M8 17h.01"/>',
+  device:'<rect x="6" y="3" width="12" height="18" rx="2"/><path d="M11 18h2"/>',
+  open:'<path d="M3 7.5A1.5 1.5 0 014.5 6H9l2 2h8.5A1.5 1.5 0 0121 9.5v8a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 17.5z"/><path d="M12 11v5M9.5 13.5L12 11l2.5 2.5"/>',
+  close:'<path d="M6 6l12 12M18 6L6 18"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
+};
+const icon = n => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+
+// Generated pictures: sky gradient, sun, two mountain ridges. No photographs anywhere.
+const SCENES = [
+  ["#ffd9c7","#ff9f7f","#6b4a8a","#3a2a5e"], ["#d4f2e8","#6fcfb4","#2f7d83","#1c4a5a"],
+  ["#fff1b8","#f5c94a","#c9743f","#6e3a3a"], ["#e3dcff","#b9a6f2","#5a56b0","#2c2d6b"],
+  ["#d6e8ff","#7fb8ff","#3d6fb0","#1f3d70"], ["#ffd0cb","#f2786b","#8a3a55","#4a2040"],
+];
+function scene(i){
+  const [a,b,c,d] = SCENES[i % SCENES.length];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="320" height="180" fill="url(#g)"/><circle cx="${90+ (i*47)%150}" cy="${62 + (i*13)%24}" r="22" fill="#fff" opacity=".85"/><path d="M0 130 L60 84 L108 120 L170 70 L240 124 L320 90 V180 H0Z" fill="${c}"/><path d="M0 156 L80 118 L150 150 L230 112 L320 152 V180 H0Z" fill="${d}"/></svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+const card = (title, n, dur, i, server) => `<button class="show" type="button"><span class="cover"><img alt="" src="${scene(i)}">${server ? `<span class="chip">${icon('server')}Server</span>` : ''}</span><span class="meta"><span class="name">${title}</span><span class="facts"><span>${n} pictures</span><span>${dur}</span></span></span></button>`;
+const newTile = '<button class="new" type="button">' + icon('plus') + 'New slideshow</button>';
+const logo = '<svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="5" width="13" height="10" rx="2" transform="rotate(-14 7 10)" fill="#ffb59a" stroke="#2a2340" stroke-width="1.2"/><rect x="6" y="5" width="13" height="10" rx="2" transform="rotate(-2 12 10)" fill="#8fd9c4" stroke="#2a2340" stroke-width="1.2"/><rect x="10" y="6" width="13" height="10" rx="2" transform="rotate(10 16 11)" fill="#ffd95a" stroke="#2a2340" stroke-width="1.2"/></svg>';
+
+const frameCardToday = `<div class="show" style="display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:default"><span class="ico" style="width:44px;height:44px;border-radius:10px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--gl-accent) 16%,var(--gl-surface));color:var(--gl-accent)">${icon('frame')}</span><span style="flex:1;min-width:0"><b style="font-weight:600">Picture frame</b><br><span style="color:var(--gl-muted);font-size:12.5px">Shows an Immich album, endlessly, on this screen</span></span><button class="btn" data-open="setup" type="button">Set up</button></div>`;
+const frameRowA = `<button class="frame-row" data-open="setup" type="button"><span class="ico">${icon('frame')}</span><span class="t"><b>Picture frame</b>Show an Immich album endlessly on a spare screen</span><span class="go">Set up ${icon('chevronRight')}</span></button>`;
+
+function library(opt, compact){
+  const dev = `<div><div class="eyebrow">Library</div><h1 class="ttl" style="font-size:22px">${icon('device')}On this device</h1></div>
+    <ul class="grid"><li>${card('Lake weekend',42,'3:30',0)}</li><li>${card('Autumn walk',28,'2:10',1)}</li><li>${newTile}</li></ul>`;
+  const srv = `<div><h2 class="ttl" style="font-size:22px">${icon('server')}On the server</h2><p class="lead2">Shared with everyone who uses this server.</p>
+    <ul class="grid"><li>${card('Summer roadtrip',96,'7:45',2,true)}</li><li>${card('Old town at night',31,'2:40',3,true)}</li><li>${newTile}</li></ul></div>`;
+  return (opt === 'today' ? frameCardToday : '') + dev + srv + (opt === 'A' ? frameRowA : '');
+}
+
+function header(opt){
+  const more = opt === 'C' ? `<button class="ibtn" data-act="menu" aria-label="More" aria-expanded="false" type="button">${icon('more')}</button>` : '';
+  return `<div class="hdr"><span class="word">${logo}Glissando</span>${more}<button class="ibtn" data-act="settings" aria-label="Settings" type="button">${icon('gear')}</button><button class="btn primary" type="button">${icon('plus')}<span class="lbl">New slideshow</span></button></div>`;
+}
+
+function settings(opt){
+  const frame = opt === 'B' ? `<div class="sec"><h3>Picture frame</h3><button class="row" data-open="setup" type="button"><span class="ico">${icon('frame')}</span><span><b>Set up a picture frame</b><small>Show an Immich album endlessly on this screen</small></span><span class="go">${icon('chevronRight')}</span></button></div>` : '';
+  return `<div class="scrim"><div class="panel"><div class="hdr"><button class="ibtn" data-act="close" aria-label="Close" type="button">${icon('close')}</button><span class="word" style="transform:none">Settings</span></div>
+    <div class="body" style="gap:16px">
+      <div class="sec"><h3>Appearance</h3><div class="row"><span><b>Theme</b><small>Same as device</small></span><span class="pills"><span class="on">Auto</span><span>Light</span><span>Dark</span></span></div><div class="row"><span><b>Language</b><small>Same as browser</small></span><span class="pills"><span class="on">Auto</span><span>EN</span><span>DE</span></span></div></div>
+      ${frame}
+      <div class="sec"><h3>Server</h3><div class="row"><span><b>Quality of server slideshows</b><small>Automatic</small></span><span class="go">${icon('chevronRight')}</span></div></div>
+      <div class="sec"><h3>About</h3><div class="row"><span><b>Version</b><small>Glissando 0.0.5</small></span></div></div>
+    </div></div></div>`;
+}
+
+const menu = `<div class="menu" role="menu"><button data-open="setup" role="menuitem" type="button">${icon('frame')}<span>Picture frame<small>Show an Immich album endlessly</small></span></button></div>`;
+
+const setupScreen = `<div class="setup"><div class="hdr"><button class="ibtn" data-act="back" aria-label="Back" type="button">${icon('chevronLeft')}</button><span class="word" style="font:700 17px 'Bricolage Grotesque',sans-serif;transform:none">Picture frame</span></div>
+  <div class="body"><div><div class="eyebrow">Step 1</div><h1 class="ttl">Choose an album</h1><p class="lead2">The frame shows this Immich album endlessly. (Unchanged screen — this mockup is only about how you get here.)</p></div>
+  <div class="albums">${[4,5,0,2].map((s,k)=>`<div class="album"><span class="cover"><img alt="" src="${scene(s)}"></span><span class="n">${['Garden','Family dinner','Mountains','Harbour'][k]}</span></div>`).join('')}</div>
+  <div class="deeplink">Copy frame link → …/#frame=&lt;albumId&gt;</div></div></div>`;
+
+function build(mount, opt, kind){
+  const compact = kind === 'phone';
+  const box = document.createElement('div');
+  box.innerHTML = `<div class="dev-label">${kind === 'phone' ? 'Phone · 390 px' : 'Desktop · 900 px'}${opt === 'A' ? '<button type="button" data-scroll="top">top</button><button type="button" data-scroll="end">bottom</button>' : ''}</div><div class="${kind}"><div class="app ${compact ? 'compact' : ''}" data-theme="light">${header(opt)}<div class="body">${library(opt, compact)}</div></div></div>`;
+  mount.appendChild(box);
+  const app = box.querySelector('.app'), body = app.querySelector('.body');
+  const close = () => { app.querySelectorAll('.scrim,.menu,.setup').forEach(e => e.remove()); app.querySelector('[data-act=menu]')?.setAttribute('aria-expanded','false'); };
+  box.addEventListener('click', e => {
+    const t = e.target.closest('[data-act],[data-open],[data-scroll]'); if (!t) return;
+    if (t.dataset.scroll) { body.scrollTo({top: t.dataset.scroll === 'end' ? 1e5 : 0, behavior:'smooth'}); return; }
+    if (t.dataset.open === 'setup') { app.querySelectorAll('.scrim,.menu').forEach(x => x.remove()); app.insertAdjacentHTML('beforeend', setupScreen); return; }
+    const a = t.dataset.act;
+    if (a === 'settings') { close(); app.insertAdjacentHTML('beforeend', settings(opt)); }
+    else if (a === 'menu') { const was = app.querySelector('.menu'); close(); if (!was) { app.insertAdjacentHTML('beforeend', menu); t.setAttribute('aria-expanded','true'); } }
+    else if (a === 'close') close();
+    else if (a === 'back') app.querySelector('.setup')?.remove();
+  });
+  if (compact) app.querySelector('.lbl').textContent = 'New';
+}
+document.querySelectorAll('.devices').forEach(m => { build(m, m.dataset.opt, 'phone'); build(m, m.dataset.opt, 'desktop'); });
+
+const themeBtns = document.querySelectorAll('#theme button');
+function setTheme(v){ document.querySelectorAll('.app').forEach(a => a.dataset.theme = v); themeBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); }
+themeBtns.forEach(b => b.addEventListener('click', () => setTheme(b.dataset.v)));
+if (matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+</script>
+</body>
+</html>
