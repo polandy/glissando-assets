@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glissando — Videos als Slides</title>
+<style>
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #fff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #fff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font: 14px var(--ui); }
+.page { max-width: 1320px; margin: 0 auto; padding: 20px 16px 56px; display: grid; gap: 22px; }
+h1 { font: 700 26px var(--display); margin: 0; }
+h2 { font: 700 20px var(--display); margin: 0; }
+p.sub { margin: 4px 0 0; color: var(--page-muted); max-width: 78ch; line-height: 1.5; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 28px; justify-content: center; align-items: flex-start; }
+.col { display: grid; gap: 8px; justify-items: center; max-width: 100%; width: 100%; }
+.row > .col { width: auto; }
+.cap { font-size: 12.5px; color: var(--page-muted); text-align: center; max-width: 360px; line-height: 1.4; }
+.cap b { color: var(--page-ink); }
+.vh { margin: 22px 0 12px; }
+
+.app { --ground: #f6f5f8; --surface: #fff; --raised: #fbfafc; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b;
+  width: 100%; max-width: 620px; height: 700px; overflow: hidden; border-radius: 16px; border: 1px solid var(--line);
+  background: var(--ground); color: var(--ink); display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(20,14,40,.14); position: relative; }
+.app.dark { --ground: #121019; --surface: #1a1723; --raised: #221e2d; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; }
+.app.phone { width: 412px; max-width: 100%; height: 800px; border-radius: 34px; border: 6px solid #1a1722; }
+.app.desktop { width: 1000px; max-width: 100%; height: 640px; }
+.app header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.app header .t { font: 700 17px var(--display); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app .body { flex: 1; overflow: auto; padding: 16px; display: grid; gap: 14px; align-content: start; min-height: 0; }
+.app .foot { padding: 12px 16px; background: var(--surface); border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 500 13px var(--ui); padding: 9px 14px; border-radius: 10px; cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); font-weight: 600; }
+.btn[disabled] { opacity: .45; cursor: default; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.notice { border-radius: 10px; padding: 9px 12px; font-size: 12.5px; line-height: 1.4; border: 1px solid; }
+.notice.warn { background: color-mix(in srgb, var(--lemon) 18%, transparent); border-color: color-mix(in srgb, var(--lemon) 60%, transparent); }
+.notice.err { background: color-mix(in srgb, var(--coral) 16%, transparent); border-color: color-mix(in srgb, var(--coral) 60%, transparent); }
+.notice.ok { background: color-mix(in srgb, var(--mint) 18%, transparent); border-color: color-mix(in srgb, var(--mint) 60%, transparent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 99px; padding: 5px 12px; font: 500 12.5px var(--ui); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+.desktop .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+.tile { aspect-ratio: 1; border-radius: 9px; position: relative; overflow: hidden; cursor: pointer; border: 0; padding: 0; background: var(--hover); }
+.tile .pic { position: absolute; inset: 0; }
+.tile .tick { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 99px; border: 2px solid #fff; background: rgba(0,0,0,.25); display: grid; place-items: center; color: #2a1a14; font-weight: 700; font-size: 13px; }
+.tile[aria-pressed="true"] .tick { background: var(--accent); border-color: var(--accent); }
+.tile[aria-pressed="true"] { outline: 3px solid var(--accent); outline-offset: -3px; }
+.badge { position: absolute; right: 6px; bottom: 6px; display: flex; align-items: center; gap: 4px; background: rgba(18,14,28,.72); color: #fff; border-radius: 99px; padding: 2px 8px 2px 6px; font: 500 11px var(--mono); }
+.badge svg { width: 10px; height: 10px; fill: #fff; }
+.tile .flag { position: absolute; left: 6px; bottom: 6px; background: var(--lemon); color: #2a1a14; border-radius: 6px; padding: 1px 6px; font: 600 10.5px var(--ui); }
+.tile .flag.err { background: var(--coral); }
+.tile.off { opacity: .55; }
+.pic.a { background: linear-gradient(135deg, #ffb59a, #f5c94a); }
+.pic.b { background: linear-gradient(135deg, #6fcfb4, #3b8fb0); }
+.pic.c { background: linear-gradient(160deg, #b9a6ff, #ff9f7f); }
+.pic.d { background: linear-gradient(135deg, #3b3560, #8a5a9c); }
+.pic.e { background: linear-gradient(135deg, #f2786b, #ffb59a); }
+.pic.f { background: linear-gradient(135deg, #a8e0c9, #f5e7a4); }
+.vid { background: linear-gradient(120deg, #2b6f8f, #6fcfb4, #f5c94a, #ff9f7f, #2b6f8f); background-size: 300% 100%; animation: drift 6s linear infinite; }
+@keyframes drift { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
+@media (prefers-reduced-motion: reduce) { .vid { animation: none; } }
+.vid.paused { animation-play-state: paused; }
+
+.preview { position: relative; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #000; }
+.preview .vid { position: absolute; inset: 0; }
+.preview .sun { position: absolute; width: 14%; aspect-ratio: 1; border-radius: 99px; background: rgba(255,255,255,.85); top: 20%; left: 10%; }
+.preview .playbtn { position: absolute; inset: 0; margin: auto; width: 56px; height: 56px; border-radius: 99px; border: 0; background: rgba(18,14,28,.6); color: #fff; font-size: 20px; cursor: pointer; }
+.preview .tc { position: absolute; left: 10px; bottom: 8px; color: #fff; font: 500 12px var(--mono); text-shadow: 0 1px 3px #000; }
+.preview .spk { position: absolute; right: 8px; top: 8px; border: 0; background: rgba(18,14,28,.6); color: #fff; border-radius: 99px; padding: 6px 10px; font: 500 12px var(--ui); cursor: pointer; }
+.strip { position: relative; height: 54px; margin: 4px 11px; border-radius: 10px; background: repeating-linear-gradient(90deg, #6fcfb4 0 12.5%, #f5c94a 12.5% 25%, #ffb59a 25% 37.5%, #b9a6ff 37.5% 50%, #6fcfb4 50% 62.5%, #f5c94a 62.5% 75%, #ffb59a 75% 87.5%, #b9a6ff 87.5% 100%); touch-action: none; user-select: none; }
+.strip .dim { position: absolute; top: 0; bottom: 0; background: rgba(18,14,28,.62); }
+.strip .sel { position: absolute; top: 0; bottom: 0; border: 3px solid var(--accent); border-radius: 8px; }
+.strip .h { position: absolute; top: -4px; bottom: -4px; width: 22px; margin-left: -11px; cursor: ew-resize; display: grid; place-items: center; }
+.strip .h::after { content: ""; width: 6px; height: 28px; border-radius: 4px; background: var(--accent); }
+.strip .ph { position: absolute; top: -4px; bottom: -4px; width: 2px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.4); pointer-events: none; }
+.field { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.field .r { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.seg2 { display: inline-flex; background: var(--hover); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg2 button { border: 0; background: transparent; color: var(--ink); font: 500 12.5px var(--ui); padding: 5px 11px; border-radius: 7px; cursor: pointer; }
+.seg2 button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.lbl { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.times { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+.stage { position: relative; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #000; }
+.stage .layer { position: absolute; inset: 0; overflow: hidden; }
+.stage .cap2 { position: absolute; left: 10px; bottom: 8px; color: #fff; font: 600 12px var(--ui); background: rgba(18,14,28,.55); padding: 2px 8px; border-radius: 6px; }
+.tl { display: flex; height: 40px; border-radius: 9px; overflow: hidden; gap: 2px; position: relative; }
+.tl .seg3 { position: relative; overflow: hidden; display: grid; place-items: center; font: 500 11px var(--mono); color: #2a1a14; }
+.tl .seg3.video { outline: 2px solid var(--accent); outline-offset: -2px; }
+.tl .tr { position: absolute; right: 0; top: 0; bottom: 0; background: repeating-linear-gradient(45deg, rgba(255,255,255,.6) 0 3px, transparent 3px 6px); }
+.tl .head { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); z-index: 2; }
+.vol { width: 100%; height: 70px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+table.m { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.m th, table.m td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--page-line); line-height: 1.45; }
+table.m th { font-weight: 600; color: var(--page-muted); font-size: 12px; }
+.st { display: inline-block; border-radius: 6px; padding: 1px 7px; font: 600 11px var(--ui); color: #2a1a14; white-space: nowrap; }
+.st.ok { background: var(--mint); } .st.note { background: var(--lemon); } .st.adr { background: var(--peach); }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.card ul { margin: 0; padding-left: 18px; line-height: 1.55; }
+.stack { display: grid; gap: 14px; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.scroll { overflow-x: auto; }
+code { font-family: var(--mono); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bar">
+    <div>
+      <h1>Videos als Slides</h1>
+      <p class="sub">Mockup zu Roadmap 12. Alle Clips sind simuliert (animierter Farbverlauf); nichts wird wirklich abgespielt. Varianten stehen nebeneinander bzw. untereinander; Entscheidungen und offene Fragen stehen im Tab „Konzept“.</p>
+    </div>
+    <div class="bar" style="gap:10px">
+      <div class="seg" id="theme" role="group" aria-label="Thema"><button data-v="light" aria-pressed="true">Hell</button><button data-v="dark" aria-pressed="false">Dunkel</button></div>
+      <div class="seg" id="width" role="group" aria-label="Breite"><button data-v="both" aria-pressed="true">Phone + Desktop</button><button data-v="phone" aria-pressed="false">Phone</button><button data-v="desktop" aria-pressed="false">Desktop</button></div>
+    </div>
+  </div>
+  <div class="seg" id="tabs" role="group" aria-label="Bereich" style="justify-self:start">
+    <button data-v="concept" aria-pressed="true">Konzept</button>
+    <button data-v="import" aria-pressed="false">1 · Hinzufügen</button>
+    <button data-v="editor" aria-pressed="false">2 · Clip bearbeiten</button>
+    <button data-v="player" aria-pressed="false">3 · Wiedergabe &amp; Ton</button>
+    <button data-v="targets" aria-pressed="false">4 · Export, Server, Immich</button>
+  </div>
+  <main id="main"></main>
+</div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const state = { theme: 'light', width: 'both', tab: 'concept' };
+const fmt = (s) => { const m = Math.floor(s / 60); return m + ':' + (s - m * 60).toFixed(1).padStart(4, '0'); };
+const fmtS = (s) => { const m = Math.floor(s / 60); return m + ':' + String(Math.round(s - m * 60)).padStart(2, '0'); };
+const playIcon = '<svg viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z"/></svg>';
+
+function frames(build, cap) {
+  const modes = state.width === 'both' ? ['phone', 'desktop'] : [state.width];
+  return '<div class="row">' + modes.map((m) => `<div class="col"><div class="app ${m} ${state.theme}" data-mode="${m}">${build(m)}</div></div>`).join('') + '</div>' + (cap ? `<div class="cap" style="margin:10px auto 0;max-width:640px">${cap}</div>` : '');
+}
+
+/* ---------- Konzept ---------- */
+function concept() {
+  return `<div class="stack"><div class="two">
+  <div class="card"><h2>Idee</h2>
+    <p style="margin:0;line-height:1.5">Ein Video ist eine Slide wie ein Bild: gleiche Reihenfolge, gleiche Übergänge, gleiche Zeitleiste. Statt Ken Burns läuft der Clip. Der Film bleibt <b>lokal</b> und <b>offline</b>; das Original wird nicht umgerechnet.</p></div>
+  <div class="card"><h2>Gute Voreinstellung</h2><ul>
+    <li>Fotos bleiben der Normalfall; eine Video-Slide gibt es nur, wenn man ein Video wählt.</li>
+    <li>Clip ab Anfang bis Ende (höchstens 60 s), Ton an, Musik währenddessen leiser (Ducking).</li>
+    <li>Ein Bearbeiten-Schritt pro Clip: Ausschnitt und Ton.</li></ul></div>
+  </div>
+  <div class="card scroll"><h2>Entscheidungen (Vorschlag)</h2>
+  <table class="m"><tr><th>Thema</th><th>Vorschlag</th><th>Alternative</th><th></th></tr>
+  <tr><td><b>Import</b></td><td>Videos stehen im selben Picker wie Fotos (Badge mit Länge). Gespeichert wird die <b>Originaldatei</b> in IndexedDB plus ein Posterbild (ADR-0003). Format = was der Browser abspielen kann; sonst Hinweis an der Kachel.</td><td>Filter „Videos“ (Variante B) · Umwandeln per WASM (zu schwer)</td><td><span class="st ok">Tab 1</span></td></tr>
+  <tr><td><b>Dauer</b></td><td>Slide-Dauer = Länge des gewählten Ausschnitts (0,5 … 60 s). Wie eine eigene Dauer (ADR-0008): die Musik-Verteilung (ADR-0022) rechnet sie als fest.</td><td>Auf Bilddauer kürzen · Musiklänge diktiert</td><td><span class="st ok">Tab 2</span></td></tr>
+  <tr><td><b>Ton</b></td><td>Videoton an, Lautstärke 0–100 %; Musik duckt auf 15 % mit 400 ms Rampen. Pro Clip „Ton aus“.</td><td>Musik pausiert · Standard stumm (Variante B)</td><td><span class="st ok">Tab 2, 3</span></td></tr>
+  <tr><td><b>Übergänge</b></td><td>Dieselben sechs Effekte + Schnitt; die Übergangszeit liegt <b>innerhalb</b> der Slide (ADR-0002). Der Clip läuft im Übergang weiter; ein folgender Clip startet mit dem Übergang.</td><td>Letztes Bild einfrieren</td><td><span class="st ok">Tab 3</span></td></tr>
+  <tr><td><b>Decoder</b></td><td>Player: <code>&lt;video&gt;</code> als WebGL-Textur (läuft überall, auch Safari). Export: WebCodecs/mediabunny dekodiert bildgenau.</td><td>Überall WebCodecs (Safari/TV schwächer)</td><td><span class="st adr">ADR</span></td></tr>
+  <tr><td><b>Hochformat</b></td><td>Wie ein Hochformat-Foto: unscharfer Füllhintergrund (ADR-0028), kein Ken Burns.</td><td>Zuschneiden</td><td><span class="st ok">Tab 3</span></td></tr>
+  <tr><td><b>Export, Server, Immich</b></td><td>Siehe Tab 4.</td><td>—</td><td><span class="st adr">ADR</span></td></tr></table></div>
+  <div class="card"><h2>Offene Fragen an dich</h2><ul>
+    <li>Höchstlänge eines Clips: 60 s okay, oder länger zulassen?</li>
+    <li>HTML-Export: Videos einbetten (Datei wird sehr groß) oder nur Posterbild + Hinweis?</li>
+    <li>Ton-Standard: <b>an + Ducking</b> (Vorschlag) oder stumm?</li>
+    <li>Immich: Videos auswählbar machen (Streaming über den Server, optionale Gerätekopie)?</li>
+    <li>Welche Varianten gefallen dir: Tab 1 A/B, Tab 2 A/B, Tab 3 Ducking/Pause?</li></ul></div></div>`;
+}
+
+/* ---------- 1 · Hinzufügen ---------- */
+const items = [
+  { id: 1, k: 'a' }, { id: 2, k: 'v', len: 8.4 }, { id: 3, k: 'b' }, { id: 4, k: 'c' },
+  { id: 5, k: 'v', len: 192, long: true }, { id: 6, k: 'd' }, { id: 7, k: 'v', len: 14.2, bad: true }, { id: 8, k: 'e' },
+  { id: 9, k: 'f' }, { id: 10, k: 'v', len: 23 }, { id: 11, k: 'a' }, { id: 12, k: 'b' }
+];
+const sel = new Set([2, 3, 5]);
+const filt = { B: 'all' };
+function tile(it) {
+  const on = sel.has(it.id);
+  const pic = it.k === 'v' ? '<div class="pic vid paused"></div>' : `<div class="pic ${it.k}"></div>`;
+  const badge = it.k === 'v' ? `<span class="badge">${playIcon}${fmtS(it.len)}</span>` : '';
+  const flag = it.bad ? '<span class="flag err">Format?</span>' : it.long && on ? '<span class="flag">Ausschnitt</span>' : '';
+  return `<button class="tile ${it.bad ? 'off' : ''}" data-id="${it.id}" aria-pressed="${on}" aria-label="${it.k === 'v' ? 'Video' : 'Foto'} ${it.id}">${pic}<span class="tick">${on ? '✓' : ''}</span>${badge}${flag}</button>`;
+}
+function importScreen(variant) {
+  return () => {
+    const f = filt.B;
+    const list = items.filter((i) => variant === 'A' || f === 'all' || (f === 'video') === (i.k === 'v'));
+    const ok = [...sel].filter((id) => !items.find((i) => i.id === id).bad);
+    const nv = ok.filter((id) => items.find((i) => i.id === id).k === 'v').length;
+    const notes = (sel.has(5) ? '<div class="notice warn">Ein Video ist 3:12 lang. Im Film läuft ein Ausschnitt bis 60 s; du wählst ihn im nächsten Schritt.</div>' : '')
+      + (sel.has(7) ? '<div class="notice err">Dieses Video (HEVC, .mov) kann dieser Browser nicht abspielen und wird nicht hinzugefügt.</div>' : '');
+    const head = variant === 'B'
+      ? `<div class="chips">${[['all', 'Alles'], ['photo', 'Fotos'], ['video', 'Videos · 4']].map(([c, l]) => `<button class="chip" data-f="${c}" aria-pressed="${f === c}">${l}</button>`).join('')}</div>`
+      : '<div class="small muted">Fotos und Videos gemischt nach Aufnahmedatum. Videos tragen ihre Länge.</div>';
+    return `<header><span class="t">Hinzufügen · Juli 2025</span></header>
+      <div class="body">${head}<div class="grid">${list.map(tile).join('')}</div>${notes}</div>
+      <div class="foot"><span class="small muted">${ok.length} ausgewählt${nv ? ` · davon ${nv} Video${nv > 1 ? 's' : ''}` : ''}</span><button class="btn primary" ${ok.length ? '' : 'disabled'}>Weiter</button></div>`;
+  };
+}
+function importTab() {
+  return `<p class="sub">Tippe auf Kacheln. Das lange Video und das nicht abspielbare Format zeigen ihre Hinweise dort, wo sie entstehen.</p>
+  <h2 class="vh">Variante A — eine Liste, Länge als Badge</h2>${frames(importScreen('A'), '<b>A:</b> wenig Oberfläche; Fotos und Videos bleiben in Aufnahmereihenfolge.')}
+  <h2 class="vh">Variante B — Filter „Alles · Fotos · Videos“</h2>${frames(importScreen('B'), '<b>B:</b> ein Chip mehr, dafür findet man Videos schnell.')}`;
+}
+
+/* ---------- 2 · Clip bearbeiten ---------- */
+const SRC = 16; // simulierte Quelllänge in s
+const ed = { start: 0.12, end: 0.62, t: 0.12, playing: false, mute: false, vol: 80, duck: true };
+function editorScreen(variant) {
+  return () => {
+    const sound = variant === 'A'
+      ? `<div class="field"><div class="r"><b>Ton</b><div class="seg2"><button data-s="on" aria-pressed="${!ed.mute}">An</button><button data-s="off" aria-pressed="${ed.mute}">Aus</button></div></div>
+          <label class="lbl muted small">Lautstärke <span class="mono" data-role="volv">${ed.vol}%</span></label><input type="range" min="0" max="100" value="${ed.vol}" data-role="vol" ${ed.mute ? 'disabled' : ''} aria-label="Lautstärke">
+          <label class="lbl"><input type="checkbox" data-role="duck" ${ed.duck ? 'checked' : ''} ${ed.mute ? 'disabled' : ''}> Musik währenddessen leiser</label></div>`
+      : '<div class="small muted">Ton: Schalter im Vorschaubild. Ist der Ton an, wird die Musik automatisch leiser.</div>';
+    return `<header><span class="t">Clip bearbeiten</span><span class="small muted mono">Slide 3</span></header>
+      <div class="body"><div class="preview"><div class="vid ${ed.playing ? '' : 'paused'}" data-role="vidbg"></div><div class="sun"></div>
+        <button class="playbtn" data-role="play" aria-label="${ed.playing ? 'Pause' : 'Abspielen'}">${ed.playing ? '❚❚' : '▶'}</button>
+        <span class="tc" data-role="tc">${fmt(ed.t * SRC)}</span>
+        ${variant === 'B' ? `<button class="spk" data-role="spk" aria-pressed="${!ed.mute}">${ed.mute ? '🔇 Ton aus' : '🔊 Ton an'}</button>` : ''}</div>
+        <div class="strip" data-role="strip"><div class="dim" data-role="dimL"></div><div class="dim" data-role="dimR"></div><div class="sel" data-role="sel"></div>
+          <div class="h" data-h="start" data-role="hs" role="slider" aria-label="Anfang" tabindex="0"></div><div class="h" data-h="end" data-role="he" role="slider" aria-label="Ende" tabindex="0"></div>
+          <div class="ph" data-role="ph"></div></div>
+        <div class="times"><span class="small muted mono" data-role="from"></span><b class="mono" data-role="len"></b><span class="small muted mono" data-role="to"></span></div>
+        ${sound}
+        <div class="notice ok small" data-role="trnote"></div></div>
+      <div class="foot"><button class="btn">Zurücksetzen</button><button class="btn primary">Fertig</button></div>`;
+  };
+}
+function paintEditor() {
+  const len = (ed.end - ed.start) * SRC, tr = Math.min(1, len * 0.3);
+  $$('[data-role=dimL]').forEach((e) => { e.style.left = 0; e.style.width = ed.start * 100 + '%'; });
+  $$('[data-role=dimR]').forEach((e) => { e.style.right = 0; e.style.width = (1 - ed.end) * 100 + '%'; });
+  $$('[data-role=sel]').forEach((e) => { e.style.left = ed.start * 100 + '%'; e.style.width = (ed.end - ed.start) * 100 + '%'; });
+  $$('[data-role=hs]').forEach((e) => (e.style.left = ed.start * 100 + '%'));
+  $$('[data-role=he]').forEach((e) => (e.style.left = ed.end * 100 + '%'));
+  $$('[data-role=ph]').forEach((e) => (e.style.left = ed.t * 100 + '%'));
+  $$('[data-role=tc]').forEach((e) => (e.textContent = fmt(ed.t * SRC)));
+  $$('[data-role=from]').forEach((e) => (e.textContent = 'Von ' + fmt(ed.start * SRC)));
+  $$('[data-role=to]').forEach((e) => (e.textContent = 'Bis ' + fmt(ed.end * SRC)));
+  $$('[data-role=len]').forEach((e) => (e.textContent = 'Im Film: ' + len.toFixed(1) + ' s'));
+  $$('[data-role=trnote]').forEach((e) => (e.textContent = `Der Übergang zur nächsten Slide läuft in den letzten ${tr.toFixed(1)} s des Ausschnitts mit.`));
+}
+function editorTab() {
+  return `<p class="sub">Ziehe die beiden Griffe unter dem Bild; ▶ spielt den Ausschnitt in Schleife. Die Dauer im Film folgt dem Ausschnitt.</p>
+  <h2 class="vh">Variante A — Ton-Block unter der Zeitleiste</h2>${frames(editorScreen('A'), '<b>A:</b> Ton an/aus, Lautstärke und Ducking sichtbar.')}
+  <h2 class="vh">Variante B — nur Ausschnitt, Ton als Schalter im Bild</h2>${frames(editorScreen('B'), '<b>B:</b> minimal; Lautstärke bleibt Standard, Ducking immer an.')}`;
+}
+let raf = 0, last = 0;
+function loop(ts) {
+  if (!ed.playing) { raf = 0; return; }
+  ed.t += (ts - last) / 1000 / SRC; last = ts;
+  if (ed.t >= ed.end || ed.t < ed.start) ed.t = ed.start;
+  paintEditor(); raf = requestAnimationFrame(loop);
+}
+
+/* ---------- 3 · Wiedergabe ---------- */
+const slides = [{ k: 'a', d: 5, label: 'Foto' }, { k: 'b', d: 5, label: 'Foto' }, { k: 'v', d: 8.4, label: 'Clip' }, { k: 'c', d: 5, label: 'Foto' }];
+const pl = { t: 0, playing: false, mode: 'duck' };
+const total = () => slides.reduce((a, s) => a + s.d, 0);
+function slideAt(t) { let a = 0; for (let i = 0; i < slides.length; i++) { if (t < a + slides[i].d || i === slides.length - 1) return { i, local: t - a }; a += slides[i].d; } }
+function musicVol(t, mode) {
+  let a = 0, v = 1; const floor = mode === 'duck' ? 0.15 : 0, ramp = 0.4;
+  slides.forEach((s) => {
+    if (s.k === 'v') { const d = Math.max(0, Math.min(1, Math.min((t - (a - ramp)) / ramp, (a + s.d + ramp - t) / ramp))); v = Math.min(v, 1 - d * (1 - floor)); }
+    a += s.d;
+  });
+  return v;
+}
+function playerScreen() {
+  const T = total();
+  const segs = slides.map((s) => `<div class="seg3 ${s.k === 'v' ? 'video' : ''}" style="flex:${s.d}"><span class="pic ${s.k === 'v' ? 'vid paused' : s.k}" style="position:absolute;inset:0"></span><span style="position:relative">${s.label} ${s.d.toFixed(1)} s</span><span class="tr" style="width:${Math.min(1, s.d * 0.3) / s.d * 100}%"></span></div>`).join('');
+  const pts = []; for (let i = 0; i <= 300; i++) pts.push(`${(i / 3).toFixed(1)},${(64 - musicVol(T * i / 300, pl.mode) * 56).toFixed(1)}`);
+  return `<header><span class="t">Wiedergabe</span><div class="seg2"><button data-m="duck" aria-pressed="${pl.mode === 'duck'}">Musik leiser</button><button data-m="pause" aria-pressed="${pl.mode === 'pause'}">Musik pausiert</button></div></header>
+  <div class="body"><div class="stage"><div class="layer" data-role="cur"></div><div class="layer" data-role="nxt" style="opacity:0"></div><span class="cap2" data-role="cap2"></span></div>
+    <div class="times"><button class="btn" data-role="pplay">${pl.playing ? '❚❚ Pause' : '▶ Abspielen'}</button><span class="mono small muted" data-role="ptime"></span></div>
+    <div class="tl">${segs}<div class="head" data-role="head"></div></div>
+    <input type="range" min="0" max="${T}" step="0.05" value="${pl.t}" data-role="pscrub" aria-label="Position">
+    <div class="legend"><span><i style="background:var(--accent)"></i>Clip (Ton aus dem Video)</span><span><i style="background:repeating-linear-gradient(45deg,#aaa 0 3px,#eee 3px 6px)"></i>Übergangszeit (innerhalb der Slide)</span></div>
+    <div><div class="small muted" style="margin-bottom:4px">Musiklautstärke</div><svg class="vol" viewBox="0 0 100 70" preserveAspectRatio="none"><polyline points="${pts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/><line data-role="vline" x1="0" x2="0" y1="0" y2="70" stroke="var(--ink)" stroke-width="1" vector-effect="non-scaling-stroke"/></svg></div>
+    <div class="notice ok small" data-role="pnote"></div></div>`;
+}
+function paintPlayer() {
+  const T = total(), s = slideAt(pl.t), sl = slides[s.i], nx = slides[s.i + 1];
+  const fade = Math.min(1, sl.d * 0.3), inTr = !!nx && s.local > sl.d - fade;
+  const prog = inTr ? (s.local - (sl.d - fade)) / fade : 0;
+  const cls = (x) => (x.k === 'v' ? 'vid' : x.k);
+  $$('.stage').forEach((st) => {
+    const cur = st.querySelector('[data-role=cur]'), nxt = st.querySelector('[data-role=nxt]');
+    const scale = sl.k === 'v' ? '' : `transform:scale(${1 + 0.1 * s.local / sl.d});`;
+    cur.innerHTML = `<div class="pic ${cls(sl)}${sl.k === 'v' ? ' paused' : ''}" style="position:absolute;inset:0;${scale}"></div>`
+      + (sl.k === 'v' ? `<div style="position:absolute;width:12%;aspect-ratio:1;border-radius:99px;background:rgba(255,255,255,.85);top:20%;left:${10 + (s.local / sl.d) * 70}%"></div>` : '');
+    nxt.style.opacity = prog;
+    nxt.innerHTML = nx ? `<div class="pic ${cls(nx)}${nx.k === 'v' ? ' paused' : ''}" style="position:absolute;inset:0"></div>` : '';
+    st.querySelector('[data-role=cap2]').textContent = sl.k === 'v' ? '🔊 Clip · Ton an' : `${sl.label} ${s.i + 1}`;
+  });
+  const mv = musicVol(pl.t, pl.mode);
+  $$('[data-role=ptime]').forEach((e) => (e.textContent = fmt(pl.t) + ' / ' + fmt(T)));
+  $$('[data-role=head]').forEach((e) => (e.style.left = (pl.t / T) * 100 + '%'));
+  $$('[data-role=vline]').forEach((e) => { e.setAttribute('x1', pl.t / T * 100); e.setAttribute('x2', pl.t / T * 100); });
+  $$('[data-role=pscrub]').forEach((e) => (e.value = pl.t));
+  $$('[data-role=pnote]').forEach((e) => (e.textContent = sl.k === 'v'
+    ? (pl.mode === 'duck' ? `Clip läuft mit Ton · Musik auf ${Math.round(mv * 100)} %` : 'Clip läuft mit Ton · Musik pausiert und setzt danach an derselben Stelle fort')
+    : `Foto · Musik bei ${Math.round(mv * 100)} %${inTr && nx.k === 'v' ? ' · der Übergang startet zugleich den Clip' : ''}`));
+}
+let praf = 0, plast = 0;
+function ploop(ts) {
+  if (!pl.playing) { praf = 0; return; }
+  pl.t += (ts - plast) / 1000; plast = ts;
+  if (pl.t >= total()) pl.t = 0;
+  paintPlayer(); praf = requestAnimationFrame(ploop);
+}
+function playerTab() {
+  return `<p class="sub">Spiele ab oder ziehe den Regler. Der Clip ist die dritte Slide; die Übergangszeit liegt in den letzten 30 % jeder Slide (höchstens 1 s), wie bei Fotos. Oben im Kopf wechselst du zwischen den zwei Ton-Varianten.</p>
+  <div style="margin-top:14px">${frames(playerScreen, 'Hochformat-Clips bekommen den unscharfen Füllhintergrund wie Hochformat-Fotos. Safari spielt Ton erst nach einer Berührung — „Abspielen“ ist sie.')}</div>`;
+}
+
+/* ---------- 4 · Export, Server, Immich ---------- */
+function targets() {
+  const r = (a, b, c, st, tx) => `<tr><td><b>${a}</b></td><td>${b}</td><td>${c}</td><td><span class="st ${st}">${tx}</span></td></tr>`;
+  return `<div class="stack"><div class="card scroll"><h2>Was eine Video-Slide in jedem Ziel tut</h2><table class="m">
+  <tr><th>Ziel</th><th>Verhalten</th><th>Folge / Grenze</th><th></th></tr>
+  ${r('Player (App)', '<code>&lt;video&gt;</code> als WebGL-Textur, <code>playsinline</code>; der Ton läuft über denselben AudioContext wie die Musik (Ducking).', 'Die Slide-Uhr führt: der Clip wird ihr nachgeführt, nie umgekehrt. DOM-Fallback: <code>&lt;video&gt;</code> direkt.', 'ok', 'passt')}
+  ${r('Video-Export (MP4)', 'Der Clip wird bildgenau mit WebCodecs/mediabunny dekodiert, sein Ton kommt in den Mix (ADR-0015), Ducking wird mitgerechnet.', 'Nur Formate, die <code>VideoDecoder</code> kann; sonst Hinweis im Export-Sheet vorab („Clip 3 nicht exportierbar“).', 'adr', 'ADR')}
+  ${r('HTML-Export (eine Datei)', 'Clip eingebettet (Base64) oder nur Posterbild + Hinweis.', 'Ein 30-s-Clip hat grob 15–50 MB, die Datei wird sehr groß. <b>Offen:</b> einbetten mit Warnung oder Poster?', 'note', 'offen')}
+  ${r('.glissando-Datei', 'Original + Poster als Einträge im Stored-ZIP (ADR-0004); Format steigt, ältere Versionen bleiben lesbar.', 'Die Datei wächst um die Videodaten; Fortschritt in der Hintergrundanzeige.', 'ok', 'passt')}
+  ${r('Server-Slideshow', 'Original auf dem Server; das Gerät lädt per Range-Request und merkt es sich (ADR-0018).', 'Der Clip wird vor seiner Slide vorgeladen, damit der Übergang nicht stockt.', 'adr', 'ADR')}
+  ${r('Teilen per Link', 'Clips streamen vom Server (Range), ohne Vorab-Download.', 'Nur mit Server sinnvoll.', 'ok', 'passt')}
+  ${r('Immich', 'Videos werden auswählbar (heute „n Videos ausgeblendet“); Wiedergabe über den transkodierten Proxy-Stream.', 'Nur online; „Offline speichern“ legt eine Kopie im Gerät ab.', 'adr', 'ADR')}
+  ${r('Fernbedienung (TV)', 'Unverändert: das Gerät spielt, die Fernbedienung steuert.', 'Kein Zusatz.', 'ok', 'passt')}
+  ${r('Safari / iOS', 'Ton erst nach einer Berührung; <code>playsinline</code> ist Pflicht; H.264 in .mov geht, HEVC je nach Gerät.', 'Plattformhinweis wie bei Audioformaten.', 'note', 'Hinweis')}
+  </table></div>
+  <div class="two"><div class="card"><h2>ADR-Kandidaten (echte Tradeoffs)</h2><ul>
+    <li><b>Decoder:</b> <code>&lt;video&gt;</code> im Player, WebCodecs nur im Export (zwei Pfade, dafür Safari/TV-tauglich).</li>
+    <li><b>Original speichern statt umrechnen:</b> große Dateien, dafür Qualität und keine Wartezeit.</li>
+    <li><b>Ton:</b> Ducking als Standard, Clip-Ton im Gesamt-Mix.</li>
+    <li><b>Immich/Server:</b> Streaming plus optionale Gerätekopie.</li></ul></div>
+  <div class="card"><h2>Danach (erst nach deinem OK)</h2><ul>
+    <li>Spec <code>dev-docs/player/VIDEO_SLIDES.md</code> und Abschnitte in Slideshow-JSON, Composition, Library, Video-Export, HTML-Export.</li>
+    <li>Tests zuerst, dann Code im Worktree <code>../glissando-video-slides</code>.</li>
+    <li><code>npm run verify</code>, <code>/pr-review</code>, Merge nur auf dein Go.</li></ul></div></div></div>`;
+}
+
+/* ---------- Render & Ereignisse ---------- */
+function render() {
+  document.documentElement.dataset.theme = state.theme;
+  $('#main').innerHTML = { concept, import: importTab, editor: editorTab, player: playerTab, targets }[state.tab]();
+  if (state.tab === 'editor') paintEditor();
+  if (state.tab === 'player') paintPlayer();
+}
+function bindSeg(id, key) {
+  $(id).addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    state[key] = b.dataset.v; ed.playing = false; pl.playing = false;
+    $$('button', $(id)).forEach((x) => x.setAttribute('aria-pressed', x === b));
+    render();
+  });
+}
+bindSeg('#theme', 'theme'); bindSeg('#width', 'width'); bindSeg('#tabs', 'tab');
+
+$('#main').addEventListener('click', (e) => {
+  const t = e.target.closest('.tile');
+  if (t) { const id = +t.dataset.id; sel.has(id) ? sel.delete(id) : sel.add(id); return render(); }
+  const f = e.target.closest('[data-f]'); if (f) { filt.B = f.dataset.f; return render(); }
+  const s = e.target.closest('[data-s]'); if (s) { ed.mute = s.dataset.s === 'off'; return render(); }
+  if (e.target.closest('[data-role=spk]')) { ed.mute = !ed.mute; return render(); }
+  if (e.target.closest('[data-role=play]')) {
+    ed.playing = !ed.playing;
+    if (ed.playing) { if (ed.t < ed.start || ed.t >= ed.end) ed.t = ed.start; last = performance.now(); raf = requestAnimationFrame(loop); }
+    return render();
+  }
+  const m = e.target.closest('[data-m]'); if (m) { pl.mode = m.dataset.m; return render(); }
+  if (e.target.closest('[data-role=pplay]')) {
+    pl.playing = !pl.playing;
+    if (pl.playing) { plast = performance.now(); praf = requestAnimationFrame(ploop); }
+    return render();
+  }
+});
+$('#main').addEventListener('input', (e) => {
+  const r = e.target.dataset.role;
+  if (r === 'vol') { ed.vol = +e.target.value; $$('[data-role=volv]').forEach((x) => (x.textContent = ed.vol + '%')); $$('[data-role=vol]').forEach((x) => (x.value = ed.vol)); }
+  if (r === 'pscrub') { pl.t = +e.target.value; paintPlayer(); }
+});
+$('#main').addEventListener('change', (e) => { if (e.target.dataset.role === 'duck') { ed.duck = e.target.checked; $$('[data-role=duck]').forEach((x) => (x.checked = ed.duck)); } });
+
+let drag = null;
+$('#main').addEventListener('pointerdown', (e) => {
+  const h = e.target.closest('.h'); if (!h) return;
+  drag = { which: h.dataset.h }; h.setPointerCapture(e.pointerId);
+});
+$('#main').addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  const strip = e.target.closest('.strip'); if (!strip) return;
+  const r = strip.getBoundingClientRect();
+  const v = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+  const min = 0.5 / SRC, max = Math.min(1, 60 / SRC);
+  if (drag.which === 'start') { ed.start = Math.min(v, ed.end - min); if (ed.end - ed.start > max) ed.start = ed.end - max; }
+  else { ed.end = Math.max(v, ed.start + min); if (ed.end - ed.start > max) ed.end = ed.start + max; }
+  ed.t = Math.min(Math.max(ed.t, ed.start), ed.end);
+  paintEditor();
+});
+window.addEventListener('pointerup', () => { drag = null; });
+render();
+</script>
+</body>
+</html>
