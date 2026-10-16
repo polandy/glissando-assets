@@ -1,7 +1,8 @@
 # Glissando demo media
 
-The media the public demo slideshow (https://polandy.github.io/glissando/demo.html) loads at
-run time.
+The media of the demo slideshow that the public install (https://polandy.github.io/glissando/)
+offers on an empty library. `glissando-demo.glissando` is the slideshow itself, exported from
+Glissando; the app downloads it on demand.
 
 ## Licences
 
