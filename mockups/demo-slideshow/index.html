@@ -32,7 +32,7 @@ h1{font:700 26px var(--display);margin:0}.lead{color:var(--page-muted);max-width
 .cap .seg button{font-size:12px;padding:4px 10px}
 .app{position:relative;overflow:hidden;background:var(--ground);color:var(--ink);border:1px solid var(--page-line);border-radius:14px;display:flex;flex-direction:column;max-width:100%}
 .app.phone{width:412px;height:760px;border-radius:28px}.app.tablet{width:820px;height:512px}
-.top{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 16px;min-height:52px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;min-height:52px}
 .ib{border:0;background:none;color:var(--muted);width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
 .ib:hover{background:var(--hover)}svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .body{flex:1;overflow:auto;padding:8px 24px 24px;display:flex;flex-direction:column}
@@ -55,10 +55,14 @@ h1{font:700 26px var(--display);margin:0}.lead{color:var(--page-muted);max-width
 .cover{aspect-ratio:4/3;border-radius:9px;display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:3px;overflow:hidden}
 .cover i:first-child{grid-row:span 2}
 .tile.new{border:2px dashed var(--line);background:none;box-shadow:none;place-content:center;justify-items:center;color:var(--muted);min-height:150px;font-weight:600}
-.tile.demo .cover{grid-template-columns:1fr;grid-template-rows:1fr;place-items:center;background:linear-gradient(135deg,#ff9f7f,#c86fb0 55%,#6fcfb4);color:#fff}
-.tile.demo .cover svg{width:34px;height:34px;fill:#fff;stroke:none;filter:drop-shadow(0 1px 4px rgb(0 0 0/.3))}
 .tile:disabled{opacity:.5;cursor:not-allowed}
-.tile .hair{bottom:0}
+.hint{margin:4px 0 0;color:var(--muted);font-size:12px;max-width:30ch;line-height:1.4}
+.show-scr{display:grid;gap:14px;padding:10px 0;width:100%}
+.show-scr h3{font:700 24px var(--display);margin:0}
+.show-scr .meta{font:400 12px var(--mono);color:var(--muted)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px}
+.pgrid i{display:block;aspect-ratio:1;border-radius:10px}
+.btn.big{padding:13px 24px;font-size:15px}
 .toast{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:12px;font-weight:500;box-shadow:0 6px 20px rgb(0 0 0/.25);z-index:5;white-space:nowrap;max-width:92%}
 .player{position:absolute;inset:0;background:#000;z-index:4;overflow:hidden;color:#fff}
 .pic{position:absolute;inset:-4%;background:linear-gradient(160deg,#2b3a67 0%,#c86fb0 48%,#ffb59a 78%,#f5c94a 100%);animation:kb 12s ease-in-out infinite alternate}
@@ -69,52 +73,90 @@ h1{font:700 26px var(--display);margin:0}.lead{color:var(--page-muted);max-width
 @media(prefers-reduced-motion:reduce){.pic{animation:none}}
 </style></head><body><div class="page">
 <div class="head"><div><h1>Demo slideshow</h1>
-<p class="lead">The hosted site (polandy.github.io/glissando) offers a "Watch demo" so anyone can see Glissando play before installing. Two placements to compare; click through every state in each frame.</p></div>
+<p class="lead">On the public install at polandy.github.io/glissando only — never on a self-hosted one — an empty library's start screen offers a quiet third button, "Load demo slideshow", under "New slideshow" and "Open .glissando file". Tapping it downloads a .glissando file from the assets site and opens it through the normal file-import path, landing on "Glissando demo": from then on it is an ordinary slideshow in the library — playable, editable, deletable, and offline once loaded.</p></div>
 <div class="seg" id="theme"><button aria-pressed="true" data-t="light">Light</button><button aria-pressed="false" data-t="dark">Dark</button></div></div>
-<div class="note"><b>How it works:</b> the demo pictures are fetched at runtime from <code>polandy.github.io/glissando-assets/demo/</code>. They are never stored in the app repo and the demo is not saved to the library. The credit line shows while it plays. Offline, the button is disabled and a toast explains why. (Gradients here stand in for pictures.)</div>
-<section class="variant"><h2>Variant A: third button on the empty start screen</h2>
-<p>A quiet ghost button under "Open .glissando file". The first thing a visitor with an empty library can try.</p><div class="frames" data-v="a"></div></section>
-<section class="variant"><h2>Variant B: "Watch demo" card in the library</h2>
-<p>The card sits at the end of the grid, after "New slideshow", so a visitor with slideshows can still find it. Its cover is a play icon on the brand gradient.</p><div class="frames" data-v="b"></div></section>
+<div class="note"><b>How it works:</b> the button only shows while the library is empty and only on the hosted install; delete the demo and, if the library is empty again, the button comes back. It downloads the demo file from <code>polandy.github.io/glissando-assets/demo/</code> and imports it exactly as "Open .glissando file" would, so nothing about the result is special-cased. The pictures are © the owner; a small credit for the pictures and music shows while the demo plays. (Gradients here stand in for pictures.)</div>
+<section class="variant"><h2>Click through every state</h2>
+<p>Each frame starts on the empty library. Use the chips to jump between states, or click "Load demo slideshow" to watch the real flow play out.</p><div class="frames"></div></section>
 </div>
 <script>
 const PLAY='<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>';
+const SPARKLE='<svg viewBox="0 0 24 24"><path d="M12 2c.4 3.2 1.4 5.4 3 7s3.8 2.6 7 3c-3.2.4-5.4 1.4-7 3s-2.6 3.8-3 7c-.4-3.2-1.4-5.4-3-7s-3.8-2.6-7-3c3.2-.4 5.4-1.4 7-3s2.6-3.8 3-7z"/></svg>';
+const BACK='<svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>';
+const CLOSE='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const GEAR='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
-const covers=['linear-gradient(135deg,#ff9f7f,#f5c94a)','#6fcfb4','#8e7fd6'];
-const lbl={idle:'Watch demo',loading:'',offline:'Watch demo'};
-function demoBtn(v){
-  const inner=(t)=>`<span class="t">${t}</span><span class="hair"><i></i></span>`;
-  if(v==='a')return `<button class="btn ghost demo">${PLAY}${inner('Watch demo')}</button>`;
-  return `<button class="tile demo"><div class="cover">${PLAY}</div><b class="t">Watch demo</b><span class="sub">Demo · 12 pictures</span><span class="hair"><i></i></span></button>`;
+const COVERS=['linear-gradient(135deg,#ff9f7f,#f5c94a)','#6fcfb4','#8e7fd6'];
+const PGRID=['#ff9f7f','#f5c94a','#6fcfb4','#8e7fd6','#c86fb0','#7fb8ff','#f2786b','#ffd95a','#b9a6f2','#6fcfb4','#ff9f7f','#8e7fd6'];
+const STATES=['empty','loading','opened','library','offline','failed'];
+const TOTAL=31,STEP=3;
+
+function topBar(s){
+  const back=s==='opened'?`<button class="ib" aria-label="Back" data-act="back">${BACK}</button>`:'<span></span>';
+  return `${back}<button class="ib" aria-label="Settings">${GEAR}</button>`;
 }
-function body(v){
-  if(v==='a')return `<div class="hero"><div class="logo">Glissando</div><p class="tag">Slideshows that glide, offline.</p>
-<button class="btn">New slideshow</button><button class="btn ghost">Open .glissando file</button>${demoBtn('a')}</div>`;
+function heroScreen(s){
+  const offline=s==='offline',loading=s==='loading';
+  const label=loading?`Loading demo… 0 of ${TOTAL} MB`:'Load demo slideshow';
+  return `<div class="hero"><div class="logo">Glissando</div><p class="tag">Slideshows that glide, offline.</p>
+<button class="btn">New slideshow</button><button class="btn ghost">Open .glissando file</button>
+<button class="btn ghost demo" data-act="load"${offline||loading?' disabled':''}>${SPARKLE}<span class="t">${label}</span><span class="hair"><i></i></span></button>
+${offline?'<p class="hint">Needs a connection — once loaded, the demo works offline.</p>':''}</div>`;
+}
+function libraryScreen(){
   return `<div class="lib"><header><div><small>Library</small><h3>Your slideshows</h3></div><button class="btn ghost" style="min-width:0;padding:8px 14px">Open file</button></header>
-<div class="grid"><button class="tile"><div class="cover">${covers.map(c=>`<i style="background:${c}"></i>`).join('')}</div><b>Summer in the hills</b><span>12 pictures · 1:00</span></button>
-<button class="tile new">+ New slideshow</button>${demoBtn('b')}</div></div>`;
+<div class="grid"><button class="tile" data-act="open"><div class="cover">${COVERS.map(c=>`<i style="background:${c}"></i>`).join('')}</div><b>Glissando demo</b><span>24 pictures · 1:57</span></button>
+<button class="tile new">+ New slideshow</button></div></div>`;
 }
-function build(v,kind){
+function openedScreen(){
+  return `<div class="show-scr"><h3>Glissando demo</h3><span class="meta">24 pictures · 1:57</span>
+<div class="pgrid">${PGRID.map(c=>`<i style="background:${c}"></i>`).join('')}</div>
+<button class="btn big" data-act="play">${PLAY}Play</button></div>`;
+}
+function bodyFor(s){
+  if(s==='opened')return openedScreen();
+  if(s==='library')return libraryScreen();
+  return heroScreen(s);
+}
+function build(kind){
   const w=document.createElement('div');w.className='fw';
-  w.innerHTML=`<div class="cap"><span>${kind==='phone'?'Phone 412':'Tablet 820'}</span><span class="seg">${['idle','loading','playing','offline'].map(s=>`<button data-go="${s}" aria-pressed="${s==='idle'}">${s}</button>`).join('')}</span></div>
-<div class="app ${kind}" data-s="idle"><div class="top"><button class="ib" aria-label="Settings">${GEAR}</button></div><div class="body">${body(v)}</div>
-<div class="player" hidden><div class="pic"></div><div class="cr">© &lt;Name&gt;. All rights reserved.</div><button class="x" aria-label="Close demo"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>`;
-  const app=w.querySelector('.app'),btn=app.querySelector('.demo'),t=btn.querySelector('.t'),bar=btn.querySelector('.hair i'),pl=app.querySelector('.player');
+  w.innerHTML=`<div class="cap"><span>${kind==='phone'?'Phone 412':'Tablet 820'}</span><span class="seg">${STATES.map(s=>`<button data-go="${s}" aria-pressed="${s==='empty'}">${s}</button>`).join('')}</span></div>
+<div class="app ${kind}" data-s="empty"><div class="top">${topBar('empty')}</div><div class="body"></div>
+<div class="player" hidden><div class="pic"></div><div class="cr">Demo pictures © polandy · Music made for Glissando</div><button class="x" aria-label="Close">${CLOSE}</button></div></div>`;
+  const app=w.querySelector('.app'),pl=app.querySelector('.player');
   let timer,toast;
-  const sub=btn.querySelector('.sub');
   function say(m){toast?.remove();toast=document.createElement('div');toast.className='toast';toast.setAttribute('role','status');toast.textContent=m;app.append(toast);setTimeout(()=>toast?.remove(),2800)}
-  function set(s){
-    clearInterval(timer);toast?.remove();app.dataset.s=s;pl.hidden=s!=='playing';btn.disabled=s==='offline';
-    t.textContent='Watch demo';if(sub)sub.textContent='Demo · 12 pictures';bar.style.width=0;
-    if(s==='loading'){let n=0;const tick=()=>{n++;const m=`Loading demo… ${n} of 12`;t.textContent=m;if(sub)sub.textContent='';bar.style.width=n/12*100+'%';if(n>=12){clearInterval(timer);setTimeout(()=>set('playing'),350)}};tick();timer=setInterval(tick,550)}
-    if(s==='offline')say('The demo needs a connection');
+  function runLoading(){
+    let n=0;
+    const tick=()=>{
+      n=Math.min(TOTAL,n+STEP);
+      const btn=app.querySelector('.demo');
+      if(btn){btn.querySelector('.t').textContent=`Loading demo… ${n} of ${TOTAL} MB`;btn.querySelector('.hair i').style.width=n/TOTAL*100+'%'}
+      if(n>=TOTAL){clearInterval(timer);setTimeout(()=>render('opened'),350)}
+    };
+    tick();timer=setInterval(tick,480);
+  }
+  function render(s){
+    clearInterval(timer);toast?.remove();
+    app.dataset.s=s;pl.hidden=true;
+    app.querySelector('.top').innerHTML=topBar(s);
+    app.querySelector('.body').innerHTML=bodyFor(s);
+    if(s==='loading')runLoading();
+    if(s==='failed')say("Couldn't load the demo — try again");
     w.querySelectorAll('[data-go]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.go===s));
   }
-  w.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>set(b.dataset.go));
-  btn.onclick=()=>app.dataset.s==='idle'&&set('loading');
-  app.querySelector('.x').onclick=()=>set('idle');
+  app.addEventListener('click',e=>{
+    const t=e.target.closest('[data-act]');if(!t)return;
+    const a=t.dataset.act;
+    if(a==='load'){if(app.dataset.s!=='loading')render('loading')}
+    else if(a==='open')render('opened');
+    else if(a==='back')render('library');
+    else if(a==='play')pl.hidden=false;
+  });
+  pl.querySelector('.x').onclick=()=>pl.hidden=true;
+  w.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>render(b.dataset.go));
+  render('empty');
   return w;
 }
-document.querySelectorAll('.frames').forEach(f=>['phone','tablet'].forEach(k=>f.append(build(f.dataset.v,k))));
+document.querySelectorAll('.frames').forEach(f=>['phone','tablet'].forEach(k=>f.append(build(k))));
 document.querySelectorAll('#theme button').forEach(b=>b.onclick=()=>{document.documentElement.dataset.theme=b.dataset.t==='dark'?'dark':'';document.querySelectorAll('#theme button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
 </script></body></html>
