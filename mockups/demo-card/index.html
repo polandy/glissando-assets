@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demo Card Variants</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --page:#e9e7ee;--page-ink:#221d33;--page-muted:#6b6580;
+  --ground:#f6f5f8;--surface:#fff;--ink:#221d33;--muted:#6b6580;--line:#e5e2eb;
+  --accent:#ff9f7f;--accent-ink:#2a1a14;--peach:#ff9f7f;--mint:#6fcfb4;--lemon:#f5c94a;
+  --shadow:0 1px 2px rgb(34 29 51/.06),0 4px 16px rgb(34 29 51/.08);
+  --ui:"Instrument Sans","Segoe UI",system-ui,sans-serif;--word:"Baloo 2",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --page:#0e0c14;--page-ink:#ece9f3;--page-muted:#8e88a0;
+  --ground:#121019;--surface:#1c1925;--ink:#edeaf3;--muted:#9a94ab;--line:#2c2838;--accent:#ffb59a;
+  --shadow:0 1px 2px rgb(0 0 0/.3),0 4px 16px rgb(0 0 0/.3);}}
+:root[data-theme="dark"]{
+  --page:#0e0c14;--page-ink:#ece9f3;--page-muted:#8e88a0;
+  --ground:#121019;--surface:#1c1925;--ink:#edeaf3;--muted:#9a94ab;--line:#2c2838;--accent:#ffb59a;
+  --shadow:0 1px 2px rgb(0 0 0/.3),0 4px 16px rgb(0 0 0/.3);}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--page-ink);font:15px/1.45 var(--ui)}
+header{max-width:1400px;margin:0 auto;padding:20px 16px 8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+h1{font-size:20px;margin:0}
+header p{margin:4px 0 0;color:var(--page-muted)}
+.toggle{border:1px solid var(--page-muted);background:none;color:var(--page-ink);border-radius:999px;padding:6px 14px;font:inherit;cursor:pointer}
+.grid{max-width:1400px;margin:0 auto;padding:8px 16px 40px;display:flex;flex-wrap:wrap;gap:24px;justify-content:center}
+figure{margin:0;display:flex;flex-direction:column;gap:10px;width:min(100%,360px)}
+figcaption b{display:block;font-size:16px}
+figcaption span{color:var(--page-muted);font-size:14px}
+.phone{background:var(--ground);color:var(--ink);border-radius:28px;border:1px solid var(--line);overflow:hidden;height:640px;display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);font-weight:600}
+.hero{padding:28px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.logo{display:flex;gap:0;margin-bottom:-4px}
+.logo i{width:38px;height:30px;border-radius:7px;border:3px solid var(--ink);display:block}
+.logo i:nth-child(1){background:var(--peach);transform:rotate(-12deg) translateY(10px)}
+.logo i:nth-child(2){background:var(--mint);margin-left:-16px;transform:translateY(4px)}
+.logo i:nth-child(3){background:var(--lemon);margin-left:-16px;transform:rotate(8deg)}
+.word{font:800 40px/1 var(--word);margin:0}
+.tag{font-weight:600;font-size:18px;margin:0}
+.intro{color:var(--muted);font-size:13.5px;margin:0 0 6px}
+.btn{border:0;border-radius:999px;background:var(--accent);color:var(--accent-ink);font:600 15px var(--ui);padding:12px 22px;cursor:pointer}
+.link{background:none;border:0;color:var(--muted);font:600 13.5px var(--ui);cursor:pointer}
+.cover{background:linear-gradient(135deg,var(--peach),var(--mint) 55%,var(--lemon));display:grid;place-items:center;flex:none}
+.play{width:34px;height:34px;border-radius:50%;background:rgb(255 255 255/.92);display:grid;place-items:center;box-shadow:0 2px 8px rgb(0 0 0/.18)}
+.play::before{content:"";border-left:11px solid #221d33;border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px}
+.card{background:var(--surface);border:0;border-radius:16px;box-shadow:var(--shadow);color:var(--ink);font:inherit;cursor:pointer;text-align:start;padding:0}
+.card:hover{outline:2px solid color-mix(in srgb,var(--accent) 45%,transparent)}
+.title{font-weight:600;font-size:15px}
+.action{color:var(--accent);font-weight:600;font-size:13.5px}
+.dark-ink .action{color:var(--accent)}
+/* A — stacked, centred */
+.a{width:100%;overflow:hidden;display:flex;flex-direction:column;align-items:stretch;text-align:center}
+.a .cover{height:120px}
+.a .text{padding:12px 14px 14px;display:flex;flex-direction:column;gap:2px}
+/* B — same width as the button */
+.b-stack{display:flex;flex-direction:column;align-items:stretch;gap:12px;width:260px}
+.b{display:flex;align-items:center;gap:12px;padding:10px}
+.b .cover{width:52px;height:52px;border-radius:10px}
+.b .cover .play{width:24px;height:24px}
+.b .cover .play::before{border-left-width:8px;border-top-width:5px;border-bottom-width:5px;margin-left:2px}
+.b .text{display:flex;flex-direction:column}
+/* C — horizontal, balanced */
+.c{width:100%;display:flex;align-items:center;gap:14px;padding:12px 14px 12px 12px}
+.c .cover{width:72px;height:72px;border-radius:12px}
+.c .text{flex:1;display:flex;flex-direction:column;gap:2px}
+.c .chev{color:var(--accent);font-size:22px;font-weight:600}
+/* D — video poster */
+.d{width:100%;overflow:hidden;position:relative;height:150px;display:block}
+.d .cover{position:absolute;inset:0}
+.d .over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#221d33;text-align:center}
+.d .over .play{width:46px;height:46px}
+.d .over .play::before{border-left-width:14px;border-top-width:9px;border-bottom-width:9px}
+.d .over b{font-size:16px}
+.d .over span{font-size:13px;font-weight:600;background:rgb(255 255 255/.8);border-radius:999px;padding:3px 10px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Demo card on the start screen: variants</h1>
+    <p>Public install, empty library. Phone width. The cover is a brand gradient; no photo.</p>
+  </div>
+  <button class="toggle" id="theme">Light / dark</button>
+</header>
+<main class="grid" id="grid"></main>
+<template id="screen">
+  <div class="phone">
+    <div class="bar"><span>Glissando</span><span>⚙</span></div>
+    <div class="hero">
+      <div class="logo"><i></i><i></i><i></i></div>
+      <p class="word">Glissando</p>
+      <p class="tag">Pictures in, slideshow out.</p>
+      <p class="intro">Choose pictures and a piece of music — Glissando takes care of order, zoom and transitions. Everything stays on this device.</p>
+      <div class="slot"></div>
+    </div>
+  </div>
+</template>
+<script>
+const NEW = '<button class="btn">+&nbsp; New slideshow</button>';
+const OPEN = '<button class="link">⇪ Open .glissando file</button>';
+const variants = [
+  {name:"A — Stacked, centred", note:"Picture on top, text below, everything centred like the rest of the page.",
+   html:`<button class="card a"><div class="cover"><div class="play"></div></div><div class="text"><span class="title">See Glissando in action</span><span class="action">Load demo slideshow →</span></div></button>${NEW}${OPEN}`},
+  {name:"B — As wide as the button", note:"Card and New slideshow share one width and line up.",
+   html:`<div class="b-stack"><button class="card b"><div class="cover"><div class="play"></div></div><div class="text"><span class="title">See Glissando in action</span><span class="action">Load demo slideshow →</span></div></button><button class="btn">+&nbsp; New slideshow</button></div>${OPEN}`},
+  {name:"C — Horizontal, balanced", note:"Larger picture, text vertically centred, arrow at the right edge.",
+   html:`<button class="card c"><div class="cover"><div class="play"></div></div><div class="text"><span class="title">See Glissando in action</span><span class="action">Load demo slideshow</span></div><span class="chev">›</span></button>${NEW}${OPEN}`},
+  {name:"D — Video poster", note:"The card looks like a paused video; the text sits centred on the picture.",
+   html:`<button class="card d"><div class="cover"></div><div class="over"><div class="play"></div><b>See Glissando in action</b><span>Load demo slideshow</span></div></button>${NEW}${OPEN}`},
+];
+const grid = document.getElementById("grid"), tpl = document.getElementById("screen");
+for (const v of variants) {
+  const fig = document.createElement("figure");
+  const screen = tpl.content.cloneNode(true);
+  screen.querySelector(".slot").outerHTML = v.html;
+  fig.append(screen);
+  const cap = document.createElement("figcaption");
+  cap.innerHTML = `<b>${v.name}</b><span>${v.note}</span>`;
+  fig.append(cap);
+  grid.append(fig);
+}
+document.getElementById("theme").onclick = () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+};
+</script>
+</body>
+</html>
