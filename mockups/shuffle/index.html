@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shuffle the pictures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --lemon: #f5c94a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 18px; }
+.intro { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: end; justify-content: space-between; }
+.intro h1 { font-family: var(--display); font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 70ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+button:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; }
+.concept p, .concept li { line-height: 1.55; max-width: 74ch; margin: 0; }
+.concept ul { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.q { border-left: 3px solid var(--lemon); }
+
+.app {
+  --radius: 10px; --radius-lg: 14px; --on-photo: #ffffff; --photo-badge: rgba(0, 0, 0, 0.5);
+  width: 100%; max-width: 1200px; height: 720px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 390px; height: 800px; border-radius: 34px; border: 6px solid #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --ink: #221d33; --muted: #6b6580; --line: #e5e2eb; --hover: #efedf3;
+  --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-soft: #ffe9e0; --inverse-bg: #221d33; --inverse-text: #ffffff;
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --ink: #edeaf3; --muted: #9a94ab; --line: #2c2838; --hover: #26222f;
+  --accent: #ffb59a; --accent-ink: #2a1a14; --accent-soft: #3a2a27; --inverse-bg: #edeaf3; --inverse-text: #1a1723;
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; }
+.crumbs { color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 11px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.link { border-color: transparent; background: transparent; color: var(--ink); text-decoration: underline; padding: 0 6px; }
+.scroll { flex: 1; overflow: auto; min-height: 0; }
+.eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.show { padding: 24px; }
+.phone .show { padding: 16px; }
+.head { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto auto; column-gap: 10px; align-items: center; margin-bottom: 12px; }
+.head h2 { grid-area: 1 / 1; }
+.head .sub { grid-area: 2 / 1; margin: 3px 0 0; color: var(--muted); font-size: 13px; min-height: 18px; }
+.head .count { grid-area: 1 / 2; color: var(--muted); font-size: 13px; }
+.head .btn { grid-row: 1 / span 2; }
+.phone .head .btn { grid-row: 1; }
+.phone .head .sub { grid-column: 1 / -1; }
+.phone .btn .wide { display: none; }
+.sub .state { color: var(--ink); font-weight: 600; }
+.sub .state::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-right: 6px; }
+.btn.shuffle.spin svg { animation: roll .55s ease-in-out; }
+@keyframes roll { to { transform: rotate(360deg); } }
+.tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; position: relative; }
+.phone .tiles { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tile { position: relative; border-radius: 8px; overflow: hidden; background: var(--hover); }
+.tile img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+.tile .num { position: absolute; left: 6px; top: 6px; background: var(--photo-badge); color: var(--on-photo); border-radius: 6px; font: 500 11px var(--mono); padding: 3px 6px; }
+.tile.moved::after { content: ""; position: absolute; inset: 0; border-radius: 8px; box-shadow: inset 0 0 0 3px var(--accent); animation: fade 2.4s ease-out forwards; pointer-events: none; }
+@keyframes fade { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
+.toast { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; background: var(--inverse-bg); color: var(--inverse-text); border-radius: 12px; padding: 10px 12px 10px 16px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,.25); white-space: nowrap; }
+.phone .toast { white-space: normal; width: calc(100% - 24px); justify-content: space-between; }
+.toast button { border: 0; background: transparent; color: inherit; font: 700 13px var(--ui); text-decoration: underline; cursor: pointer; padding: 6px; }
+@media (prefers-reduced-motion: reduce) { .btn.shuffle.spin svg, .tile.moved::after { animation: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Shuffle the pictures</h1>
+      <p>Mockup. The owner mixes the pictures of a slideshow into a random order with one tap on the slideshow screen. Click <b>Shuffle</b> in the app frame below.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" id="variant"><button data-v="toast" aria-pressed="true">A · Toast with Undo</button><button data-v="inline" aria-pressed="false">B · Undo in the order line</button></div>
+      <div class="seg" id="width"><button data-w="desktop" aria-pressed="true">Desktop</button><button data-w="phone" aria-pressed="false">Phone</button></div>
+      <div class="seg" id="theme"><button data-t="light" aria-pressed="true">Light</button><button data-t="dark" aria-pressed="false">Dark</button></div>
+      <div class="seg"><button id="tabApp" aria-pressed="true">Mockup</button><button id="tabConcept" aria-pressed="false">Concept</button></div>
+    </div>
+  </div>
+
+  <div class="stage" id="stageApp">
+    <div class="app light" id="app">
+      <div class="bar"><span class="crumbs">Library <span>/</span> <b>Summer in Ticino</b></span></div>
+      <div class="scroll"><div class="show">
+        <div class="head">
+          <h2 class="eyebrow">Pictures</h2>
+          <span class="count mono" id="count">12</span>
+          <button class="btn shuffle" id="shuffle" type="button" aria-label="Shuffle">
+            <svg class="i" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg><span class="wide">Shuffle</span>
+          </button>
+          <button class="btn" type="button" aria-label="Select"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg><span class="wide">Select</span></button>
+          <button class="btn" type="button" aria-label="Add pictures"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="wide">Add pictures</span></button>
+          <p class="sub" id="sub"></p>
+        </div>
+        <div class="tiles" id="tiles"></div>
+      </div></div>
+      <div class="toast" id="toast" hidden role="status"><span id="toastText"></span><button type="button" id="toastUndo">Undo</button></div>
+    </div>
+  </div>
+
+  <div class="concept" id="stageConcept" hidden>
+    <h2>What it does</h2>
+    <p>A <b>Shuffle</b> button sits in the strip head, beside Select and Add pictures. One tap puts every picture of the slideshow into a new random order. The order is stored like any manual reorder, so the player, the HTML export and the video all use it, and the order line then reads "Own order".</p>
+    <h2>How the shuffle shows</h2>
+    <ul>
+      <li>The tiles <b>glide to their new places</b> (about half a second) and their number badges change; each tile that moved gets a short accent outline. With reduced motion they jump instead.</li>
+      <li>The Shuffle icon rolls once, and the order line says <b>Shuffled</b> with an accent dot until the next edit.</li>
+      <li><b>Undo</b> brings the previous order back. Tapping Shuffle again draws a new order — it never returns the order it started from.</li>
+    </ul>
+    <h2>Variants</h2>
+    <div class="card"><b>A · Toast with Undo.</b> Same pattern as removing a picture: a toast "Shuffled 12 pictures" with Undo. Consistent with the app's other undos.</div>
+    <div class="card"><b>B · Undo in the order line.</b> No toast; the order line becomes "Shuffled · Undo". Quieter, but the undo sits at the top and is easy to miss on a phone.</div>
+    <div class="card q"><b>Open questions.</b> Is a one-time reshuffle (the order is then fixed) what you want, or a "play in random order" setting that reshuffles on every play? This mockup assumes the former — it is visible, undoable and what you see is what plays. With a selection active, shuffle could mix only the selected pictures; left out of this first step.</div>
+  </div>
+</div>
+
+<script>
+const hues = [18, 205, 195, 210, 190, 150, 35, 200, 185, 28, 45, 260];
+const thumb = hue => {
+  const c = document.createElement("canvas"); c.width = 160; c.height = 120;
+  const g = c.getContext("2d");
+  const sky = g.createLinearGradient(0, 0, 0, 80);
+  sky.addColorStop(0, `hsl(${hue} 55% 60%)`); sky.addColorStop(1, `hsl(${(hue + 30) % 360} 70% 84%)`);
+  g.fillStyle = sky; g.fillRect(0, 0, 160, 120);
+  g.fillStyle = `hsl(${(hue + 180) % 360} 22% 38%)`;
+  g.beginPath(); g.moveTo(0, 80);
+  for (let x = 0; x <= 160; x += 20) g.lineTo(x, 45 + ((hue * (x + 7)) % 30));
+  g.lineTo(160, 80); g.fill();
+  g.fillStyle = `hsl(${hue} 45% 48%)`; g.fillRect(0, 80, 160, 40);
+  return c.toDataURL("image/jpeg", 0.8);
+};
+const pictures = hues.map((hue, id) => ({ id, src: thumb(hue) }));
+let order = pictures.slice(), before = order, shuffled = false, variant = "toast";
+const $ = id => document.getElementById(id);
+const tilesEl = $("tiles");
+
+function render(moved = new Set()) {
+  const first = new Map([...tilesEl.children].map(el => [el.dataset.id, el.getBoundingClientRect()]));
+  tilesEl.replaceChildren(...order.map((p, i) => {
+    const el = document.createElement("div");
+    el.className = "tile" + (moved.has(p.id) ? " moved" : ""); el.dataset.id = p.id;
+    el.innerHTML = `<img alt="" src="${p.src}"><span class="num">${i + 1}</span>`;
+    return el;
+  }));
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    for (const el of tilesEl.children) {
+      const a = first.get(el.dataset.id); if (!a) continue;
+      const b = el.getBoundingClientRect();
+      el.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)` }, { transform: "none" }], { duration: 550, easing: "cubic-bezier(.3,.7,.2,1)" });
+    }
+  }
+  $("count").textContent = order.length;
+  const sub = $("sub");
+  if (shuffled && variant === "inline") {
+    sub.innerHTML = `<span class="state">Shuffled</span> · <button class="btn link" id="inlineUndo" type="button">Undo</button>`;
+    $("inlineUndo").onclick = undo;
+  } else {
+    sub.innerHTML = shuffled ? `<span class="state">Shuffled</span> · Own order` : "Sorted by date";
+  }
+}
+function shuffle() {
+  before = order; let next;
+  do { next = order.slice().sort(() => Math.random() - 0.5); } while (next.every((p, i) => p === order[i]));
+  const moved = new Set(next.filter((p, i) => p !== order[i]).map(p => p.id));
+  order = next; shuffled = true;
+  const btn = $("shuffle"); btn.classList.remove("spin"); void btn.offsetWidth; btn.classList.add("spin");
+  render(moved);
+  $("toast").hidden = variant !== "toast";
+  $("toastText").textContent = `Shuffled ${order.length} pictures`;
+}
+function undo() { order = before; shuffled = false; $("toast").hidden = true; render(); }
+$("shuffle").onclick = shuffle;
+$("toastUndo").onclick = undo;
+function pick(groupId, attr, apply) {
+  $(groupId).onclick = e => { const b = e.target.closest("button"); if (!b) return;
+    for (const x of $(groupId).children) x.setAttribute("aria-pressed", x === b); apply(b.dataset[attr]); };
+}
+pick("variant", "v", v => { variant = v; $("toast").hidden = true; render(); });
+pick("width", "w", w => $("app").classList.toggle("phone", w === "phone"));
+pick("theme", "t", t => { $("app").classList.toggle("dark", t === "dark"); $("app").classList.toggle("light", t === "light"); });
+const tabs = { tabApp: ["stageApp", "stageConcept"], tabConcept: ["stageConcept", "stageApp"] };
+for (const [id, [show, hide]] of Object.entries(tabs)) $(id).onclick = () => {
+  $(show).hidden = false; $(hide).hidden = true;
+  $("tabApp").setAttribute("aria-pressed", id === "tabApp"); $("tabConcept").setAttribute("aria-pressed", id === "tabConcept");
+};
+render();
+</script>
+</body>
+</html>
