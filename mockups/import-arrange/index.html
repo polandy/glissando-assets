@@ -161,7 +161,7 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 .aside-head .why { color: var(--muted); flex-basis: 100%; }
 .aside h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
 .set { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
-.set .tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8px; opacity: 0.6; }
+.set .tile .pick img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8px; opacity: 0.6; }
 .plus { position: absolute; top: 5px; right: 5px; width: 30px; height: 30px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; cursor: pointer; padding: 0; }
 .plus svg.i { width: 16px; height: 16px; stroke-width: 2.4; }
 
@@ -239,10 +239,12 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
       <li><b>Culling</b> runs once, after the queue is empty, as today. A picture you moved counts as chosen and is never set aside, the same as one taken in with +.</li>
     </ul>
     <div class="card q">
-      <b>One decision for you</b>
+      <b>Settled: the editor's behaviour everywhere</b>
       <ul>
-        <li><b>A tap now selects</b> (as in the editor) instead of opening the picture full screen. Full screen moves to <b>View</b> in the selection bar, which stands where the editor has “Edit”; with a mouse a double-click also opens it. The picture editor itself stays in the slideshow editor, because it needs the slideshow. Alternative: keep tap = full screen and enter selection with a long press, which would make the wizard behave differently from the editor.</li>
-        <li>On touch the ✕ on each tile goes away (the editor has none on touch); Remove sits in the selection bar.</li>
+        <li><b>A tap selects</b>, as in the editor. Full screen is <b>View</b> in the selection bar (where the editor has “Edit”; the picture editor needs a stored slideshow); with a mouse a double-click opens it too. The editor itself stays as it is.</li>
+        <li><b>On touch the tile's ✕ goes away</b>; Remove sits in the bar. Tiles shift while new ones are sorted in, so a ✕ always shown would invite hitting the wrong picture; the selection sticks to the picture, not to its place. New tiles glide in, so the shift is visible (not with reduced motion).</li>
+        <li><b>Hold and move</b> drags on touch, as in the editor.</li>
+        <li><b>Set-aside tiles</b> cannot be selected, so a tap there opens the picture full screen, to compare similar shots.</li>
       </ul>
     </div>
   </section>
@@ -426,7 +428,7 @@ function render() {
     ${S.aside.length ? `<section class="aside">
       <div class="aside-head"><b>Set aside · ${S.aside.length}</b><button class="linkbtn" data-takeall>Take all in</button>
       <span class="why">These are not in the slideshow. Take one in with +. Pictures you moved are never set aside.</span></div>
-      <ul class="set">${S.aside.map(id => { const p = byId(id); return `<li class="tile"><img alt="" src="${thumb(p)}"><span class="date">${p.cull === "blurry" ? "Blurry" : "Similar"} · ${time(p.t)}</span>
+      <ul class="set">${S.aside.map(id => { const p = byId(id); return `<li class="tile"><button class="pick" data-full aria-label="View picture from ${day(p.t)} at ${time(p.t)}"><img alt="" src="${thumb(p)}"></button><span class="date">${p.cull === "blurry" ? "Blurry" : "Similar"} · ${time(p.t)}</span>
         <button class="plus" data-take="${id}" aria-label="Take in picture from ${day(p.t)} at ${time(p.t)}">${ICON.plus}</button></li>`; }).join("")}</ul>
     </section>` : ""}
   `;
