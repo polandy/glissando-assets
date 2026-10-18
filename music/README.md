@@ -5,7 +5,8 @@ slideshow app. They were generated with Google Gemini for use in Glissando.
 
 ## Licence
 
-Every audio file in this folder is © polandy and licensed under the
+The tracks were generated with AI and carry Google's SynthID watermark. To the extent that any
+rights exist in them, they are held by polandy and licensed under the
 **Creative Commons Attribution-NonCommercial 4.0 International** licence (CC BY-NC 4.0); the full
 legal code is in [`LICENSE`](LICENSE), the summary at
 https://creativecommons.org/licenses/by-nc/4.0/.
