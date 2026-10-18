@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arrange While Importing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Page chrome follows the viewer's theme; the app frame has its own light/dark switch. */
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --lemon: #f5c94a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 18px; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 74ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg button:focus-visible, .app button:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; }
+.concept li { line-height: 1.55; max-width: 76ch; }
+.concept ul { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 10px; }
+.card.q { border-left: 3px solid var(--lemon); }
+
+/* ---------- The app frame ---------- */
+.app {
+  --radius: 10px; --radius-lg: 14px; --on-photo: #ffffff; --photo-fade: rgba(0, 0, 0, 0.55); --badge: rgba(20, 14, 30, 0.62);
+  --ground: #f6f5f8; --surface: #ffffff; --ink: #221d33; --muted: #6b6580; --faint: #9c97ad;
+  --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-hover: #ff8f6b;
+  --mint: #3fae8f; --lemon-bg: #fdf3d3; --lemon-line: #efd98a; --coral: #e5604a;
+  --inverse-bg: #221d33; --inverse-text: #ffffff; --inverse-accent: #ffb59a; --inverse-line: #3a3450;
+  container: app / inline-size;
+  width: 100%; max-width: 1100px; height: 740px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+/* Pixel 9 Pro: 412 × 915 CSS px; the frame drops the system bars. */
+.app.phone { max-width: 424px; height: 880px; border-radius: 36px; border-width: 6px; border-color: #1a1722; }
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --ink: #edeaf3; --muted: #9a94ab; --faint: #6c6680;
+  --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --accent-hover: #ffc5af;
+  --mint: #6fcfb4; --lemon-bg: #2f2814; --lemon-line: #5c4c1c; --coral: #ff8a75;
+  --inverse-bg: #edeaf3; --inverse-text: #1a1723; --inverse-accent: #c4552f; --inverse-line: #cfcadb;
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.top { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; }
+.crumbs b { color: var(--ink); font-weight: 600; }
+.crumbs .sep { color: var(--faint); }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 500 14px var(--ui); cursor: pointer; white-space: nowrap; }
+.btn.sm { height: 34px; padding: 0 11px; font-size: 13px; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.steps { display: flex; gap: 18px; padding: 14px 24px 0; font-weight: 600; font-size: 13px; color: var(--muted); }
+.steps span { display: inline-flex; align-items: center; gap: 7px; }
+.steps .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 500 12px var(--mono); border: 1.5px solid var(--faint); }
+.steps .on { color: var(--ink); }
+.steps .on .n { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.scroll { flex: 1; overflow: auto; min-height: 0; padding: 16px 24px 24px; display: grid; align-content: start; gap: 14px; padding-bottom: var(--clearance, 24px); }
+.foot { display: flex; gap: 10px; align-items: center; padding: 12px 24px; border-top: 1px solid var(--line); background: var(--surface); flex: none; }
+.foot .why { flex: 1; color: var(--muted); font-size: 13px; text-align: right; min-width: 0; }
+
+/* Queue: one overall line, then one row per pick. */
+.queue { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.queue .line { display: flex; align-items: baseline; gap: 10px; }
+.queue .line > span { flex: 1; min-width: 0; color: var(--muted); }
+.queue .line b { color: var(--ink); font-weight: 600; }
+.count { font: 500 12.5px var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.meter { height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--mint); transition: width 0.25s; }
+.batches { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.batch { display: grid; grid-template-columns: 22px 1fr auto 36px; align-items: center; gap: 8px; min-height: 40px; padding: 0 0 0 2px; border-top: 1px solid var(--line); }
+.batch .kind { color: var(--muted); display: grid; place-items: center; }
+.batch .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.batch .state { font: 500 12px var(--mono); color: var(--muted); }
+.batch.running .state { color: var(--ink); }
+.batch.running .kind { color: var(--mint); }
+.batch .stop { width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+.batch .stop:hover { background: var(--hover); color: var(--ink); }
+.queue .tail { color: var(--muted); font-size: 12.5px; }
+
+.notice { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 10px 14px; border-radius: var(--radius); background: var(--lemon-bg); border: 1px solid var(--lemon-line); line-height: 1.45; }
+.notice span { flex: 1 1 220px; }
+.linkbtn { border: 0; padding: 0; background: transparent; color: var(--ink); font: 600 13.5px var(--ui); text-decoration: underline; cursor: pointer; }
+
+/* Strip header: like the editor's. */
+.head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.head .sum b { font-family: var(--display); font-size: 20px; letter-spacing: -0.01em; }
+.head .sum .range { color: var(--muted); font: 12.5px var(--mono); margin-left: 6px; }
+.head .order { color: var(--muted); font-size: 12.5px; flex-basis: 100%; order: 5; }
+.head .order b { color: var(--ink); font-weight: 600; }
+.head .spacer { flex: 1; }
+.btn[aria-pressed="true"] { background: var(--inverse-bg); color: var(--inverse-text); border-color: transparent; }
+
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.tile { position: relative; aspect-ratio: 4 / 3; max-width: 100%; border-radius: 8px; background: var(--hover); scroll-margin-bottom: var(--clearance, 0px); }
+.tile.selected { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tile.dragging { opacity: 0.35; }
+.tile.drop-before::before { content: ""; position: absolute; top: -2px; bottom: -2px; left: -7px; z-index: 3; border-left: 3px dashed var(--lemon); }
+.tile.fresh { animation: in 0.28s ease-out; }
+@keyframes in { from { opacity: 0; transform: scale(0.9); } }
+.pick { position: absolute; inset: 0; padding: 0; border: 0; border-radius: inherit; overflow: hidden; background: none; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.pick img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.tile.selecting:not(.selected) .pick img { filter: saturate(0.8) brightness(0.92); }
+.number, .date, .len { position: absolute; color: var(--on-photo); font: 500 11px var(--mono); pointer-events: none; }
+.number { left: 6px; top: 6px; padding: 1px 6px; border-radius: 5px; background: var(--badge); }
+.tile.selected .number { background: var(--accent); color: var(--accent-ink); }
+.date { left: 0; right: 0; bottom: 0; padding: 14px 7px 5px; background: linear-gradient(transparent, var(--photo-fade)); border-radius: 0 0 8px 8px; }
+.len { right: 6px; bottom: 5px; display: inline-flex; align-items: center; gap: 3px; }
+.len svg { width: 11px; height: 11px; fill: currentColor; }
+.check { position: absolute; top: 6px; right: 6px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--on-photo); background: rgb(0 0 0 / 0.25); display: none; place-items: center; pointer-events: none; color: var(--accent-ink); }
+.check svg.i { width: 13px; height: 13px; opacity: 0; stroke-width: 3; }
+.tile.selecting .check { display: grid; }
+.tile.selected .check { background: var(--accent); border-color: var(--accent); }
+.tile.selected .check svg.i { opacity: 1; }
+.mark { position: absolute; top: 5px; z-index: 2; display: none; place-items: center; width: 26px; height: 26px; border: 0; padding: 0; border-radius: 6px; background: var(--badge); color: var(--on-photo); opacity: 0; transition: opacity 0.12s; }
+.mark svg.i { width: 14px; height: 14px; }
+.mark.remove { right: 5px; cursor: pointer; } .mark.remove:hover { background: var(--coral); }
+.mark.grab { right: 35px; pointer-events: none; }
+.app.desk .tile:not(.selecting):not(.pending) .mark { display: grid; }
+.app.desk .tile:hover .mark, .app.desk .tile.selected .mark, .app.desk .tile:focus-within .mark { opacity: 1; }
+.app.desk .tile[draggable="true"] .pick { cursor: grab; }
+.tile.pending { background: linear-gradient(100deg, var(--hover) 30%, var(--line) 50%, var(--hover) 70%); background-size: 300% 100%; animation: shimmer 1.2s linear infinite; }
+.tile.pending.now::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: 8px; height: 3px; border-radius: 2px; background: var(--mint); opacity: 0.8; transform-origin: left; animation: grow 0.9s ease-out infinite; }
+@keyframes shimmer { to { background-position: -150% 0; } }
+@keyframes grow { from { transform: scaleX(0.1); } to { transform: scaleX(1); } }
+
+.more { display: flex; flex-wrap: wrap; gap: 8px; }
+.aside { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.aside-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.aside-head b { font-family: var(--display); font-size: 17px; }
+.aside-head .why { color: var(--muted); flex-basis: 100%; }
+.aside h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.set { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.set .tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8px; opacity: 0.6; }
+.plus { position: absolute; top: 5px; right: 5px; width: 30px; height: 30px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.plus svg.i { width: 16px; height: 16px; stroke-width: 2.4; }
+
+/* Selection bar and toast, drawn inverse to the screen. */
+.dock { position: absolute; left: 50%; bottom: 76px; z-index: 10; translate: -50% 0; max-width: calc(100% - 24px); display: grid; justify-items: center; gap: 8px; }
+.selbar { display: flex; align-items: center; gap: 4px; height: 54px; padding: 6px; border-radius: var(--radius-lg); background: var(--inverse-bg); color: var(--inverse-text); box-shadow: 0 10px 30px rgb(0 0 0 / 0.25); }
+.selbar .btn { height: 40px; border-color: transparent; background: transparent; color: inherit; }
+.selbar .btn:hover:not([aria-disabled="true"]) { background: rgb(127 127 127 / 0.18); }
+.selbar .btn[aria-disabled="true"] { opacity: 0.4; cursor: default; }
+.selbar .btn.danger svg.i { color: var(--coral); }
+.selbar .done { color: var(--inverse-accent); font-weight: 600; }
+.selbar .what { padding: 0 8px 0 6px; font-size: 12.5px; white-space: nowrap; opacity: 0.85; }
+.selbar .sepr { width: 1px; height: 24px; background: var(--inverse-line); opacity: 0.4; }
+.toast { display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border-radius: var(--radius-lg); background: var(--inverse-bg); color: var(--inverse-text); box-shadow: 0 10px 30px rgb(0 0 0 / 0.25); font-size: 13.5px; }
+.toast button { border: 0; background: none; color: var(--inverse-accent); font: 600 13.5px var(--ui); cursor: pointer; padding: 4px 6px; }
+
+/* Phone: 3 columns, the bar spans the width and names its arrows only for screen readers. */
+@container app (max-width: 720px) {
+  .steps { padding: 12px 16px 0; }
+  .scroll { padding: 12px 12px 20px; padding-bottom: var(--clearance, 20px); }
+  .foot { padding: 12px 16px 18px; }
+  .strip { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .set { grid-template-columns: repeat(3, 1fr); }
+  .dock { left: 8px; right: 8px; max-width: none; translate: none; justify-items: stretch; bottom: 84px; }
+  .selbar { justify-content: space-between; }
+  .selbar .btn { gap: 5px; padding: 0 9px; font-size: 13px; }
+  .selbar .what.single { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .selbar .sepr, .selbar .wide { display: none; }
+  .foot .why { font-size: 12.5px; }
+  .head .sum .range { display: block; margin: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile.pending, .tile.pending.now::after, .tile.fresh { animation: none; }
+  .mark, .meter i { transition: none; }
+}
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="intro">
+    <h1>Arrange while importing</h1>
+    <p>Import wizard, step 1. Pick more at any time; each pick joins the running import as a row in the queue. Ready pictures can be selected, moved and removed exactly as in the slideshow editor while the rest keep coming. Tap a tile, try <b>Add pictures</b> during the import, stop a row with ✕. All pictures are generated.</p>
+  </header>
+  <div class="controls">
+    <div class="seg" data-k="device"><button data-v="phone" aria-pressed="true">Phone (Pixel 9 Pro)</button><button data-v="desk">Desktop</button></div>
+    <div class="seg" data-k="theme"><button data-v="light" aria-pressed="true">Light</button><button data-v="dark">Dark</button></div>
+    <div class="seg" data-k="state"><button data-v="queue" aria-pressed="true">1 · Importing with queue</button><button data-v="arrange">2 · Arranging during import</button><button data-v="done">3 · Import done</button></div>
+    <div class="seg" data-k="run"><button data-v="run" aria-pressed="true">Import runs</button><button data-v="pause">Paused</button></div>
+  </div>
+  <div class="stage">
+    <div class="app phone" id="app">
+      <div class="top">
+        <button class="iconbtn" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="crumbs"><span>Library</span><span class="sep">/</span><span>New slideshow</span><span class="sep">/</span><b>Pictures</b></div>
+      </div>
+      <div class="steps"><span class="on"><span class="n">1</span>Pictures</span><span><span class="n">2</span>Music</span></div>
+      <div class="scroll" id="scroll"></div>
+      <div class="foot"><button class="btn">Cancel</button><span class="why" id="why"></span><button class="btn primary" id="next">Next</button></div>
+      <div class="dock" id="dock"></div>
+    </div>
+  </div>
+
+  <section class="concept">
+    <h2>How it behaves</h2>
+    <ul>
+      <li><b>Picking never waits.</b> “Add pictures” and “From Immich” stay above the strip the whole time. Each pick becomes a row in the queue (“Lake trip · 6 / 9”, “3 pictures · waiting”); rows run one after another, one file at a time as today, so memory stays bounded.</li>
+      <li><b>Progress</b>: one overall line with the mint meter (“14 of 26 ready”), and per row its own count. A placeholder tile per waiting item sits after the ready tiles; the one being read shows a running bar. Placeholders cannot be selected or moved.</li>
+      <li><b>Where new items land</b>: while the order line reads “Capture order”, a ready item is sorted in by its date. The first move or shuffle switches it to “Own order”, and from then on new items go at the end, in capture order among themselves. Nothing you placed is shifted.</li>
+      <li><b>Arranging is the editor’s</b>: tap selects (number badge in the accent), the inverse bar has Earlier, Later, View, Remove and Done; “Select” picks several and moves them as a group; with a mouse, drag a tile, ✕ on hover, Delete on a focused tile; “Shuffle” as in the editor. Remove shows “Picture removed · Undo”.</li>
+      <li><b>✕ on a queue row</b> drops that pick’s waiting items; the ones already in stay. A toast says so: “Stopped Lake trip · 6 pictures already in stay”.</li>
+      <li><b>Duplicates</b> across picks are skipped before they are read, as today; the lemon notices add up across picks and keep “Add anyway”.</li>
+      <li><b>Next</b> waits until the queue is empty and every picture is checked; the footer says why (“12 still importing”, “Checking 20 / 26 …”). Cancel and ← keep “Discard selection?”.</li>
+      <li><b>Culling</b> runs once, after the queue is empty, as today. A picture you moved counts as chosen and is never set aside, the same as one taken in with +.</li>
+    </ul>
+    <div class="card q">
+      <b>One decision for you</b>
+      <ul>
+        <li><b>A tap now selects</b> (as in the editor) instead of opening the picture full screen. Full screen moves to <b>View</b> in the selection bar, which stands where the editor has “Edit”; with a mouse a double-click also opens it. The picture editor itself stays in the slideshow editor, because it needs the slideshow. Alternative: keep tap = full screen and enter selection with a long press, which would make the wizard behave differently from the editor.</li>
+        <li>On touch the ✕ on each tile goes away (the editor has none on touch); Remove sits in the selection bar.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const app = $("#app"), scroll = $("#scroll"), dock = $("#dock");
+const ICON = {
+  x: '<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  folder: '<svg class="i" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  files: '<svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="13" height="14" rx="2"/><path d="M8 3h10a2 2 0 0 1 2 2v12"/></svg>',
+  cloud: '<svg class="i" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .5-8 6 6 0 0 0-11.4 1.6A3.3 3.3 0 0 0 7 18z"/></svg>',
+  left: '<svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
+  right: '<svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
+  eye: '<svg class="i" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  trash: '<svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  grip: '<svg class="i" viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="3"/></svg>',
+  shuffle: '<svg class="i" viewBox="0 0 24 24"><path d="M3 7h3c5 0 7 10 12 10h3M3 17h3c2 0 3.4-1.6 4.6-3.6M14 8.6C15 7.6 16.3 7 18 7h3M18 4l3 3-3 3M18 14l3 3-3 3"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>',
+  play: '<svg viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z"/></svg>',
+};
+
+/* ---------- Generated pictures ---------- */
+const T = (mo, d, h, m) => new Date(Date.UTC(2025, mo, d, h, m));
+const thumbs = new Map();
+function thumb(p) {
+  if (thumbs.has(p.id)) return thumbs.get(p.id);
+  const c = document.createElement("canvas"); c.width = 160; c.height = 120;
+  const g = c.getContext("2d"); const h = p.t.getUTCHours(); const evening = h >= 18; const hue = p.scene;
+  g.filter = p.blur ? `blur(${p.blur}px)` : "none";
+  g.scale(1.06, 1.06);
+  const sky = g.createLinearGradient(0, 0, 0, 80);
+  sky.addColorStop(0, `hsl(${hue} ${evening ? 60 : 55}% ${evening ? 38 : 62}%)`);
+  sky.addColorStop(1, `hsl(${(hue + 30) % 360} 70% ${evening ? 66 : 84}%)`);
+  g.fillStyle = sky; g.fillRect(0, 0, 170, 120);
+  g.fillStyle = `hsl(${evening ? 40 : 50} 95% ${evening ? 70 : 92}%)`;
+  g.beginPath(); g.arc(24 + (h * 7) % 100, 30 + (evening ? 25 : 0), 11, 0, 7); g.fill();
+  let seed = hue * 13 + p.n * 31 + 7;
+  const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  g.fillStyle = `hsl(${(hue + 180) % 360} 22% ${evening ? 22 : 38}%)`;
+  g.beginPath(); g.moveTo(0, 80);
+  for (let x = 0; x <= 170; x += 20) g.lineTo(x, 45 + rnd() * 30);
+  g.lineTo(170, 80); g.fill();
+  g.fillStyle = `hsl(${hue} 45% ${evening ? 30 : 48}%)`; g.fillRect(0, 80, 170, 40);
+  if (p.n % 3 === 0) { g.fillStyle = `hsl(${(hue + 200) % 360} 35% ${evening ? 18 : 28}%)`; g.fillRect(70, 62, 8, 26); g.beginPath(); g.arc(74, 56, 7, 0, 7); g.fill(); }
+  const url = c.toDataURL("image/jpeg", 0.85); thumbs.set(p.id, url); return url;
+}
+const day = t => t.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+const time = t => t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+
+/* Picks: each becomes a queue row. City weekend is older than Lake trip, so in capture order its pictures slot in before. */
+let nextN = 0;
+function makeBatch(id, name, kind, specs) {
+  return { id, name, kind, items: specs.map(s => ({ ...s, id: "p" + nextN, n: nextN++, batch: id, ready: false })) };
+}
+const span = (mo, d0, count, scene, extra = {}) => Array.from({ length: count }, (_, i) =>
+  ({ t: T(mo, d0 + Math.floor(i / 3), 9 + (i % 3) * 4, (i * 17) % 60), scene: (scene + i * 23) % 360, ...(extra[i] || {}) }));
+function freshBatches() {
+  nextN = 0;
+  return [
+    makeBatch("b1", "Lake trip", "folder", span(6, 2, 9, 190, { 4: { video: "0:42" }, 6: { cull: "similar" }, 7: { cull: "blurry", blur: 2.4 } })),
+    makeBatch("b2", "City weekend", "folder", span(5, 28, 7, 20, { 2: { cull: "similar" } })),
+    makeBatch("b3", "5 photos", "immich", span(6, 5, 5, 300)),
+  ];
+}
+const EXTRA = () => makeBatch("b" + (S.batches.length + 1), "3 pictures", "files", span(6, 3, 3, 110));
+
+/* ---------- State ---------- */
+let S;
+function reset() {
+  S = { batches: freshBatches(), order: [], own: false, moved: new Set(), sel: [], selecting: false,
+        removed: [], toast: null, phase: "importing", checked: 0, aside: [], dup: false, stopped: [] };
+}
+const all = () => S.batches.flatMap(b => b.items);
+const byId = id => all().find(p => p.id === id);
+const waiting = () => S.batches.flatMap(b => b.items.filter(p => !p.ready && !p.dropped));
+const readyCount = () => S.order.length;
+const totalCount = () => S.order.length + waiting().length;
+
+function land(p) {
+  p.ready = true; p.fresh = true;
+  if (!S.own) {
+    const i = S.order.findIndex(id => byId(id).t > p.t);
+    i < 0 ? S.order.push(p.id) : S.order.splice(i, 0, p.id);
+  } else S.order.push(p.id);
+}
+function step() {
+  if (S.phase === "importing") {
+    const p = waiting()[0];
+    if (p) { land(p); if (!waiting().length) { S.phase = "checking"; S.checked = Math.max(0, readyCount() - 6); } }
+  } else if (S.phase === "checking") {
+    S.checked += 2;
+    if (S.checked >= readyCount()) cull();
+  }
+}
+function cull() {
+  S.phase = "done";
+  S.aside = S.order.filter(id => byId(id).cull && !S.moved.has(id));
+  S.order = S.order.filter(id => !S.aside.includes(id));
+  S.sel = S.sel.filter(id => S.order.includes(id));
+}
+function run(steps) { for (let i = 0; i < steps; i++) step(); all().forEach(p => (p.fresh = false)); }
+
+function preset(name) {
+  reset();
+  if (name === "queue") run(4);
+  if (name === "arrange") {
+    run(11);
+    // Moved the second Lake-trip picture to the front: own order from here on.
+    const id = S.order[S.order.length - 3];
+    S.order = [id, ...S.order.filter(x => x !== id)]; S.own = true; S.moved.add(id);
+    S.sel = [id];
+  }
+  if (name === "done") { run(40); }
+  render();
+}
+
+/* ---------- Render ---------- */
+function queueHtml() {
+  if (S.phase !== "importing") {
+    if (S.phase !== "checking") return "";
+    return `<div class="queue"><div class="line"><span><b>Checking</b> for similar shots and blur …</span><span class="count">${Math.min(S.checked, readyCount())} / ${readyCount()}</span></div>
+      <div class="meter"><i style="width:${(100 * S.checked) / readyCount()}%"></i></div></div>`;
+  }
+  const rows = S.batches.filter(b => b.items.some(p => !p.dropped));
+  const first = rows.find(b => b.items.some(p => !p.ready && !p.dropped));
+  const shown = rows.slice(-4);
+  return `<div class="queue" aria-live="off">
+    <div class="line"><span><b>Importing</b> · ${readyCount()} of ${totalCount()} ready</span><span class="count">${waiting().length} left</span></div>
+    <div class="meter"><i style="width:${(100 * readyCount()) / totalCount()}%"></i></div>
+    <ul class="batches">${shown.map(b => {
+      const done = b.items.filter(p => p.ready).length, live = b.items.filter(p => !p.dropped).length;
+      const run = b === first, finished = done === live;
+      return `<li class="batch ${run ? "running" : ""}"><span class="kind">${ICON[b.kind === "folder" ? "folder" : b.kind === "immich" ? "cloud" : "files"]}</span>
+        <span class="name">${b.kind === "immich" ? "Immich · " : ""}${b.name}</span>
+        <span class="state">${finished ? `${done} ✓` : run ? `${done} / ${live}` : "waiting"}</span>
+        ${finished ? "<span></span>" : `<button class="stop" data-stop="${b.id}" aria-label="Stop importing ${b.name}" title="Stop importing ${b.name}">${ICON.x}</button>`}</li>`;
+    }).join("")}</ul>
+    ${rows.length > 4 ? `<div class="tail">${rows.length - 4} earlier ${rows.length - 4 === 1 ? "pick" : "picks"} done</div>` : ""}
+  </div>`;
+}
+
+function tileHtml(id, i) {
+  const p = byId(id), sel = S.sel.includes(id);
+  const desk = app.classList.contains("desk");
+  return `<li class="tile ${sel ? "selected" : ""} ${S.selecting ? "selecting" : ""} ${p.fresh ? "fresh" : ""}" data-id="${id}" ${desk && !S.selecting ? 'draggable="true"' : ""}>
+    <button class="pick" data-pick="${id}" aria-pressed="${sel}" aria-label="Picture ${i + 1}, ${day(p.t)} ${time(p.t)}"><img alt="" src="${thumb(p)}"></button>
+    <span class="number">${i + 1}</span>
+    ${p.video ? `<span class="len">${ICON.play}${p.video}</span>` : `<span class="date">${day(p.t)}</span>`}
+    <span class="check">${ICON.check}</span>
+    <span class="mark grab" aria-hidden="true">${ICON.grip}</span>
+    <button class="mark remove" data-remove="${id}" aria-label="Remove picture ${i + 1}" title="Remove">${ICON.x}</button>
+  </li>`;
+}
+
+function render() {
+  const w = waiting(), importing = S.phase === "importing";
+  const dates = S.order.map(id => byId(id).t).sort((a, b) => a - b);
+  const range = dates.length ? `${day(dates[0])} – ${day(dates[dates.length - 1])}` : "";
+  const nowId = w[0]?.id;
+  scroll.innerHTML = `
+    <div class="more">
+      <button class="btn sm" data-add="files">${ICON.plus}Add pictures</button>
+      <button class="btn sm" data-add="immich">${ICON.cloud}From Immich</button>
+    </div>
+    ${queueHtml()}
+    ${S.dup ? `<div class="notice"><span>1 picture was chosen twice and was skipped: IMG_2041.jpg.</span><button class="linkbtn">Add anyway</button></div>` : ""}
+    <div class="head">
+      <span class="sum"><b>${S.order.length} ${S.order.length === 1 ? "picture" : "pictures"}</b><span class="range">${range}</span></span>
+      <span class="spacer"></span>
+      <button class="btn sm" data-shuffle ${S.order.length < 2 ? "disabled" : ""}>${ICON.shuffle}Shuffle</button>
+      <button class="btn sm" data-select aria-pressed="${S.selecting}">Select</button>
+      <span class="order">${S.own ? `<b>Own order</b>${importing ? " · new pictures go at the end" : ""}` : `<b>Capture order</b>${importing ? " · new pictures are sorted in by date" : ""}`}</span>
+    </div>
+    <ul class="strip" id="strip">
+      ${S.order.map(tileHtml).join("")}
+      ${w.map(p => `<li class="tile pending ${p.id === nowId ? "now" : ""}" aria-hidden="true"></li>`).join("")}
+    </ul>
+    ${S.aside.length ? `<section class="aside">
+      <div class="aside-head"><b>Set aside · ${S.aside.length}</b><button class="linkbtn" data-takeall>Take all in</button>
+      <span class="why">These are not in the slideshow. Take one in with +. Pictures you moved are never set aside.</span></div>
+      <ul class="set">${S.aside.map(id => { const p = byId(id); return `<li class="tile"><img alt="" src="${thumb(p)}"><span class="date">${p.cull === "blurry" ? "Blurry" : "Similar"} · ${time(p.t)}</span>
+        <button class="plus" data-take="${id}" aria-label="Take in picture from ${day(p.t)} at ${time(p.t)}">${ICON.plus}</button></li>`; }).join("")}</ul>
+    </section>` : ""}
+  `;
+  const next = $("#next"), why = $("#why");
+  next.disabled = S.phase !== "done";
+  why.textContent = importing ? `${w.length} still importing` : S.phase === "checking" ? "Checking pictures …" : "";
+  renderDock();
+}
+
+function renderDock() {
+  let html = "";
+  if (S.sel.length) {
+    const idx = S.sel.map(id => S.order.indexOf(id)).sort((a, b) => a - b);
+    const atStart = idx[0] === 0, atEnd = idx[idx.length - 1] === S.order.length - 1;
+    const one = S.sel.length === 1;
+    html += `<div class="selbar" role="toolbar" aria-label="Selection">
+      <span class="what ${one ? "single" : ""}" aria-live="polite">${one ? `Picture ${idx[0] + 1} of ${S.order.length}` : `${S.sel.length} selected`}</span>
+      <span class="sepr" aria-hidden="true"></span>
+      <button class="btn" data-move="-1" aria-disabled="${atStart}" aria-label="Earlier">${ICON.left}<span class="wide">Earlier</span></button>
+      <button class="btn" data-move="1" aria-disabled="${atEnd}" aria-label="Later"><span class="wide">Later</span>${ICON.right}</button>
+      ${one ? `<button class="btn" data-view>${ICON.eye}View</button>` : ""}
+      <button class="btn danger" data-delsel>${ICON.trash}Remove</button>
+      <button class="btn done" data-done>Done</button>
+    </div>`;
+  }
+  if (S.toast) html += `<div class="toast" role="status"><span>${S.toast.text}</span>${S.toast.undo ? `<button data-undo>Undo</button>` : ""}</div>`;
+  dock.innerHTML = html;
+  app.style.setProperty("--clearance", S.sel.length ? "150px" : "");
+  const t = document.querySelector(".tile.selected"); if (t && S.sel.length === 1) t.scrollIntoView({ block: "nearest" });
+}
+
+/* ---------- Actions ---------- */
+function toast(text, undo) { S.toast = { text, undo }; }
+function arranged(ids) { S.own = true; ids.forEach(id => S.moved.add(id)); S.removed = []; }
+function moveSel(d) {
+  const idx = S.sel.map(id => S.order.indexOf(id)).sort((a, b) => a - b);
+  if ((d < 0 && idx[0] === 0) || (d > 0 && idx[idx.length - 1] === S.order.length - 1)) return;
+  const ids = idx.map(i => S.order[i]);
+  const rest = S.order.filter(id => !ids.includes(id));
+  const at = Math.max(0, Math.min(rest.length, (d < 0 ? idx[0] - 1 : idx[0] + 1)));
+  rest.splice(at, 0, ...ids); S.order = rest; arranged(ids); S.toast = null;
+}
+function remove(ids) {
+  ids.forEach(id => S.removed.push({ id, at: S.order.indexOf(id) }));
+  S.order = S.order.filter(id => !ids.includes(id)); S.sel = S.sel.filter(id => !ids.includes(id));
+  const n = S.removed.length;
+  toast(n === 1 ? "Picture removed" : `${n} pictures removed`, true);
+}
+function addBatch(kind) {
+  const b = EXTRA(); if (kind === "immich") { b.kind = "immich"; b.name = "3 photos"; }
+  S.batches.push(b);
+  if (S.phase !== "importing") { S.phase = "importing"; S.order.push(...S.aside); S.aside = []; }
+  S.dup = true; S.removed = []; toast(`${kind === "immich" ? "3 photos" : "3 pictures"} added to the import`, false);
+}
+
+scroll.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.pick) {
+    const id = t.dataset.pick;
+    if (S.selecting) S.sel = S.sel.includes(id) ? S.sel.filter(x => x !== id) : [...S.sel, id];
+    else S.sel = S.sel[0] === id && S.sel.length === 1 ? [] : [id];
+  } else if (t.dataset.remove) remove([t.dataset.remove]);
+  else if (t.dataset.stop) {
+    const b = S.batches.find(x => x.id === t.dataset.stop);
+    const inAlready = b.items.filter(p => p.ready).length;
+    b.items.forEach(p => { if (!p.ready) p.dropped = true; });
+    toast(`Stopped ${b.name}${inAlready ? ` · ${inAlready} ${inAlready === 1 ? "picture" : "pictures"} already in stay` : ""}`, false);
+    if (!waiting().length && S.phase === "importing") { S.phase = "checking"; S.checked = 0; }
+  } else if (t.dataset.add) addBatch(t.dataset.add);
+  else if ("shuffle" in t.dataset) {
+    for (let i = S.order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [S.order[i], S.order[j]] = [S.order[j], S.order[i]]; }
+    S.own = true; toast(`${S.order.length} pictures shuffled`, false);
+  } else if ("select" in t.dataset) { S.selecting = !S.selecting; if (!S.selecting) S.sel = []; }
+  else if (t.dataset.take) { S.aside = S.aside.filter(x => x !== t.dataset.take); S.moved.add(t.dataset.take); placeByDate(t.dataset.take); }
+  else if ("takeall" in t.dataset) { S.aside.forEach(id => { S.moved.add(id); placeByDate(id); }); S.aside = []; }
+  else return;
+  all().forEach(p => (p.fresh = false)); render();
+});
+function placeByDate(id) {
+  const p = byId(id); const i = S.order.findIndex(x => byId(x).t > p.t);
+  i < 0 ? S.order.push(id) : S.order.splice(i, 0, id);
+}
+scroll.addEventListener("dblclick", e => { const t = e.target.closest("[data-pick]"); if (t) toast("Opens the picture full screen", false), renderDock(); });
+dock.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t || t.getAttribute("aria-disabled") === "true") return;
+  if (t.dataset.move) moveSel(+t.dataset.move);
+  else if ("view" in t.dataset) toast("Opens the picture full screen", false);
+  else if ("delsel" in t.dataset) remove([...S.sel]);
+  else if ("done" in t.dataset) { S.sel = []; S.selecting = false; }
+  else if ("undo" in t.dataset) {
+    S.removed.slice().reverse().forEach(r => S.order.splice(Math.min(r.at, S.order.length), 0, r.id));
+    S.removed = []; S.toast = null;
+  }
+  render();
+});
+
+/* Mouse drag: drop before the tile under the pointer. */
+let dragId = null;
+scroll.addEventListener("dragstart", e => { const li = e.target.closest(".tile[data-id]"); if (!li) return; dragId = li.dataset.id; li.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; });
+scroll.addEventListener("dragover", e => {
+  const li = e.target.closest(".tile[data-id]"); if (!dragId) return; e.preventDefault();
+  document.querySelectorAll(".drop-before").forEach(x => x.classList.remove("drop-before"));
+  if (li && li.dataset.id !== dragId) li.classList.add("drop-before");
+});
+scroll.addEventListener("drop", e => {
+  e.preventDefault(); const li = e.target.closest(".tile[data-id]"); if (!dragId || !li || li.dataset.id === dragId) return;
+  S.order = S.order.filter(x => x !== dragId); S.order.splice(S.order.indexOf(li.dataset.id), 0, dragId);
+  arranged([dragId]); dragId = null; render();
+});
+scroll.addEventListener("dragend", () => { dragId = null; document.querySelectorAll(".dragging,.drop-before").forEach(x => x.classList.remove("dragging", "drop-before")); });
+scroll.addEventListener("keydown", e => {
+  const li = e.target.closest(".tile[data-id]"); if (!li || !["Delete", "Backspace"].includes(e.key)) return;
+  remove([li.dataset.id]); render();
+});
+
+/* ---------- Simulation clock and controls ---------- */
+let running = true;
+setInterval(() => {
+  if (!running || dragId || S.phase === "done") return;
+  all().forEach(p => (p.fresh = false)); step();
+  if (S.toast && !S.toast.undo) S.toast = null;
+  render();
+}, 1300);
+
+document.querySelectorAll(".seg").forEach(seg => seg.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  const k = seg.dataset.k, v = b.dataset.v;
+  if (k === "device") { app.classList.toggle("phone", v === "phone"); app.classList.toggle("desk", v === "desk"); render(); }
+  if (k === "theme") app.classList.toggle("dark", v === "dark");
+  if (k === "state") preset(v);
+  if (k === "run") running = v === "run";
+}));
+preset("queue");
+</script>
+</body>
+</html>
