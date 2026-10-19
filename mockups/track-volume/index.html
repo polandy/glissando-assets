@@ -62,6 +62,7 @@ h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
 .cmp-bar { position: relative; height: 12px; border-radius: 6px; background: var(--gl-hover); overflow: hidden; }
 .cmp-bar b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; transition: width .3s ease; }
 .cmp-bar i { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--gl-ink); opacity: .55; }
+.cmp summary { cursor: pointer; list-style: none; } .cmp summary::-webkit-details-marker { display: none; } .cmp summary b::before { content: "▸ "; } .cmp[open] summary b::before { content: "▾ "; }
 .cmp-legend { display: flex; justify-content: space-between; color: var(--gl-muted); font-size: var(--gl-size-small); }
 
 .section { display: grid; gap: 10px; }
@@ -126,12 +127,11 @@ h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
 <body>
 <div class="page">
   <div class="intro">
-    <h1>Song volume — levelled, then your own</h1>
+    <h1>Song volume — levelled, then your own (approved)</h1>
     <p>Every song plays levelled by default: a quiet and a loud song sound equally loud. Each song's own volume moves it from there. The audio here is <b>generated in the browser</b> (synthesised loops at very different raw levels), so you can hear the levelling. Tap <b>Listen</b>, drag the slider, tap another song while listening to compare, and try <b>Original file</b> to hear what the song sounds like without levelling.</p>
   </div>
   <div class="controls">
     <div class="seg" data-k="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
-    <div class="seg" data-k="control"><button data-v="slider">Control: slider</button><button data-v="stepper">Control: − / +</button></div>
     <button class="ctl-btn" id="measure">Song 4: finish measuring</button>
   </div>
   <div class="app" id="app"></div>
@@ -143,7 +143,7 @@ h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
       <li><b>Never distorts.</b> The gain stops 1 dB below the song's loudest peak. The hatched end of the slider is out of reach; reaching it says so. A very quiet but peaky song (Song 3) may not reach the target at all — the hint says how far short it stays.</li>
       <li><b>Just added</b> (Song 4): measured in the background; until then it plays unlevelled, and your own volume still applies.</li>
       <li><b>Same in the player and the export.</b> One gain per song goes into the slideshow; the player multiplies it with the fades, the crossfade, the video duck and the TV remote's volume; the video export applies the same numbers. Clip sound keeps its own clip volume.</li>
-      <li><b>The "Loudness" box</b> under the list shows what plays: each song's original level (grey line) and where it ends up. It may or may not belong in the real editor — tell me.</li>
+      <li><b>"Loudness of the songs"</b> under the list is collapsed by default; opened, it shows each song's original level (grey line) and where it ends up.</li>
     </ul>
   </div>
 </div>
@@ -155,7 +155,7 @@ const songs = [
   { name: "Rain Walk.m4a", meta: "2:58 · whole track", lufs: -19.0, peak: -3.5, own: 0, voice: "peaky", measured: true },
   { name: "Night Bus.mp3", meta: "3:20 · just added", lufs: -11.0, peak: -0.5, own: 0, voice: "pulse", measured: false },
 ];
-const state = { sel: 0, theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light", control: "slider", listening: null, original: false };
+const state = { sel: 0, theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light", control: "slider", listening: null, original: false, cmpOpen: false };
 const levelDb = (s) => s.measured ? TARGET - s.lufs : 0;
 const capDb = (s) => CEILING - s.peak; // highest total gain without distortion
 const totalDb = (s) => Math.min(levelDb(s) + s.own, capDb(s));
@@ -218,7 +218,7 @@ function comparison() {
       <div class="cmp-bar">${s.measured ? "" : '<b style="width:100%;background:repeating-linear-gradient(135deg,var(--gl-line) 0 4px,transparent 4px 8px)"></b>'}<b style="width:${s.measured ? scale(now) : 0}%;background:var(--gl-song-${i + 1})"></b>${s.measured ? `<i style="left:${scale(s.lufs)}%" title="original"></i>` : ""}</div>
       <span class="mono" style="text-align:right">${s.measured ? (Math.round(now * 10) / 10).toString().replace("-", "−") + " LUFS" : "…"}</span></div>`;
   }).join("");
-  return `<div class="cmp"><div class="cmp-legend"><b style="color:var(--gl-ink)">Loudness</b><span>grey line: original file</span></div>${rows}</div>`;
+  return `<details class="cmp" ${state.cmpOpen ? "open" : ""}><summary class="cmp-legend"><b style="color:var(--gl-ink)">Loudness of the songs</b><span>grey line: original file</span></summary>${rows}</details>`;
 }
 function volumeControl(s) {
   const cap = maxOwn(s), levelled = s.own === 0;
@@ -290,6 +290,7 @@ function setOwn(v) {
   if (next !== s.own) { s.own = next; draw(); updateGain(); }
 }
 const app = document.getElementById("app");
+app.addEventListener("toggle", (e) => { if (e.target.matches?.(".cmp")) state.cmpOpen = e.target.open; }, true);
 app.addEventListener("click", (e) => {
   const row = e.target.closest("[data-song]");
   if (row) { state.sel = +row.dataset.song; if (state.listening !== null) startListening(state.sel); else draw(); return; }
