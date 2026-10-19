@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glissando: song volume</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif; --gl-font-display: "Bricolage Grotesque", system-ui, sans-serif; --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-size-small: 12px; --gl-size-meta: 12.5px; --gl-size-label: 13px; --gl-size-body: 14px; --gl-size-name: 17px; --gl-size-heading: 26px;
+  --gl-radius-small: 6px; --gl-radius: 10px; --gl-radius-large: 14px;
+  --gl-mint: #6fcfb4; --gl-lemon: #f5c94a; --gl-coral: #f2786b; --gl-warn-icon: #b8890f;
+  --gl-song-1: #ff9f7f; --gl-song-2: #6fcfb4; --gl-song-3: #f5c94a; --gl-song-4: #b9a6f2; --gl-song-ink: #221d33;
+}
+.app, body { --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-ink: #221d33; --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3; --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-shadow: 0 1px 2px rgb(34 29 51 / .06), 0 6px 18px rgb(34 29 51 / .06); }
+body.dark, body.dark .app { --gl-ground: #121019; --gl-surface: #1a1723; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a; --gl-warn-icon: var(--gl-lemon); --gl-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .3); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font: var(--gl-size-body) var(--gl-font-ui); }
+.page { max-width: 1120px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 18px; }
+h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
+.intro p { margin: 4px 0 0; color: var(--gl-muted); max-width: 72ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; color: var(--gl-ink); font: 500 13px var(--gl-font-ui); padding: 7px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.ctl-btn { border: 1px solid var(--gl-line); background: var(--gl-surface); color: var(--gl-ink); border-radius: 99px; padding: 7px 12px; font: 500 13px var(--gl-font-ui); cursor: pointer; }
+
+.app { border-radius: 16px; border: 1px solid var(--gl-line); background: var(--gl-ground); overflow: hidden; box-shadow: 0 20px 60px rgba(20,14,40,.14); }
+.hdr { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); font-size: 13px; color: var(--gl-muted); }
+.hdr b { color: var(--gl-ink); font-weight: 600; }
+.edit { display: grid; grid-template-columns: 1fr 340px; }
+.main { padding: 20px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.panel { border-left: 1px solid var(--gl-line); background: var(--gl-surface); padding: 20px; display: grid; gap: 18px; align-content: start; }
+@media (max-width: 780px) { .edit { grid-template-columns: 1fr; } .panel { border-left: 0; border-top: 1px solid var(--gl-line); } .main { padding: 16px; } .panel { padding: 16px; } }
+.sub { font: 600 12px var(--gl-font-ui); color: var(--gl-muted); text-transform: uppercase; letter-spacing: .04em; margin: 0; }
+.group-title { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 0; }
+.mono { font-family: var(--gl-font-mono); }
+
+.songs { display: grid; gap: 6px; }
+.song { display: grid; grid-template-columns: 18px 26px 1fr auto 32px; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--gl-radius); background: var(--gl-surface); border: 1px solid var(--gl-line); cursor: pointer; min-height: 52px; }
+.song.sel { border-color: var(--gl-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gl-accent) 35%, transparent); }
+.song .grip { color: var(--gl-faint); text-align: center; }
+.song .num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--gl-font-mono); color: var(--gl-song-ink); }
+.song .name { font-weight: 600; overflow-wrap: anywhere; }
+.song small { display: block; color: var(--gl-muted); font: var(--gl-size-small) var(--gl-font-mono); }
+.badge { font: 500 var(--gl-size-small) var(--gl-font-mono); padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+.badge.own { background: color-mix(in srgb, var(--gl-accent) 24%, var(--gl-surface)); color: var(--gl-ink); }
+.badge.measuring { color: var(--gl-muted); }
+.song .playing { width: 32px; height: 32px; display: grid; place-items: center; color: var(--gl-accent); }
+.eq { display: flex; gap: 2px; align-items: flex-end; height: 14px; }
+.eq i { width: 3px; background: var(--gl-accent); border-radius: 1px; animation: eq .8s infinite ease-in-out; }
+.eq i:nth-child(2) { animation-delay: .2s; } .eq i:nth-child(3) { animation-delay: .4s; }
+@keyframes eq { 0%,100% { height: 4px; } 50% { height: 14px; } }
+
+.wave { height: 96px; border-radius: var(--gl-radius-large); background: var(--gl-surface); border: 1px solid var(--gl-line); display: flex; align-items: center; gap: 1px; padding: 0 10px; overflow: hidden; }
+.wave span { flex: 1; border-radius: 1px; background: color-mix(in srgb, var(--gl-accent) 70%, var(--gl-surface)); transition: height .25s ease; }
+.cmp { display: grid; gap: 8px; padding: 14px 16px; background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); }
+.cmp-row { display: grid; grid-template-columns: 26px 1fr 84px; align-items: center; gap: 10px; font-size: var(--gl-size-small); }
+.cmp-bar { position: relative; height: 12px; border-radius: 6px; background: var(--gl-hover); overflow: hidden; }
+.cmp-bar b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; transition: width .3s ease; }
+.cmp-bar i { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--gl-ink); opacity: .55; }
+.cmp-legend { display: flex; justify-content: space-between; color: var(--gl-muted); font-size: var(--gl-size-small); }
+
+.section { display: grid; gap: 10px; }
+.shead { display: flex; align-items: center; gap: 8px; }
+.shead h3 { margin: 0; font-size: var(--gl-size-body); font-weight: 600; flex: 1; }
+.shead .state { font-size: var(--gl-size-small); color: var(--gl-muted); }
+.shead .state.own { color: var(--gl-ink); font-weight: 600; }
+.stub { display: flex; align-items: center; gap: 8px; color: var(--gl-faint); font-size: var(--gl-size-body); padding-top: 14px; border-top: 1px solid var(--gl-line); }
+.stub span { flex: 1; } .stub small { font-size: var(--gl-size-small); }
+.icon { width: 18px; height: 18px; flex: none; }
+
+.readout { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.readout b { font: 700 22px var(--gl-font-display); }
+.readout span { color: var(--gl-muted); font-size: var(--gl-size-meta); }
+
+.slider { position: relative; height: 44px; touch-action: none; cursor: pointer; outline: none; }
+.slider .rail { position: absolute; left: 14px; right: 14px; top: 20px; height: 4px; border-radius: 2px; background: var(--gl-hover); }
+.slider .cap { position: absolute; top: -4px; bottom: -4px; right: 0; border-radius: 0 4px 4px 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--gl-lemon) 70%, var(--gl-surface)) 0 3px, transparent 3px 6px); }
+.slider .fill { position: absolute; top: 0; bottom: 0; background: var(--gl-accent); border-radius: 2px; }
+.slider .zero { position: absolute; top: -8px; width: 2px; height: 20px; margin-left: -1px; background: var(--gl-ink); opacity: .45; border-radius: 1px; }
+.slider .thumb { position: absolute; top: 9px; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; background: var(--gl-surface); border: 2px solid var(--gl-accent); box-shadow: var(--gl-shadow); transition: transform .1s; }
+.slider.levelled .thumb { border-style: dashed; border-color: var(--gl-faint); }
+.slider:focus-visible .thumb { outline: 3px solid color-mix(in srgb, var(--gl-accent) 50%, transparent); outline-offset: 2px; }
+.slider.drag .thumb { transform: scale(1.12); }
+.scale { position: relative; height: 16px; margin: 0 14px; font: var(--gl-size-small) var(--gl-font-mono); color: var(--gl-muted); }
+.scale span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.scale span.lv { font-family: var(--gl-font-ui); font-weight: 600; color: var(--gl-ink); }
+.scale span:first-child { transform: none; } .scale span:last-child { transform: translateX(-100%); }
+
+.stepper { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 10px; }
+.stepper button { height: 48px; border-radius: 50%; border: 1px solid var(--gl-line); background: var(--gl-surface); color: var(--gl-ink); font: 600 22px var(--gl-font-ui); cursor: pointer; }
+.stepper button:disabled { opacity: .35; cursor: default; }
+.dots { display: flex; justify-content: space-between; align-items: center; height: 20px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--gl-line); }
+.dots i.on { background: var(--gl-accent); }
+.dots i.zero { width: 3px; height: 16px; border-radius: 2px; background: var(--gl-faint); }
+.dots i.zero.on { background: var(--gl-ink); }
+.dots i.capped { background: color-mix(in srgb, var(--gl-lemon) 55%, var(--gl-surface)); }
+.dots i.cur { width: 12px; height: 12px; background: var(--gl-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gl-accent) 30%, transparent); }
+
+.hint { margin: 0; color: var(--gl-muted); font-size: var(--gl-size-meta); line-height: 1.45; }
+.warn { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: var(--gl-size-meta); line-height: 1.45; }
+.warn svg { color: var(--gl-warn-icon); flex: none; margin-top: 1px; }
+.reset { justify-self: start; border: 1px solid var(--gl-line); background: transparent; color: var(--gl-ink); border-radius: 99px; padding: 6px 12px; font: 500 var(--gl-size-label) var(--gl-font-ui); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.listen { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.listen-btn { display: flex; align-items: center; gap: 10px; border: 1px solid var(--gl-line); background: var(--gl-surface); color: var(--gl-ink); border-radius: var(--gl-radius); padding: 8px 10px; font: inherit; cursor: pointer; text-align: left; min-height: 48px; }
+.listen-btn .round { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--gl-accent); color: var(--gl-accent-ink); flex: none; }
+.listen-btn b { display: block; font-size: var(--gl-size-label); }
+.listen-btn small { display: block; color: var(--gl-muted); font-size: var(--gl-size-small); }
+.orig { border: 1px solid var(--gl-line); background: var(--gl-surface); color: var(--gl-ink); border-radius: var(--gl-radius); padding: 0 12px; font: 500 var(--gl-size-label) var(--gl-font-ui); cursor: pointer; min-height: 48px; }
+.orig[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); border-color: var(--gl-ink); }
+.orig:disabled { opacity: .4; cursor: default; }
+.pulse { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--gl-accent); margin-right: 5px; animation: p 1s infinite; }
+@keyframes p { 50% { opacity: .25; } }
+
+.concept { display: grid; gap: 10px; max-width: 900px; }
+.concept h2 { font: 700 20px var(--gl-font-display); margin: 10px 0 0; }
+.concept li { line-height: 1.55; margin-bottom: 4px; }
+.concept code { font-family: var(--gl-font-mono); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="intro">
+    <h1>Song volume — levelled, then your own</h1>
+    <p>Every song plays levelled by default: a quiet and a loud song sound equally loud. Each song's own volume moves it from there. The audio here is <b>generated in the browser</b> (synthesised loops at very different raw levels), so you can hear the levelling. Tap <b>Listen</b>, drag the slider, tap another song while listening to compare, and try <b>Original file</b> to hear what the song sounds like without levelling.</p>
+  </div>
+  <div class="controls">
+    <div class="seg" data-k="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
+    <div class="seg" data-k="control"><button data-v="slider">Control: slider</button><button data-v="stepper">Control: − / +</button></div>
+    <button class="ctl-btn" id="measure">Song 4: finish measuring</button>
+  </div>
+  <div class="app" id="app"></div>
+  <div class="concept">
+    <h2>How it works</h2>
+    <ul>
+      <li><b>Levelled by default.</b> Every song is brought to −14 LUFS (the streaming level), measured per ITU-R BS.1770 over the <b>excerpt that plays</b>, not the whole file — trimming re-levels at once, from loudness blocks stored once per file beside the beats.</li>
+      <li><b>Own volume</b>: −12 to +6 dB in 1 dB steps, relative to the levelled default. The dashed thumb means "levelled" (like the automatic choices in the fade sections); "Back to levelled" resets.</li>
+      <li><b>Never distorts.</b> The gain stops 1 dB below the song's loudest peak. The hatched end of the slider is out of reach; reaching it says so. A very quiet but peaky song (Song 3) may not reach the target at all — the hint says how far short it stays.</li>
+      <li><b>Just added</b> (Song 4): measured in the background; until then it plays unlevelled, and your own volume still applies.</li>
+      <li><b>Same in the player and the export.</b> One gain per song goes into the slideshow; the player multiplies it with the fades, the crossfade, the video duck and the TV remote's volume; the video export applies the same numbers. Clip sound keeps its own clip volume.</li>
+      <li><b>The "Loudness" box</b> under the list shows what plays: each song's original level (grey line) and where it ends up. It may or may not belong in the real editor — tell me.</li>
+    </ul>
+  </div>
+</div>
+<script>
+const TARGET = -14, MIN = -12, MAX = 6, CEILING = -1;
+const songs = [
+  { name: "Summer Road.mp3", meta: "3:42 · 0:00–3:10", lufs: -8.4, peak: -0.1, own: 0, voice: "bright", measured: true },
+  { name: "Piano Evening.flac", meta: "4:05 · whole track", lufs: -21.0, peak: -10.0, own: -4, voice: "soft", measured: true },
+  { name: "Rain Walk.m4a", meta: "2:58 · whole track", lufs: -19.0, peak: -3.5, own: 0, voice: "peaky", measured: true },
+  { name: "Night Bus.mp3", meta: "3:20 · just added", lufs: -11.0, peak: -0.5, own: 0, voice: "pulse", measured: false },
+];
+const state = { sel: 0, theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light", control: "slider", listening: null, original: false };
+const levelDb = (s) => s.measured ? TARGET - s.lufs : 0;
+const capDb = (s) => CEILING - s.peak; // highest total gain without distortion
+const totalDb = (s) => Math.min(levelDb(s) + s.own, capDb(s));
+const maxOwn = (s) => Math.min(MAX, Math.floor(capDb(s) - levelDb(s)));
+const fmt = (db) => (db > 0 ? "+" : db < 0 ? "−" : "") + Math.abs(Math.round(db * 10) / 10).toString().replace(/\.0$/, "") + " dB";
+const frac = (db) => (db - MIN) / (MAX - MIN);
+const ICON = {
+  vol: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>',
+  play: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>',
+  pause: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
+  reset: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+  warn: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 21h20z"/><path d="M12 10v5M12 18v.01"/></svg>',
+  scissors: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg>',
+};
+
+/* ---------- generated audio: four synthesised loops at very different raw levels ---------- */
+let ctx = null, master = null, songGain = null, source = null;
+const buffers = {};
+async function render(voice) {
+  const sr = 44100, len = 4, oc = new OfflineAudioContext(2, sr * len, sr);
+  const out = oc.createGain(); out.connect(oc.destination);
+  const note = (f, t, d, type, g) => { const o = oc.createOscillator(), e = oc.createGain(); o.type = type; o.frequency.value = f; e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(g, t + 0.01); e.gain.exponentialRampToValueAtTime(0.001, t + d); o.connect(e).connect(out); o.start(t); o.stop(t + d + 0.05); };
+  if (voice === "bright") { [0, 1, 2, 3].forEach((b) => { [261.6, 329.6, 392].forEach((f) => note(f * (b % 2 ? 1.122 : 1), b, 0.95, "sawtooth", 0.12)); [0, 0.5].forEach((k) => note(60, b + k, 0.25, "sine", 0.9)); }); }
+  if (voice === "soft") { const ar = [523.3, 659.3, 784, 1046.5]; for (let i = 0; i < 16; i++) note(ar[i % 4] / (i >= 8 ? 1.189 : 1), i * 0.25, 0.9, "sine", 0.35); }
+  if (voice === "peaky") { const m = [392, 440, 493.9, 587.3, 493.9, 440, 392, 329.6]; m.forEach((f, i) => note(f, i * 0.5, 0.45, "triangle", 0.3)); [0, 2].forEach((t) => note(1800, t, 0.06, "square", 0.9)); }
+  if (voice === "pulse") { for (let i = 0; i < 16; i++) note(i % 4 ? 110 : 82.4, i * 0.25, 0.2, "square", 0.25); [0, 1, 2, 3].forEach((b) => note(55, b, 0.3, "sine", 0.8)); }
+  return oc.startRendering();
+}
+// The loops are rendered at about the same loudness; the raw level sets them apart as files would be.
+const rawGain = (s) => 0.8 * Math.pow(10, (s.lufs + 8.4) / 20);
+const playGain = (s) => state.original ? rawGain(s) : rawGain(s) * Math.pow(10, totalDb(s) / 20);
+async function startListening(i) {
+  if (!ctx) { ctx = new AudioContext(); master = ctx.createGain(); master.gain.value = 0.6; master.connect(ctx.destination); }
+  await ctx.resume();
+  stopSource();
+  const s = songs[i];
+  buffers[s.voice] ??= await render(s.voice);
+  songGain = ctx.createGain(); songGain.gain.value = playGain(s); songGain.connect(master);
+  source = ctx.createBufferSource(); source.buffer = buffers[s.voice]; source.loop = true; source.connect(songGain); source.start();
+  state.listening = i; draw();
+}
+function stopSource() { if (source) { source.stop(); source.disconnect(); songGain.disconnect(); source = null; } }
+function stopListening() { stopSource(); state.listening = null; state.original = false; draw(); }
+function updateGain() { if (songGain && state.listening !== null) songGain.gain.setTargetAtTime(playGain(songs[state.listening]), ctx.currentTime, 0.03); }
+
+/* ---------- view ---------- */
+function songRow(s, i) {
+  const own = s.own !== 0;
+  const badge = !s.measured ? '<span class="badge measuring"><span class="pulse"></span>Measuring…</span>' : own ? `<span class="badge own">${fmt(s.own)}</span>` : "";
+  const right = state.listening === i ? '<span class="playing" title="Playing"><span class="eq"><i></i><i></i><i></i></span></span>' : '<span></span>';
+  return `<div class="song ${i === state.sel ? "sel" : ""}" data-song="${i}" role="button" tabindex="0" aria-pressed="${i === state.sel}">
+    <span class="grip" aria-hidden="true">≡</span><span class="num" style="background:var(--gl-song-${i + 1})">${i + 1}</span>
+    <span><span class="name">${s.name}</span><small>${s.meta}</small></span>${badge}${right}</div>`;
+}
+function comparison() {
+  const scale = (db) => Math.max(0, Math.min(100, ((db + 30) / 26) * 100)); // −30 … −4 LUFS across the bar
+  const rows = songs.map((s, i) => {
+    const now = state.original && state.listening === i ? s.lufs : s.lufs + totalDb(s);
+    return `<div class="cmp-row"><span class="num mono" style="width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--gl-song-${i + 1});color:var(--gl-song-ink);font-weight:600">${i + 1}</span>
+      <div class="cmp-bar">${s.measured ? "" : '<b style="width:100%;background:repeating-linear-gradient(135deg,var(--gl-line) 0 4px,transparent 4px 8px)"></b>'}<b style="width:${s.measured ? scale(now) : 0}%;background:var(--gl-song-${i + 1})"></b>${s.measured ? `<i style="left:${scale(s.lufs)}%" title="original"></i>` : ""}</div>
+      <span class="mono" style="text-align:right">${s.measured ? (Math.round(now * 10) / 10).toString().replace("-", "−") + " LUFS" : "…"}</span></div>`;
+  }).join("");
+  return `<div class="cmp"><div class="cmp-legend"><b style="color:var(--gl-ink)">Loudness</b><span>grey line: original file</span></div>${rows}</div>`;
+}
+function volumeControl(s) {
+  const cap = maxOwn(s), levelled = s.own === 0;
+  if (state.control === "stepper") {
+    const dots = []; for (let d = MIN; d <= MAX; d++) dots.push(`<i class="${d === 0 ? "zero " : ""}${d === s.own ? "cur" : d > cap ? "capped" : (d > 0 ? d <= s.own : d >= s.own && d < 0) ? "on" : ""}"></i>`);
+    return `<div class="stepper"><button data-step="-1" aria-label="Quieter" ${s.own <= MIN ? "disabled" : ""}>−</button><div class="dots" aria-hidden="true">${dots.join("")}</div><button data-step="1" aria-label="Louder" ${s.own >= cap ? "disabled" : ""}>+</button></div>`;
+  }
+  const at = frac(s.own), zero = frac(0), capAt = frac(Math.min(MAX, cap + 0.5));
+  return `<div class="slider ${levelled ? "levelled" : ""}" id="slider" role="slider" tabindex="0" aria-label="Volume of song ${state.sel + 1}" aria-valuemin="${MIN}" aria-valuemax="${MAX}" aria-valuenow="${s.own}" aria-valuetext="${levelled ? "Levelled" : fmt(s.own)}">
+      <div class="rail">${cap < MAX ? `<div class="cap" style="left:${capAt * 100}%"></div>` : ""}<div class="fill" style="left:${Math.min(at, zero) * 100}%;width:${Math.abs(at - zero) * 100}%"></div><div class="zero" style="left:${zero * 100}%"></div></div>
+      <div class="thumb" style="left:calc(14px + (100% - 28px) * ${at})"></div></div>
+    <div class="scale"><span style="left:0">−12</span><span class="lv" style="left:${zero * 100}%">Levelled</span><span style="left:100%">+6</span></div>`;
+}
+function volumeSection(s) {
+  const levelled = s.own === 0, cap = maxOwn(s);
+  const short = s.measured ? levelDb(s) - capDb(s) : 0;
+  const readout = levelled ? "Levelled" : fmt(s.own);
+  const sub = levelled ? (!s.measured ? "plays unlevelled until measured" : short > 0 ? "as far as it goes without distortion" : "same loudness as the other songs") : s.own > 0 ? "louder than levelled" : "quieter than levelled";
+  let hint;
+  if (!s.measured) hint = `<p class="hint"><span class="pulse"></span>Measuring this song's loudness… Until then it plays as the file is; your own volume still applies.</p>`;
+  else if (short > 0 && s.own >= cap) hint = `<p class="warn">${ICON.warn}<span>Levelled as far as it goes without distortion — about ${Math.round(short)} dB quieter than the other songs.</span></p>`;
+  else if (s.own >= cap && cap < MAX) hint = `<p class="warn">${ICON.warn}<span>As loud as it gets without distortion.</span></p>`;
+  else if (levelled) hint = `<p class="hint">Levelled: the file is turned ${levelDb(s) < 0 ? "down" : "up"} ${fmt(Math.abs(levelDb(s))).replace("+", "")} to match the other songs.</p>`;
+  else hint = "";
+  const playing = state.listening === state.sel;
+  return `<section class="section" aria-labelledby="vol-h">
+    <div class="shead">${ICON.vol}<h3 id="vol-h">Volume</h3><span class="state ${levelled ? "" : "own"}">${levelled ? "Levelled" : "Own"}</span></div>
+    <div class="readout"><b>${readout}</b><span>${sub}</span></div>
+    ${volumeControl(s)}
+    ${hint}
+    ${levelled ? "" : `<button class="reset" id="reset">${ICON.reset} Back to levelled</button>`}
+    <div class="listen">
+      <button class="listen-btn" id="listen" aria-pressed="${playing}"><span class="round">${playing ? ICON.pause : ICON.play}</span><span><b>${playing ? "Stop" : "Listen"}</b><small>${state.original && playing ? "original file, unlevelled" : "at this volume, from the loudest part"}</small></span></button>
+      <button class="orig" id="orig" aria-pressed="${state.original && playing}" ${playing ? "" : "disabled"} title="Hear the file without levelling">Original file</button>
+    </div>
+    <p class="hint">While listening, tap another song to compare.</p>
+  </section>`;
+}
+function draw() {
+  document.body.className = state.theme;
+  document.querySelectorAll(".seg").forEach((g) => g.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(state[g.dataset.k] === b.dataset.v))));
+  document.getElementById("measure").textContent = songs[3].measured ? "Song 4: start again (measuring)" : "Song 4: finish measuring";
+  const s = songs[state.sel];
+  const bars = Array.from({ length: 90 }, (_, k) => { const v = 0.25 + 0.65 * Math.abs(Math.sin(k * (0.31 + state.sel * 0.07)) * Math.cos(k * 0.05)); const g = Math.min(1.25, Math.pow(10, (state.original ? 0 : totalDb(s)) / 20) * rawGain(s) / 0.45); return `<span style="height:${Math.min(92, v * g * 80 + 6)}%"></span>`; }).join("");
+  const focusId = document.activeElement?.id;
+  document.getElementById("app").innerHTML = `
+    <div class="hdr">Summer 2026 <span>›</span> <b>Music</b></div>
+    <div class="edit">
+      <div class="main">
+        <p class="sub">Songs</p>
+        <div class="songs">${songs.map(songRow).join("")}</div>
+        <p class="sub" style="margin-top:6px">Song ${state.sel + 1} · ${s.name}</p>
+        <div class="wave" aria-hidden="true">${bars}</div>
+        ${comparison()}
+      </div>
+      <div class="panel">
+        <h2 class="group-title">Song ${state.sel + 1}</h2>
+        <div class="stub">${ICON.scissors}<span>Excerpt</span><small>${s.meta.split(" · ")[1]}</small></div>
+        ${volumeSection(s)}
+        <div class="stub"><span>Picture changes</span><small>On the beat</small></div>
+        <div class="stub"><span>Fade in · Fade out</span><small>Automatic</small></div>
+      </div>
+    </div>`;
+  if (focusId) document.getElementById(focusId)?.focus();
+}
+function setOwn(v) {
+  const s = songs[state.sel];
+  const next = Math.max(MIN, Math.min(maxOwn(s), Math.round(v)));
+  if (next !== s.own) { s.own = next; draw(); updateGain(); }
+}
+const app = document.getElementById("app");
+app.addEventListener("click", (e) => {
+  const row = e.target.closest("[data-song]");
+  if (row) { state.sel = +row.dataset.song; if (state.listening !== null) startListening(state.sel); else draw(); return; }
+  if (e.target.closest("#reset")) { songs[state.sel].own = 0; draw(); updateGain(); }
+  if (e.target.closest("#listen")) { state.listening === state.sel ? stopListening() : startListening(state.sel); }
+  if (e.target.closest("#orig")) { state.original = !state.original; draw(); updateGain(); }
+  const step = e.target.closest("[data-step]"); if (step) setOwn(songs[state.sel].own + +step.dataset.step);
+});
+app.addEventListener("keydown", (e) => {
+  const row = e.target.closest("[data-song]"); if (row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); row.click(); }
+  if (e.target.id !== "slider") return;
+  const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, Home: MIN - 99, End: 99 }[e.key];
+  if (d !== undefined) { e.preventDefault(); setOwn(e.key === "Home" ? MIN : e.key === "End" ? MAX : songs[state.sel].own + d); }
+});
+let dragging = false;
+function fromPointer(e) { const el = document.getElementById("slider"), r = el.getBoundingClientRect(); const f = (e.clientX - r.left - 14) / (r.width - 28); setOwn(MIN + Math.max(0, Math.min(1, f)) * (MAX - MIN)); }
+app.addEventListener("pointerdown", (e) => { if (!e.target.closest("#slider")) return; dragging = true; e.target.closest("#slider").setPointerCapture?.(e.pointerId); fromPointer(e); });
+app.addEventListener("pointermove", (e) => { if (dragging) { fromPointer(e); document.getElementById("slider")?.classList.add("drag"); } });
+addEventListener("pointerup", () => { if (dragging) { dragging = false; document.getElementById("slider")?.classList.remove("drag"); } });
+document.querySelectorAll(".seg").forEach((g) => g.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { state[g.dataset.k] = b.dataset.v; draw(); } }));
+document.getElementById("measure").addEventListener("click", () => { songs[3].measured = !songs[3].measured; draw(); updateGain(); });
+draw();
+</script>
+</body>
+</html>
