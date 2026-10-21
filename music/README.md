@@ -3,6 +3,23 @@
 Music tracks made for [Glissando](https://github.com/polandy/glissando), the local-first
 slideshow app. They were generated with Google Gemini for use in Glissando.
 
+## Tracks
+
+| File | Title | Mood |
+| --- | --- | --- |
+| `through-the-rain-slicked-glass.mp3` | Through the Rain-Slicked Glass | calm, reflective |
+| `before-the-world-awakens.mp3` | Before the World Awakens | warm, harmonious |
+| `arrival-at-dawn.mp3` | Arrival at Dawn | hopeful, open |
+| `hold-the-frame.mp3` | Hold the Frame | nostalgic, warm |
+| `morning-latitude.mp3` | Morning Latitude | cheerful, upbeat |
+| `seven-floors-above.mp3` | Seven Floors Above | mellow, urban |
+| `pacific-midnight.mp3` | Pacific Midnight | urban, retro |
+| `where-the-mountains-meet.mp3` | Where the Mountains Meet | festive, cinematic |
+| `the-view-from-the-summit.mp3` | The View from the Summit | epic, anthemic |
+
+`covers/<file name>.svg` is each track's cover, drawn by hand as SVG (no third-party material);
+the covers are under the MIT licence of https://github.com/polandy/glissando.
+
 ## Licence
 
 The tracks were generated with AI and carry Google's SynthID watermark. To the extent that any

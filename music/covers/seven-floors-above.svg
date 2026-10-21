@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3a6e"/><stop offset=".6" stop-color="#5f6fa8"/><stop offset="1" stop-color="#e3a3a0"/></linearGradient>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2f4a"/><stop offset="1" stop-color="#2a2238"/></linearGradient>
+    <radialGradient id="lamp" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd27a" stop-opacity=".55"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#room)"/>
+  <rect x="60" y="50" width="280" height="250" fill="url(#sky)"/>
+  <g fill="#1e2546">
+    <path d="M60 300 V230 H90 V210 H110 V300Z M120 300 V190 H150 V300Z M160 300 V240 H200 V300Z M210 300 V170 H232 V150 H244 V300Z M254 300 V220 H290 V300Z M298 300 V200 H340 V300Z"/>
+  </g>
+  <g fill="#ffd27a"><rect x="128" y="200" width="4" height="4"/><rect x="138" y="220" width="4" height="4"/><rect x="216" y="184" width="4" height="4"/><rect x="226" y="206" width="4" height="4"/><rect x="306" y="214" width="4" height="4"/><rect x="320" y="240" width="4" height="4"/><rect x="72" y="244" width="4" height="4"/><rect x="264" y="236" width="4" height="4"/><rect x="172" y="256" width="4" height="4"/></g>
+  <g fill="#fff" opacity=".8"><circle cx="100" cy="80" r="1.4"/><circle cx="280" cy="70" r="1.2"/><circle cx="190" cy="100" r="1"/></g>
+  <path d="M60 50 H340 V300 H60Z M200 50 V300" fill="none" stroke="#1a1428" stroke-width="10"/>
+  <rect x="40" y="300" width="320" height="14" fill="#4a3d5c"/>
+  <circle cx="300" cy="280" r="70" fill="url(#lamp)"/>
+  <g transform="translate(96 300)">
+    <path d="M-14 0 h28 l-4 -26 h-20z" fill="#c97f6b"/>
+    <path d="M0 -26 C-4 -50 -24 -60 -30 -64 M0 -26 C2 -52 16 -66 24 -70 M0 -26 C-2 -46 6 -58 4 -78" fill="none" stroke="#6fcfb4" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(286 300)"><rect x="-14" y="-18" width="28" height="18" rx="3" fill="#f2ede4"/><path d="M14 -13 q10 0 10 6 t-10 6" fill="none" stroke="#f2ede4" stroke-width="3"/><path d="M-4 -26 q4 -6 0 -12 M4 -26 q4 -6 0 -12" fill="none" stroke="#f2ede4" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g>
+  <rect y="314" width="400" height="86" fill="#211a2e"/>
+</svg>

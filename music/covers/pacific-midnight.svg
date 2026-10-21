@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f0c24"/><stop offset=".6" stop-color="#2c1a4f"/><stop offset="1" stop-color="#5a2a6e"/></linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset=".55" stop-color="#ff7fa6"/><stop offset="1" stop-color="#c04ea8"/></linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#221a48"/><stop offset="1" stop-color="#0c0a1c"/></linearGradient>
+    <clipPath id="cut"><rect width="400" height="250"/></clipPath>
+    <mask id="stripes"><rect width="400" height="400" fill="#fff"/><g fill="#000"><rect y="196" width="400" height="5"/><rect y="212" width="400" height="7"/><rect y="230" width="400" height="9"/></g></mask>
+  </defs>
+  <rect width="400" height="400" fill="url(#sky)"/>
+  <g fill="#fff"><circle cx="50" cy="50" r="1.2" opacity=".8"/><circle cx="120" cy="96" r="1" opacity=".6"/><circle cx="340" cy="60" r="1.4" opacity=".8"/><circle cx="270" cy="30" r="1" opacity=".5"/><circle cx="370" cy="140" r="1" opacity=".5"/></g>
+  <g clip-path="url(#cut)" mask="url(#stripes)"><circle cx="200" cy="200" r="96" fill="url(#sun)"/></g>
+  <g fill="#120d2a">
+    <path d="M20 250 V196 H44 V250Z M50 250 V170 H70 V150 H82 V250Z M88 250 V206 H112 V250Z M118 250 V184 H142 V250Z"/>
+    <path d="M262 250 V190 H284 V250Z M290 250 V160 H300 V140 H306 V160 H316 V250Z M322 250 V200 H346 V250Z M352 250 V178 H380 V250Z"/>
+  </g>
+  <g fill="#ffd27a" opacity=".8"><rect x="56" y="184" width="3" height="3"/><rect x="64" y="200" width="3" height="3"/><rect x="296" y="176" width="3" height="3"/><rect x="304" y="196" width="3" height="3"/><rect x="126" y="200" width="3" height="3"/><rect x="360" y="192" width="3" height="3"/></g>
+  <path d="M214 250 C218 220 222 200 236 182" fill="none" stroke="#120d2a" stroke-width="4"/>
+  <path d="M236 182 c-14 -2 -26 4 -32 12 M236 182 c-10 -10 -24 -10 -34 -6 M236 182 c4 -14 16 -20 28 -20 M236 182 c12 -4 24 2 30 10 M236 182 c0 -12 -6 -22 -14 -26" fill="none" stroke="#120d2a" stroke-width="5" stroke-linecap="round"/>
+  <rect y="250" width="400" height="150" fill="url(#sea)"/>
+  <g fill="#ff8fb0"><rect x="150" y="262" width="100" height="3" rx="1.5" opacity=".7"/><rect x="164" y="276" width="72" height="3" rx="1.5" opacity=".55"/><rect x="176" y="292" width="48" height="3" rx="1.5" opacity=".4"/><rect x="186" y="310" width="28" height="3" rx="1.5" opacity=".3"/></g>
+  <g stroke="#7a4fb0" stroke-width="1.2" opacity=".5">
+    <path d="M0 330 H400 M0 360 H400 M0 392 H400 M200 250 L-100 400 M200 250 L60 400 M200 250 L200 400 M200 250 L340 400 M200 250 L500 400"/>
+  </g>
+</svg>
