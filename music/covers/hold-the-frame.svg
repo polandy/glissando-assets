@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5c94a"/><stop offset="1" stop-color="#ff9f7f"/></linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7efe6"/><stop offset="1" stop-color="#ecdcd2"/></linearGradient>
     <linearGradient id="photo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd3e8"/><stop offset=".6" stop-color="#ffe0b8"/><stop offset="1" stop-color="#ffc27a"/></linearGradient>
     <clipPath id="pic"><rect x="-82" y="-100" width="164" height="150"/></clipPath>
-    <filter id="sh"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#5a2a2a" flood-opacity=".3"/></filter>
+    <filter id="sh"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#5a2a2a" flood-opacity=".14"/></filter>
   </defs>
   <rect width="400" height="400" fill="url(#bg)"/>
-  <g opacity=".25" fill="#fff"><circle cx="60" cy="70" r="40"/><circle cx="350" cy="340" r="60"/></g>
+  <g opacity=".5" fill="#fff"><circle cx="60" cy="70" r="40"/><circle cx="350" cy="340" r="60"/></g>
   <g transform="translate(150 220) rotate(-10)" filter="url(#sh)">
     <rect x="-96" y="-114" width="192" height="226" rx="4" fill="#fffaf2"/>
     <rect x="-82" y="-100" width="164" height="150" fill="#d8c8b8"/>

@@ -7,14 +7,14 @@ slideshow app. They were generated with Google Gemini for use in Glissando.
 
 | File | Title | Mood |
 | --- | --- | --- |
-| `through-the-rain-slicked-glass.mp3` | Through the Rain-Slicked Glass | calm, reflective |
-| `before-the-world-awakens.mp3` | Before the World Awakens | warm, harmonious |
-| `arrival-at-dawn.mp3` | Arrival at Dawn | hopeful, open |
-| `hold-the-frame.mp3` | Hold the Frame | nostalgic, warm |
-| `morning-latitude.mp3` | Morning Latitude | cheerful, upbeat |
-| `seven-floors-above.mp3` | Seven Floors Above | mellow, urban |
-| `pacific-midnight.mp3` | Pacific Midnight | urban, retro |
-| `where-the-mountains-meet.mp3` | Where the Mountains Meet | festive, cinematic |
+| `hold-the-frame.mp3` | Hold the Frame | very calm, minimal |
+| `through-the-rain-slicked-glass.mp3` | Through the Rain-Slicked Glass | warm, harmonious, melancholic |
+| `before-the-world-awakens.mp3` | Before the World Awakens | warm, harmonious, everyday |
+| `seven-floors-above.mp3` | Seven Floors Above | urban, modern, floating |
+| `morning-latitude.mp3` | Morning Latitude | cheerful, bright, upbeat |
+| `pacific-midnight.mp3` | Pacific Midnight | urban, retro, smooth |
+| `arrival-at-dawn.mp3` | Arrival at Dawn | festive, cinematic, open |
+| `where-the-mountains-meet.mp3` | Where the Mountains Meet | festive, cinematic, wide |
 | `the-view-from-the-summit.mp3` | The View from the Summit | epic, anthemic |
 
 `covers/<file name>.svg` is each track's cover, drawn by hand as SVG (no third-party material);
