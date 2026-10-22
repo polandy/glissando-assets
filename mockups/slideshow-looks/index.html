@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slideshow Looks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif; --gl-font-display: "Bricolage Grotesque", system-ui, sans-serif; --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-size-small: 12px; --gl-size-label: 13px; --gl-size-body: 14px; --gl-size-name: 17px; --gl-size-heading: 26px;
+  --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-tile: 8px;
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33; --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-backdrop: rgb(20 17 28 / .38);
+  --gl-card-plum: #2a2340; --gl-card-cream: #f7efe3;
+  --gl-shadow: 0 1px 2px rgb(34 29 51 / .06), 0 6px 18px rgb(34 29 51 / .06);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .3); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .3); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font: var(--gl-size-body)/1.4 var(--gl-font-ui); }
+.page { max-width: 1180px; margin: 0 auto; padding: 24px 16px 60px; display: grid; gap: 18px; }
+h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
+.intro p { margin: 6px 0 0; color: var(--gl-muted); max-width: 76ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.controls label { font: 600 12px var(--gl-font-ui); color: var(--gl-muted); text-transform: uppercase; letter-spacing: .04em; margin-right: 6px; }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--gl-ink); font: 500 13px var(--gl-font-ui); padding: 7px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.variant-note { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); padding: 12px 14px; color: var(--gl-muted); }
+.variant-note b { color: var(--gl-ink); }
+.stage { display: flex; justify-content: center; }
+.frame { position: relative; width: 100%; border: 1px solid var(--gl-line); border-radius: 18px; background: var(--gl-ground); overflow: hidden; box-shadow: 0 20px 60px rgb(20 14 40 / .14); min-height: 640px; }
+.frame.phone { max-width: 412px; }
+.frame.desktop { max-width: 1100px; }
+.hdr { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); font-size: 13px; color: var(--gl-muted); }
+.hdr b { color: var(--gl-ink); font-weight: 600; }
+.edit { display: grid; gap: 16px; padding: 16px; }
+.desktop .edit { grid-template-columns: 1fr 360px; align-items: start; }
+.desktop .panel { order: 2; } .desktop .strip { order: 1; }
+.panel { display: grid; gap: 14px; padding: 18px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); background: var(--gl-surface); }
+.eyebrow { font: 600 12px var(--gl-font-ui); color: var(--gl-muted); text-transform: uppercase; letter-spacing: .04em; }
+.title { font: 700 22px var(--gl-font-display); margin: 2px 0; }
+.mono { font-family: var(--gl-font-mono); font-size: var(--gl-size-small); color: var(--gl-muted); }
+.btn { border: 1px solid var(--gl-line); background: var(--gl-surface); color: var(--gl-ink); border-radius: var(--gl-radius); padding: 9px 14px; font: 600 var(--gl-size-body) var(--gl-font-ui); cursor: pointer; }
+.btn.primary { background: var(--gl-accent); border-color: var(--gl-accent); color: var(--gl-accent-ink); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--gl-muted); }
+.rows { display: grid; gap: 2px; margin: 0; }
+.row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--gl-line); }
+.row dt { color: var(--gl-muted); } .row dd { margin: 0; text-align: right; }
+.row.action { grid-template-columns: 1fr auto auto; }
+.row .value { font-weight: 500; }
+.link { border: 0; background: none; color: var(--gl-ink); font: 600 var(--gl-size-body) var(--gl-font-ui); text-decoration: underline; text-decoration-color: var(--gl-accent); text-underline-offset: 3px; cursor: pointer; padding: 4px 0; }
+.pill { font: 500 var(--gl-size-small) var(--gl-font-mono); padding: 3px 8px; border-radius: 99px; background: var(--gl-hover); }
+.pill.own { background: color-mix(in srgb, var(--gl-accent) 24%, var(--gl-surface)); }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.phone .strip { grid-template-columns: repeat(3, 1fr); }
+.tile { position: relative; aspect-ratio: 3 / 2; border-radius: var(--gl-radius-tile); overflow: hidden; background: var(--gl-hover); }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card { display: grid; place-items: center; text-align: center; background: var(--gl-card-plum); color: var(--gl-card-cream); font: 700 15px var(--gl-font-display); padding: 6px; }
+.card small { display: block; font: 400 10px var(--gl-font-ui); opacity: .8; }
+.ungraded { position: absolute; left: 4px; bottom: 4px; font: 500 10px var(--gl-font-mono); background: rgb(0 0 0 / .45); color: #fff; border-radius: 99px; padding: 1px 6px; }
+/* chips (variant B) */
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
+.chip { flex: 0 0 auto; display: grid; gap: 4px; justify-items: center; border: 0; background: none; color: var(--gl-ink); font: 500 12px var(--gl-font-ui); cursor: pointer; padding: 0; }
+.chip .sw { width: 64px; height: 44px; border-radius: var(--gl-radius-tile); overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; }
+.chip .sw img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.chip[aria-checked="true"] .sw { outline-color: var(--gl-accent); }
+.chip[aria-checked="true"] { font-weight: 600; }
+/* sheet (variant A) */
+.scrim { position: absolute; inset: 0; background: var(--gl-backdrop); display: grid; z-index: 5; }
+.phone .scrim { align-items: end; }
+.desktop .scrim { place-items: center; }
+.sheet > * { flex-shrink: 0; }
+.sheet { background: var(--gl-surface); display: flex; flex-direction: column; gap: 14px; padding: 18px; max-height: 100%; overflow: auto; }
+.phone .sheet { border-radius: 18px 18px 0 0; }
+.desktop .sheet { width: 560px; border-radius: var(--gl-radius-large); box-shadow: var(--gl-shadow); }
+.sheet-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sheet-head h2 { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 0; }
+.big { position: relative; aspect-ratio: 3 / 2; border-radius: var(--gl-radius-large); overflow: hidden; background: #000; user-select: none; }
+.big img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.caption { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; color: #fff; font: 500 15px var(--gl-font-ui); text-shadow: 0 1px 3px rgb(0 0 0 / .7); }
+.hold { position: absolute; top: 8px; right: 8px; border: 0; border-radius: 99px; padding: 6px 10px; background: rgb(0 0 0 / .5); color: #fff; font: 500 12px var(--gl-font-ui); cursor: pointer; touch-action: none; }
+.orig-tag { position: absolute; top: 8px; left: 8px; border-radius: 99px; padding: 3px 9px; background: rgb(0 0 0 / .5); color: #fff; font: 500 11px var(--gl-font-mono); }
+.mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.mini button { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 6px; overflow: hidden; aspect-ratio: 3 / 2; outline: 2px solid transparent; outline-offset: 1px; }
+.mini button[aria-current="true"] { outline-color: var(--gl-ink); }
+.mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.looks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.phone .looks { grid-template-columns: repeat(3, 1fr); }
+.look { border: 0; padding: 0; background: none; color: var(--gl-ink); cursor: pointer; display: grid; gap: 5px; text-align: left; font: 500 var(--gl-size-label) var(--gl-font-ui); }
+.look .sw { aspect-ratio: 3 / 2; border-radius: var(--gl-radius-tile); overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; position: relative; }
+.look .sw img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.look[aria-checked="true"] .sw { outline-color: var(--gl-accent); }
+.look[aria-checked="true"] { font-weight: 600; }
+.tag { font: 400 11px var(--gl-font-mono); color: var(--gl-muted); }
+.hint { margin: 0; color: var(--gl-muted); font-size: var(--gl-size-label); }
+.toggle-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px dashed var(--gl-faint); border-radius: var(--gl-radius); }
+.toggle-row small { display: block; color: var(--gl-muted); }
+.switch { width: 40px; height: 24px; border-radius: 99px; border: 0; background: var(--gl-hover); position: relative; cursor: pointer; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--gl-surface); box-shadow: 0 1px 2px rgb(0 0 0 / .3); transition: left .15s; }
+.switch[aria-checked="true"] { background: var(--gl-accent); }
+.switch[aria-checked="true"]::after { left: 19px; }
+.opt { font: 600 10px var(--gl-font-mono); color: var(--gl-accent-ink); background: var(--gl-accent); border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: 2px; }
+footer.sheet-foot { display: flex; justify-content: space-between; gap: 10px; }
+/* player (variant C) */
+.player { position: relative; background: #000; min-height: 640px; display: grid; align-content: center; }
+.desktop .player { min-height: 620px; }
+.player .big { border-radius: 0; }
+.player-bar { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 16px 18px; background: linear-gradient(transparent, rgb(0 0 0 / .8)); display: grid; gap: 10px; color: #fff; }
+.player-bar .chip { color: #fff; }
+.player-top { position: absolute; top: 12px; left: 16px; right: 16px; display: flex; justify-content: space-between; color: #fff; font-size: 13px; }
+.player-top button { border: 0; border-radius: 99px; background: rgb(255 255 255 / .16); color: #fff; padding: 7px 12px; font: 500 13px var(--gl-font-ui); cursor: pointer; }
+.player-top button[aria-pressed="true"] { background: #fff; color: #000; }
+svg.defs { position: absolute; width: 0; height: 0; }
+</style>
+</head>
+<body>
+<svg class="defs" aria-hidden="true">
+  <!-- Each look = a 3x4 colour matrix followed by per-channel tone curves, the same two steps the shader would run. -->
+  <filter id="look-warm" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="1.08 0.02 0 0 0.015  0.01 1.01 0 0 0.008  0 0 0.86 0 0  0 0 0 1 0"/>
+    <feComponentTransfer><feFuncR type="table" tableValues="0 0.27 0.53 0.78 1"/><feFuncG type="table" tableValues="0 0.25 0.51 0.76 0.98"/><feFuncB type="table" tableValues="0 0.23 0.47 0.72 0.94"/></feComponentTransfer>
+  </filter>
+  <filter id="look-film" color-interpolation-filters="sRGB">
+    <feColorMatrix type="saturate" values="0.82"/>
+    <feComponentTransfer><feFuncR type="table" tableValues="0.05 0.2 0.5 0.82 0.97"/><feFuncG type="table" tableValues="0.05 0.21 0.49 0.79 0.94"/><feFuncB type="table" tableValues="0.1 0.25 0.48 0.73 0.88"/></feComponentTransfer>
+  </filter>
+  <filter id="look-bw" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0.30 0.59 0.11 0 0  0.30 0.59 0.11 0 0  0.30 0.59 0.11 0 0  0 0 0 1 0"/>
+    <feComponentTransfer><feFuncR type="table" tableValues="0.02 0.18 0.5 0.84 1"/><feFuncG type="table" tableValues="0.02 0.18 0.5 0.84 1"/><feFuncB type="table" tableValues="0.02 0.18 0.5 0.84 1"/></feComponentTransfer>
+  </filter>
+  <filter id="look-faded" color-interpolation-filters="sRGB">
+    <feColorMatrix type="saturate" values="0.7"/>
+    <feComponentTransfer><feFuncR type="table" tableValues="0.14 0.36 0.58 0.79 0.94"/><feFuncG type="table" tableValues="0.13 0.35 0.57 0.78 0.93"/><feFuncB type="table" tableValues="0.15 0.36 0.57 0.77 0.91"/></feComponentTransfer>
+  </filter>
+</svg>
+
+<div class="page">
+  <div class="intro">
+    <h1>Slideshow looks</h1>
+    <p>One look per slideshow, applied by the player to every picture and video, so playback, the video export, the web page, the TV and the .glissando file all show it the same way. Title and closing slides and captions stay as they are. The pictures here are generated on a canvas, and the looks are applied as a colour matrix plus tone curves, the same steps the shader would run.</p>
+  </div>
+  <div class="controls">
+    <div><label>Option</label><span class="seg" id="seg-variant"></span></div>
+    <div><label>Theme</label><span class="seg" id="seg-theme"></span></div>
+    <div><label>Width</label><span class="seg" id="seg-width"></span></div>
+  </div>
+  <div class="variant-note" id="note"></div>
+  <div class="stage"><div class="frame" id="frame"></div></div>
+</div>
+
+<script>
+const LOOKS = [
+  { id: "none", name: "None", tag: "Default" },
+  { id: "warm", name: "Warm", tag: "Golden" },
+  { id: "film", name: "Film", tag: "Soft, muted" },
+  { id: "bw", name: "Black & white", tag: "Mono" },
+  { id: "faded", name: "Faded", tag: "Lifted blacks" },
+];
+const VARIANTS = {
+  A: { label: "A · Look sheet (recommended)", note: "<b>A — a Look row in the slideshow details, opening a sheet</b> like Transitions. A large preview on one of your pictures with its caption (hold to see the original), four pictures to switch to, and a tile per look on the same picture. The strip shows the look as well. Fits the existing pattern and has room for a real preview." },
+  B: { label: "B · Inline swatches", note: "<b>B — swatches right in the details panel</b>, no sheet. One tap, and the strip shows the look at once. Quickest, but the swatches are small (64 px), so it's hard to judge a look before choosing it." },
+  C: { label: "C · In the play preview", note: "<b>C — choose while watching</b>: a Look button in the play preview opens a row of swatches over the running slideshow. You see it in motion, but it's hidden from the details panel and from keyboard and TV users." },
+};
+const state = { variant: "A", theme: "light", width: "phone", look: "none", sheet: true, pick: 0, evenOut: false, original: false, playerLooks: true };
+
+/* ---------- generated pictures, each with the colour cast of a different camera ---------- */
+function noise(ctx, w, h, amount) {
+  const d = ctx.getImageData(0, 0, w, h); const p = d.data;
+  for (let i = 0; i < p.length; i += 4) { const n = (Math.random() - .5) * amount; p[i] += n; p[i + 1] += n; p[i + 2] += n; }
+  ctx.putImageData(d, 0, 0);
+}
+function cast(ctx, w, h, [r, g, b]) {
+  const d = ctx.getImageData(0, 0, w, h); const p = d.data;
+  for (let i = 0; i < p.length; i += 4) { p[i] *= r; p[i + 1] *= g; p[i + 2] *= b; }
+  ctx.putImageData(d, 0, 0);
+}
+function grad(ctx, y0, y1, stops) { const g = ctx.createLinearGradient(0, y0, 0, y1); stops.forEach(([o, c]) => g.addColorStop(o, c)); return g; }
+const SCENES = [
+  { caption: "Last light on the beach", cast: [1.08, 0.98, 0.86], draw(c, w, h) {
+    c.fillStyle = grad(c, 0, h * .6, [[0, "#3a5f9c"], [.6, "#f2a46b"], [1, "#ffd59a"]]); c.fillRect(0, 0, w, h);
+    c.fillStyle = "#fff1c8"; c.beginPath(); c.arc(w * .68, h * .52, 34, 0, 7); c.fill();
+    c.fillStyle = grad(c, h * .55, h * .78, [[0, "#2f5d84"], [1, "#183a57"]]); c.fillRect(0, h * .55, w, h * .25);
+    c.fillStyle = "rgba(255,220,160,.5)"; c.fillRect(w * .6, h * .56, w * .16, 4); c.fillRect(w * .62, h * .62, w * .12, 3);
+    c.fillStyle = grad(c, h * .78, h, [[0, "#d9b48a"], [1, "#a8835e"]]); c.fillRect(0, h * .78, w, h * .22);
+    c.fillStyle = "#1b1a22"; c.fillRect(w * .2, h * .66, 7, 34); c.beginPath(); c.arc(w * .2 + 3.5, h * .64, 7, 0, 7); c.fill(); } },
+  { caption: "Morning at the lake", cast: [0.88, 0.97, 1.12], draw(c, w, h) {
+    c.fillStyle = grad(c, 0, h * .5, [[0, "#8fb8e6"], [1, "#dfeaf3"]]); c.fillRect(0, 0, w, h);
+    const peaks = (y, col, pts) => { c.fillStyle = col; c.beginPath(); c.moveTo(0, h * .62); pts.forEach(([x, py]) => c.lineTo(w * x, h * py)); c.lineTo(w, h * .62); c.fill(); };
+    peaks(0, "#6e7f99", [[.1, .4], [.25, .22], [.4, .42], [.55, .28], [.72, .18], [.9, .4], [1, .35]]);
+    c.fillStyle = "#f4f7fb"; c.beginPath(); c.moveTo(w * .66, h * .26); c.lineTo(w * .72, h * .18); c.lineTo(w * .78, h * .27); c.fill();
+    peaks(0, "#3f5e3c", [[.0, .52], [.2, .45], [.35, .55], [.6, .47], [.8, .55], [1, .5]]);
+    c.fillStyle = grad(c, h * .62, h, [[0, "#5d84a6"], [1, "#24425e"]]); c.fillRect(0, h * .62, w, h * .38);
+    c.fillStyle = "#c2412f"; c.fillRect(w * .3, h * .74, 40, 6); } },
+  { caption: "Market street", cast: [0.95, 1.1, 0.9], draw(c, w, h) {
+    c.fillStyle = "#c9d6de"; c.fillRect(0, 0, w, h);
+    const cols = ["#c96f4a", "#e0b65c", "#7c9a8a", "#b9576a", "#d9c7a7", "#5f7ea1"];
+    for (let i = 0; i < 6; i++) { const x = i * w / 6; const top = h * (.08 + (i % 3) * .06); c.fillStyle = cols[i]; c.fillRect(x, top, w / 6 + 1, h * .75);
+      c.fillStyle = "rgba(30,30,40,.55)"; for (let r = 0; r < 4; r++) for (let k = 0; k < 2; k++) c.fillRect(x + 12 + k * 30, top + 14 + r * 38, 18, 24); }
+    c.fillStyle = "#4b4a50"; c.fillRect(0, h * .8, w, h * .2);
+    ["#e8463a", "#f2c230", "#2f8f6d", "#3b6fd8"].forEach((col, i) => { c.fillStyle = col; c.fillRect(30 + i * 110, h * .64, 80, 10); c.fillStyle = "#f3efe6"; c.fillRect(34 + i * 110, h * .67, 72, 22); }); } },
+  { caption: "Into the woods", cast: [1.02, 1.0, 0.94], draw(c, w, h) {
+    c.fillStyle = grad(c, 0, h, [[0, "#e7efd6"], [1, "#9cb37c"]]); c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 14; i++) { const x = (i * 37) % w; const s = 40 + (i * 13) % 50; c.fillStyle = i % 2 ? "#2f5a35" : "#3f6b3a";
+      c.beginPath(); c.moveTo(x, h * .85); c.lineTo(x + s / 2, h * .85 - s * 2.6); c.lineTo(x + s, h * .85); c.fill(); }
+    c.fillStyle = "#8a6a45"; c.beginPath(); c.moveTo(w * .42, h); c.lineTo(w * .5, h * .7); c.lineTo(w * .56, h * .7); c.lineTo(w * .7, h); c.fill();
+    c.fillStyle = "rgba(255,245,200,.35)"; c.beginPath(); c.moveTo(w * .7, 0); c.lineTo(w * .9, 0); c.lineTo(w * .55, h); c.lineTo(w * .45, h); c.fill(); } },
+  { caption: "Grandma's garden", cast: [1.05, 0.96, 1.03], draw(c, w, h) {
+    c.fillStyle = grad(c, 0, h, [[0, "#a9cbe8"], [.45, "#e9f0f2"], [.46, "#6f9a4e"], [1, "#466d33"]]); c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 40; i++) { const x = (i * 53) % w, y = h * .55 + ((i * 29) % 120); c.fillStyle = ["#e35d6a", "#f4d35e", "#f7f1ee", "#b46ad8"][i % 4];
+      c.beginPath(); c.arc(x, y, 6 + (i % 3) * 2, 0, 7); c.fill(); } } },
+];
+const W = 480, H = 320;
+function render(scene, balanced) {
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const c = cv.getContext("2d", { willReadFrequently: true });
+  scene.draw(c, W, H); noise(c, W, H, 14); cast(c, W, H, scene.cast);
+  if (balanced) { // gray world: scale each channel so the picture's average is neutral
+    const d = c.getImageData(0, 0, W, H), p = d.data, sum = [0, 0, 0];
+    for (let i = 0; i < p.length; i += 4) { sum[0] += p[i]; sum[1] += p[i + 1]; sum[2] += p[i + 2]; }
+    const avg = (sum[0] + sum[1] + sum[2]) / 3; const k = sum.map((s) => 1 + .7 * (avg / s - 1));
+    for (let i = 0; i < p.length; i += 4) { p[i] *= k[0]; p[i + 1] *= k[1]; p[i + 2] *= k[2]; }
+    c.putImageData(d, 0, 0);
+  }
+  return cv.toDataURL("image/jpeg", .86);
+}
+const PICS = SCENES.map((s) => ({ caption: s.caption, raw: render(s, false), even: render(s, true) }));
+const src = (i) => (state.evenOut ? PICS[i].even : PICS[i].raw);
+const filter = (look) => (look === "none" ? "none" : `url(#look-${look})`);
+const img = (i, look, alt = "") => `<img src="${src(i)}" alt="${alt}" style="filter:${filter(look)}">`;
+const lookName = (id) => LOOKS.find((l) => l.id === id).name;
+
+/* ---------- pieces ---------- */
+function strip() {
+  const card = (t, s) => `<div class="tile card"><div>${t}<small>${s}</small></div><span class="ungraded">no look</span></div>`;
+  return `<div class="strip">${card("Summer 2026", "Opening")}${PICS.map((_, i) => `<div class="tile">${img(i, state.look)}</div>`).join("")}${card("The end", "Closing")}</div>`;
+}
+function panel(extra) {
+  const lookRow = state.variant === "B"
+    ? `<div class="row" style="grid-template-columns:1fr"><dt>Look &middot; <span class="value" style="color:var(--gl-ink)">${lookName(state.look)}</span></dt></div>${chips("panel")}`
+    : `<div class="row action"><dt>Look</dt><dd><span class="pill ${state.look === "none" ? "" : "own"}">${lookName(state.look)}</span></dd><dd>${state.variant === "A" ? `<button class="link" data-act="open">Change</button>` : `<span class="mono">set in preview</span>`}</dd></div>`;
+  return `<aside class="panel">
+    <div><div class="eyebrow">Slideshow</div><div class="title">Summer 2026</div><div class="mono">12 Jul – 2 Aug 2026 · 5 pictures · 0:42</div></div>
+    <button class="btn primary" data-act="play">▶ Play</button>
+    <dl class="rows">
+      <div class="row action"><dt>Music</dt><dd class="value">Sunny afternoon</dd><dd><button class="link">Edit</button></dd></div>
+      <div class="row"><dt>Picture times</dt><dd><span class="pill">Automatic</span></dd></div>
+      <div class="row action"><dt>Transitions</dt><dd><span class="pill">Crossfade</span></dd><dd><button class="link">Change</button></dd></div>
+      ${lookRow}
+      <div class="row"><dt>Captions</dt><dd class="mono">5 of 5</dd></div>
+    </dl>${extra || ""}</aside>`;
+}
+function chips(where) {
+  return `<div class="chips" role="radiogroup" aria-label="Look">${LOOKS.map((l) => `<button class="chip" role="radio" aria-checked="${l.id === state.look}" data-look="${l.id}"><span class="sw">${img(where === "player" ? state.pick : 0, l.id)}</span>${l.name}</button>`).join("")}</div>`;
+}
+function preview() {
+  const look = state.original ? "none" : state.look;
+  return `<div class="big">${img(state.pick, look, PICS[state.pick].caption)}<div class="caption">${PICS[state.pick].caption}</div>
+    ${state.original ? `<span class="orig-tag">Original</span>` : ""}
+    ${state.look === "none" ? "" : `<button class="hold" data-hold>Hold to compare</button>`}</div>`;
+}
+function evenOutRow() {
+  return `<div class="toggle-row"><div><b>Even out colours</b><span class="opt">OPTION</span><small>Neutralises each camera's colour cast before the look — try it with “None”.</small></div>
+    <button class="switch" role="switch" aria-checked="${state.evenOut}" aria-label="Even out colours" data-act="even"></button></div>`;
+}
+function sheet() {
+  return `<div class="scrim" data-act="close"><div class="sheet" role="dialog" aria-labelledby="look-title" data-stop>
+    <div class="sheet-head"><h2 id="look-title">Look</h2><span class="pill ${state.look === "none" ? "" : "own"}">${state.look === "none" ? "None" : lookName(state.look)}</span></div>
+    ${preview()}
+    <div class="mini">${PICS.slice(0, 4).map((p, i) => `<button aria-current="${i === state.pick}" aria-label="${p.caption}" data-pick="${i}">${img(i, state.look)}</button>`).join("")}</div>
+    <div class="looks" role="radiogroup" aria-labelledby="look-title">${LOOKS.map((l) => `<button class="look" role="radio" aria-checked="${l.id === state.look}" data-look="${l.id}"><span class="sw">${img(state.pick, l.id)}</span><span>${l.name}<br><span class="tag">${l.tag}</span></span></button>`).join("")}</div>
+    <p class="hint">Applies to every picture and video in this slideshow, also in the exported video and web page. Title and closing slides and captions stay as they are.</p>
+    ${evenOutRow()}
+    <footer class="sheet-foot"><button class="btn ghost" data-look="none">Back to None</button><button class="btn primary" data-act="close">Done</button></footer>
+  </div></div>`;
+}
+function player() {
+  return `<div class="player"><div class="big">${img(state.pick, state.look, PICS[state.pick].caption)}<div class="caption">${PICS[state.pick].caption}</div></div>
+    <div class="player-top"><button data-act="back">✕ Close</button><button aria-pressed="${state.playerLooks}" data-act="plooks">◐ Look</button></div>
+    ${state.playerLooks ? `<div class="player-bar"><div style="font-size:13px;opacity:.85">Look · ${lookName(state.look)}</div>${chips("player")}</div>` : ""}</div>`;
+}
+
+/* ---------- render ---------- */
+function seg(id, items, key) {
+  document.getElementById(id).innerHTML = items.map(([v, l]) => `<button aria-pressed="${state[key] === v}" data-seg="${key}" data-val="${v}">${l}</button>`).join("");
+}
+function draw() {
+  document.documentElement.dataset.theme = state.theme;
+  seg("seg-variant", Object.entries(VARIANTS).map(([k, v]) => [k, v.label]), "variant");
+  seg("seg-theme", [["light", "Light"], ["dark", "Dark"]], "theme");
+  seg("seg-width", [["phone", "Phone 412"], ["desktop", "Desktop"]], "width");
+  document.getElementById("note").innerHTML = VARIANTS[state.variant].note;
+  const f = document.getElementById("frame"); f.className = `frame ${state.width}`;
+  const hdr = `<div class="hdr"><b>Glissando</b> · Summer 2026</div>`;
+  if (state.variant === "C" && state.sheet) { f.innerHTML = player(); return; }
+  const extra = state.variant === "B" ? evenOutRow() : "";
+  f.innerHTML = `${hdr}<div class="edit">${panel(extra)}${strip()}</div>${state.variant === "A" && state.sheet ? sheet() : ""}`;
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-seg],[data-look],[data-act],[data-pick]");
+  if (!t) return;
+  if (t.dataset.seg) { state[t.dataset.seg] = t.dataset.val; if (t.dataset.seg === "variant") state.sheet = true; }
+  else if (t.dataset.look) state.look = t.dataset.look;
+  else if (t.dataset.pick) state.pick = +t.dataset.pick;
+  else {
+    const a = t.dataset.act;
+    if (a === "close" && e.target.closest("[data-stop]") && t.classList.contains("scrim")) return;
+    if (a === "open" || a === "play") state.sheet = true;
+    if (a === "close" || a === "back") state.sheet = false;
+    if (a === "even") state.evenOut = !state.evenOut;
+    if (a === "plooks") state.playerLooks = !state.playerLooks;
+  }
+  draw();
+});
+const holdOn = (on) => (e) => { if (on && !e.target.closest("[data-hold]")) return; if (state.original !== on) { state.original = on; draw(); } };
+document.addEventListener("pointerdown", holdOn(true));
+document.addEventListener("pointerup", holdOn(false));
+document.addEventListener("pointercancel", holdOn(false));
+state.theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+draw();
+</script>
+</body>
+</html>
