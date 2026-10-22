@@ -34,7 +34,7 @@ h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
 .frame-wrap > figcaption { font-size: var(--gl-size-label); color: var(--gl-muted); }
 
 /* phone */
-.phone { width: 390px; max-width: calc(100vw - 32px); height: 800px; border-radius: 28px; border: 1px solid var(--gl-line); background: var(--gl-ground); overflow: hidden; box-shadow: 0 20px 60px rgba(20,14,40,.18); display: flex; flex-direction: column; position: relative; }
+.phone { width: 412px; max-width: calc(100vw - 32px); height: 780px; border-radius: 28px; border: 1px solid var(--gl-line); background: var(--gl-ground); overflow: hidden; box-shadow: 0 20px 60px rgba(20,14,40,.18); display: flex; flex-direction: column; position: relative; }
 .bar-top { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); font-weight: 600; }
 .scroll { flex: 1; overflow-y: auto; padding: 16px; display: grid; gap: 16px; align-content: start; }
 .stepper { display: flex; align-items: center; gap: 10px; font-size: var(--gl-size-label); color: var(--gl-muted); }
@@ -111,7 +111,25 @@ h3 { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 0; }
 .foot .btn { padding: 12px 16px; border-radius: var(--gl-radius); }
 .foot .btn.primary { flex: 1; }
 
-/* variant B: two doors + sheet */
+/* variant A: rail */
+.choose { display: grid; gap: 10px; }
+.rail { display: grid; grid-auto-flow: column; grid-auto-columns: 132px; gap: 10px; overflow-x: auto; scrollbar-width: none; margin: 0 -14px; padding: 0 14px; }
+.rail .card .t { font-size: 12px; }
+.rail .card .plus, .rail .card .ring { width: 34px; height: 34px; }
+.rail .card .play { width: 30px; height: 30px; }
+.more { display: flex; justify-content: space-between; align-items: center; }
+.link { border: 0; background: none; color: var(--gl-accent); font-weight: 600; cursor: pointer; padding: 4px 0; }
+.or { display: flex; align-items: center; gap: 10px; color: var(--gl-faint); font-size: var(--gl-size-small); }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--gl-line); }
+/* variant B: two tiles side by side */
+.tiles { display: grid; grid-template-columns: 1.25fr 1fr; gap: 10px; }
+.tile { padding: 12px; display: grid; gap: 10px; align-content: space-between; text-align: left; cursor: pointer; }
+.tile .mosaic { grid-template-columns: repeat(2, 1fr); }
+.tile .bigic { aspect-ratio: 1; border-radius: var(--gl-radius); background: var(--gl-hover); display: grid; place-items: center; color: var(--gl-muted); }
+.tile .bigic svg { width: 42px; height: 42px; }
+.tile b { display: block; font: 700 15px var(--gl-font-display); }
+.tile .btn { width: 100%; }
+/* variant B sheet */
 .entries { display: grid; gap: 10px; }
 .entry { padding: 14px; display: grid; gap: 10px; }
 .mosaic { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border-radius: var(--gl-radius); overflow: hidden; }
@@ -128,15 +146,15 @@ h3 { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 0; }
 <div class="page">
   <div class="intro">
     <h1>Sample music, second round</h1>
-    <p>The tabs hid the sample music behind a second tab, and adding a track there changed what the other tab showed. This round drops the tabs: <b>one soundtrack</b> holds every chosen song, wherever it came from, and the sample music is the step's centrepiece.</p>
+    <p>The tabs hid the sample music behind a second tab, and adding a track there changed what the other tab showed. This round drops the tabs: <b>one soundtrack</b> holds every chosen song, wherever it came from. And both ways in — <b>Glissando's music</b> and <b>your own</b> — show on the phone's first screen without scrolling. Each frame is one screen of a typical phone (412 × 780).</p>
     <ul>
-      <li><b>A — one page (recommended).</b> Soundtrack on top, then “Music for your slideshow” as a cover grid with mood chips, then a slim “Your own music” row. Adding is the + on a cover; the song appears in the soundtrack right above, so a tap's effect shows where it happens.</li>
-      <li><b>B — two doors.</b> The step stays short: a large “Music for your slideshow” card with a cover mosaic and a slim “Your own music” row; the first opens the grid as a sheet. The soundtrack sits below both.</li>
-      <li>The music editor's “Add a song” opens the same picker as variant B's sheet, in both variants.</li>
+      <li><b>A — rail + row.</b> Right under the heading: a row of covers to swipe through (listen, + to add, “All 9” opens the full grid with mood chips as a sheet), then “or”, then “Your own music · Choose files”. The soundtrack follows.</li>
+      <li><b>B — two tiles (recommended).</b> Two tiles side by side: “Glissando music” with a cover mosaic and “Your own music” with “Choose files”. The first opens the grid as a sheet. Simplest choice, equal weight, the covers give the sample music the bigger presence.</li>
+      <li>The music editor's “Add a song” offers the same two ways; its sample sheet is the one shown.</li>
     </ul>
   </div>
   <div class="controls">
-    <div class="seg" id="variant"><button aria-pressed="true" data-v="a">A · one page</button><button aria-pressed="false" data-v="b">B · two doors</button></div>
+    <div class="seg" id="variant"><button aria-pressed="false" data-v="a">A · rail + row</button><button aria-pressed="true" data-v="b">B · two tiles</button></div>
     <div class="seg" id="state"><button aria-pressed="true" data-s="empty">Nothing chosen</button><button aria-pressed="false" data-s="chosen">Songs chosen</button><button aria-pressed="false" data-s="offline">Offline</button></div>
     <div class="seg" id="theme"><button aria-pressed="true" data-t="dark">Dark</button><button aria-pressed="false" data-t="light">Light</button></div>
   </div>
@@ -162,7 +180,7 @@ const ICON = {
   check: '<svg viewBox="0 0 20 20"><path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   note: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M9 18V6l11-2v12" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="6.5" cy="18" r="2.5" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="17.5" cy="16" r="2.5" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>',
 };
-let variant = "a", state = "empty", mood = "all";
+let variant = "b", state = "empty", mood = "all";
 const cover = (id) => `<img src="${COVERS}${id}.svg" alt="">`;
 
 function cards() {
@@ -202,7 +220,7 @@ function picker(withHead) {
 
 function soundtrack() {
   if (state !== "chosen") {
-    return `<div class="panel soundtrack empty">No music yet — add a track below or your own songs.<br>Without music each picture stays 5 s.</div>`;
+    return `<div class="panel soundtrack empty">No music yet — pick from above.<br>Without music each picture stays 5 s.</div>`;
   }
   const t1 = TRACKS[1], t4 = TRACKS[4];
   return `<div class="panel soundtrack">
@@ -221,27 +239,39 @@ const intro = `<div class="stepper"><span class="dot done">✓</span>Pictures<sp
 const foot = () => `<div class="foot"><button class="btn">‹ Pictures</button><button class="btn primary">${state === "chosen" ? "Create slideshow" : "Create without music"}</button></div>`;
 const soundtrackBlock = () => `<div><div class="section-head" style="margin-bottom:8px"><h3>Soundtrack</h3></div>${soundtrack()}</div>`;
 
+const sheetFrame = (caption) => `<figure class="frame-wrap"><figcaption>${caption}</figcaption><div class="phone">${head}<div class="scroll" style="opacity:.4">${intro}</div><div class="scrim"></div>
+    <div class="sheet"><div class="grab"></div><div class="head"><h3>Glissando music</h3><button class="btn primary">${state === "chosen" ? "Done · 2 added" : "Done"}</button></div>
+    <div class="scroll">${picker(false)}</div></div></div></figure>`;
+
 function variantA() {
-  return `<figure class="frame-wrap"><figcaption>A · the music step</figcaption><div class="phone">${head}<div class="scroll">${intro}
+  const step = `<figure class="frame-wrap"><figcaption>A · the music step</figcaption><div class="phone">${head}<div class="scroll">${intro}
+    <div class="panel featured choose">
+      <div class="section-head"><h3>Glissando music</h3><span class="sub">free to use</span></div>
+      ${state === "offline" ? '<div class="notice">Offline: only tracks on this device can be added.</div>' : ""}
+      <div class="rail">${cards()}</div>
+      <div class="more"><span class="sub">Tap a cover to listen</span><button class="link">All 9 ›</button></div>
+    </div>
+    <div class="or">or</div>
+    ${own}
     ${soundtrackBlock()}
-    <div class="panel featured">${picker(true)}</div>
-    ${own}${timing}</div>${foot()}</div></figure>`;
+    ${timing}</div>${foot()}</div></figure>`;
+  return step + sheetFrame("A · “All 9” (also the music editor's sample sheet)");
 }
 
 function variantB() {
-  const mosaic = TRACKS.slice(0, 8).map((t) => cover(t[0])).join("");
+  const mosaic = TRACKS.slice(0, 4).map((t) => cover(t[0])).join("");
   const step = `<figure class="frame-wrap"><figcaption>B · the music step</figcaption><div class="phone">${head}<div class="scroll">${intro}
-    <div class="entries">
-      <div class="panel featured entry"><div class="mosaic">${mosaic}</div>
-        <div class="row"><div><h3>Music for your slideshow</h3><span class="sub">9 tracks, free to use · listen first</span></div><button class="btn primary">Browse</button></div></div>
-      ${own}
+    <div class="tiles">
+      <div class="panel featured tile"><div class="mosaic">${mosaic}</div>
+        <div><b>Glissando music</b><span class="sub">9 tracks · free to use</span></div>
+        <button class="btn primary">Listen &amp; pick</button></div>
+      <div class="panel tile"><div class="bigic">${ICON.note.replace('width="20" height="20"', "")}</div>
+        <div><b>Your own music</b><span class="sub">from this device</span></div>
+        <button class="btn">Choose files</button></div>
     </div>
     ${soundtrackBlock()}
     ${timing}</div>${foot()}</div></figure>`;
-  const sheet = `<figure class="frame-wrap"><figcaption>B · “Browse” (also the music editor's “Add a song”)</figcaption><div class="phone">${head}<div class="scroll" style="opacity:.4">${intro}</div><div class="scrim"></div>
-    <div class="sheet"><div class="grab"></div><div class="head"><h3>Music for your slideshow</h3><button class="btn primary">${state === "chosen" ? "Done · 2 added" : "Done"}</button></div>
-    <div class="scroll">${picker(false)}</div></div></div></figure>`;
-  return step + sheet;
+  return step + sheetFrame("B · “Listen &amp; pick” (also the music editor's sample sheet)");
 }
 
 function render() {
