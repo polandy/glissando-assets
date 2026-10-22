@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glissando — Day chapters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=Geist+Mono:wght@500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --mint: #6fcfb4; --lemon: #f5c94a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636;
+  --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { overflow-x: hidden; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1320px; margin: 0 auto; padding: 20px 16px 64px; display: grid; gap: 26px; }
+.intro h1 { font-family: var(--display); font-weight: 700; font-size: 25px; margin: 0 0 6px; letter-spacing: -0.01em; }
+.intro p { margin: 0; color: var(--page-muted); max-width: 72ch; line-height: 1.5; }
+
+/* control bar */
+.controlbar { position: sticky; top: 0; z-index: 20; background: var(--page); padding: 10px 0; border-bottom: 1px solid var(--page-line); display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; }
+.ctrl { display: flex; align-items: center; gap: 8px; }
+.ctrl .lbl { font-size: 12px; font-weight: 600; color: var(--page-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.toggle { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 13px; font-weight: 500; user-select: none; }
+.toggle .box { width: 32px; height: 19px; border-radius: 999px; background: var(--chip); position: relative; flex: none; transition: background 0.15s; }
+.toggle .box::after { content: ""; position: absolute; width: 15px; height: 15px; border-radius: 50%; background: #fff; top: 2px; left: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: left 0.15s; }
+.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.toggle input:checked + .box { background: var(--peach); }
+.toggle input:checked + .box::after { left: 15px; }
+.toggle input:disabled + .box { opacity: .45; cursor: not-allowed; }
+.toggle.disabled { cursor: not-allowed; color: var(--page-muted); }
+
+.sectionwrap { display: grid; gap: 12px; }
+.sectionwrap h2 { font-family: var(--display); font-weight: 700; font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+.sectionwrap > p { margin: -4px 0 0; color: var(--page-muted); max-width: 76ch; line-height: 1.5; }
+.row-wrap { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; justify-content: center; }
+.variant-stack { display: grid; gap: 30px; }
+.labelled { display: grid; gap: 8px; justify-items: stretch; }
+.labelled .cap { justify-self: center; }
+.labelled .cap { font-size: 12.5px; color: var(--page-muted); text-align: center; max-width: 320px; line-height: 1.4; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.chips button { border: 1px solid var(--page-line); background: var(--page-line, transparent); background: transparent; color: var(--page-ink); font: 500 12.5px var(--ui); padding: 6px 11px; border-radius: 999px; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); border-color: var(--chip-on); }
+
+/* ---------- app frame ---------- */
+.app { --radius: 10px; flex: 1 1 760px; min-width: 280px; max-width: 1180px; aspect-ratio: 16/9; height: auto; overflow: hidden; position: relative; border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 14px; container-type: inline-size; display: flex; flex-direction: column; box-shadow: 0 16px 48px rgba(20,14,40,.14); }
+.app.phone { flex: 0 0 412px; max-width: 412px; aspect-ratio: auto; height: 648px; border-radius: 34px; border-width: 6px; border-color: #1a1722; }
+.app.editor { aspect-ratio: auto; height: auto; min-height: 660px; }
+.app.editor:has(.backdrop.dock-right) .show { padding-right: 316px; }
+.app.light { --ground:#f6f5f8; --surface:#ffffff; --raised:#fbfafc; --ink:#221d33; --muted:#6b6580; --faint:#9c97ad; --line:#e5e2eb; --hover:#efedf3; --accent:#ff9f7f; --accent-ink:#2a1a14; --accent-hover:#ff8f6b; --backdrop:rgba(18,14,28,.38); --shadow:0 1px 2px rgba(34,29,51,.06),0 6px 18px rgba(34,29,51,.06); }
+.app.dark { --ground:#121019; --surface:#1a1723; --raised:#221e2d; --ink:#edeaf3; --muted:#9a94ab; --faint:#6c6680; --line:#2c2838; --hover:#26222f; --accent:#ffb59a; --accent-ink:#2a1a14; --accent-hover:#ffc5af; --backdrop:rgba(10,8,16,.55); --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3); color-scheme: dark; }
+.app button, .app input { font-family: inherit; }
+.app svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.app svg.i.fill { fill: currentColor; stroke: none; }
+
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 52px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; }
+.crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
+.crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs .sep { color: var(--faint); }
+.spacer { flex: 1; }
+.iconbtn { width: 34px; height: 34px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.iconbtn:hover { background: var(--hover); }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+
+/* mini slide render, shared by player frames, strip-free use, and sheet preview */
+.slide { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; }
+.slide .bg { position: absolute; inset: 0; }
+.slide .bg svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.slide .bg.veil svg { filter: brightness(.74) saturate(.9); }
+.slide .bg .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.18); }
+.slide .bg.veil .scrim { background: #171221; opacity: .42; }
+.slide .text { position: relative; z-index: 1; display: flex; flex-direction: column; flex: 1; padding: 7%; min-width: 0; }
+.slide.pos-centre .text { justify-content: center; align-items: center; text-align: center; }
+.slide.pos-lower .text { justify-content: flex-end; align-items: flex-start; text-align: left; padding-bottom: 13%; }
+.slide .title { margin: 0; font-family: var(--display); font-weight: 700; font-size: clamp(16px,4cqi,23px); letter-spacing: -.01em; text-wrap: balance; max-width: 100%; }
+.slide .subtitle { margin: .3em 0 0; font-family: var(--mono); font-size: clamp(10.5px,2.2cqi,12.5px); opacity: .82; max-width: 100%; }
+.slide.ground .text { color: #fff; }
+.slide.veil .text { color: #fff; }
+.slide .title, .slide .subtitle { transition: opacity .9s ease, transform .9s ease; }
+.chapdemo { position: relative; width: 100%; height: 100%; }
+.chapdemo .layer { position: absolute; inset: 0; opacity: 0; transition: opacity .85s ease; }
+.chapdemo[data-phase="chapter"] .layer.chapter, .chapdemo[data-phase="prev"] .layer.prev, .chapdemo[data-phase="next"] .layer.next { opacity: 1; }
+.playrow { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 2; }
+.roundbtn { height: 32px; border-radius: 999px; border: 0; background: rgba(20,16,28,.72); color: #fff; display: inline-flex; align-items: center; gap: 7px; padding: 0 14px; cursor: pointer; font: 600 12.5px var(--ui); backdrop-filter: blur(4px); }
+.roundbtn svg.i { width: 14px; height: 14px; }
+
+/* editor strip */
+.show { padding: 18px; display: grid; gap: 12px; align-content: start; }
+.strip { display: flex; gap: 8px; padding: 4px 2px 14px; align-items: stretch; }
+.strip.wrap { flex-wrap: wrap; }
+.strip.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: stretch; }
+.strip.grid .ptile { width: 100%; }
+.ptile, .chaptile { flex: none; border: 0; padding: 0; cursor: pointer; border-radius: 8px; container-type: inline-size; }
+.ptile { width: 118px; aspect-ratio: 16/9; position: relative; overflow: hidden; background: var(--hover); }
+.ptile svg { width: 100%; height: 100%; display: block; }
+.chaptile { width: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-align: center; border: 1.5px dashed var(--faint); background: var(--raised); color: var(--muted); position: relative; padding: 10px 4px 4px; }
+.chaptile:hover { border-color: var(--accent); background: var(--hover); }
+.chaptile .d { font: 600 11px var(--mono); color: var(--ink); line-height: 1.25; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; word-break: break-word; }
+.chaptile .p { font-size: 9px; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chaptile .dot { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.chaptile.off { width: 150px; opacity: .55; }
+.chaptile.off .d { font-size: 11px; }
+.chaptile.off .p { white-space: normal; font-size: 9.5px; }
+.strip.grid .chaptile, .strip.grid .chapbar { grid-column: 1 / -1; width: 100%; }
+.chapbar { grid-column: 1 / -1; width: 100%; display: flex; align-items: center; gap: 8px; border: 0; border-top: 1px dashed var(--faint); border-bottom: 1px dashed var(--faint); background: var(--raised); color: var(--ink); font: 600 12px var(--mono); padding: 10px; cursor: pointer; position: relative; text-align: left; border-radius: 6px; }
+.chapbar:hover { border-color: var(--accent); background: var(--hover); }
+.chapbar .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
+.stripnote { font-size: 12px; color: var(--muted); margin: 0; display: flex; align-items: center; gap: 6px; }
+
+/* sheet */
+.backdrop { position: absolute; inset: 0; background: var(--backdrop); z-index: 10; display: grid; place-items: center; padding: 20px; }
+.backdrop.dock-right { place-items: stretch end; padding: 0; background: transparent; }
+.backdrop.dock-right .sheet { width: 300px; max-width: 300px; height: 100%; max-height: 100%; border-radius: 0; border-left: 1px solid var(--line); box-shadow: -12px 0 32px rgba(10,6,20,.18); }
+.backdrop.dock-bottom { place-items: end stretch; padding: 0; }
+.backdrop.dock-bottom .sheet { width: 100%; max-width: 100%; max-height: 98%; border-radius: 18px 18px 0 0; }
+.sheet { width: 100%; max-width: 400px; max-height: 100%; overflow-y: auto; background: var(--surface); border-radius: 16px; box-shadow: 0 24px 60px rgba(10,6,20,.3); display: grid; gap: 14px; padding: 16px; color: var(--ink); align-content: start; }
+.sheet .shead { display: flex; align-items: start; gap: 10px; }
+.sheet .shead b { font-family: var(--display); font-size: 17px; letter-spacing: -.01em; flex: 1; }
+.pv-wrap { display: grid; gap: 8px; }
+.pv { position: relative; aspect-ratio: 16/9; width: 100%; border-radius: var(--radius); overflow: hidden; background: #000; container-type: inline-size; color: #fff; }
+.sec { display: grid; gap: 8px; }
+.sec + .sec { border-top: 1px solid var(--line); padding-top: 12px; }
+.sec .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.field { height: 36px; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 10px; background: var(--raised); color: var(--ink); font: 13.5px var(--ui); width: 100%; }
+.resetlink { font: 600 12px var(--ui); color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; justify-self: start; }
+.small { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0; }
+
+footer.about { max-width: 1320px; margin: 0 auto; width: 100%; padding-top: 8px; border-top: 1px solid var(--page-line); font-size: 12px; color: var(--page-muted); display: grid; gap: 2px; }
+footer.about .k { font-weight: 600; text-transform: uppercase; letter-spacing: .05em; font-size: 10.5px; }
+@media (max-width: 460px) {
+  .controlbar { gap: 10px 14px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="intro">
+    <h1>Day chapters</h1>
+    <p>A short slide before each new day of a trip, named after the day's most common place. On by
+      default for any slideshow spanning two or more calendar days; off while the picture order is
+      arranged by hand. Use the bar below to try phone and desktop sizes, both themes, and the two
+      states that turn chapters off.</p>
+  </header>
+
+  <div class="controlbar">
+    <div class="ctrl"><span class="lbl">Width</span>
+      <div class="seg" role="group" aria-label="Width" data-act="width">
+        <button data-width="phone" aria-pressed="false">Phone</button>
+        <button data-width="desktop" aria-pressed="false">Desktop</button>
+        <button data-width="both" aria-pressed="true">Both</button>
+      </div>
+    </div>
+    <div class="ctrl"><span class="lbl">Theme</span>
+      <div class="seg" role="group" aria-label="Theme" data-act="theme">
+        <button data-theme="system" aria-pressed="true">System</button>
+        <button data-theme="light" aria-pressed="false">Light</button>
+        <button data-theme="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+    <label class="toggle"><input type="checkbox" data-act="arranged"><span class="box"></span>Arranged by hand</label>
+    <label class="toggle"><input type="checkbox" data-act="gps" checked><span class="box"></span>GPS present</label>
+  </div>
+
+  <section class="sectionwrap">
+    <h2>Player — two looks</h2>
+    <p>Same card style as the title slide, just quieter. Pick the chips to see a chapter with a
+      place, without GPS, and in German. Play runs the real sequence: previous picture → chapter →
+      next picture.</p>
+    <div class="chips" data-act="playertext">
+      <button data-mode="place" aria-pressed="true">With place</button>
+      <button data-mode="noGPS" aria-pressed="false">No GPS</button>
+      <button data-mode="german" aria-pressed="false">German UI</button>
+    </div>
+    <div class="row-wrap" id="playerRoot"></div>
+  </section>
+
+  <section class="sectionwrap">
+    <h2>Editor — picture strip</h2>
+    <p>A slimmer tile sits between the days. Tap one to open its sheet: the automatic text is
+      editable, a link resets it, and each chapter can be hidden on its own. Turn chapters off for
+      the whole slideshow from the same sheet.</p>
+    <div class="row-wrap" id="editorRoot"></div>
+  </section>
+
+  <footer class="about">
+    <span class="k">About screen</span>
+    <span>Place names © GeoNames (CC BY 4.0)</span>
+  </footer>
+</div>
+
+<script>
+/* ---------- generated landscapes (no photos: gradients + inline SVG shapes) ---------- */
+function svgLandscape(kind, seed) {
+  const hue = { sea: 205, hills: 125, city: 268 }[kind] + (seed % 3) * 6;
+  const sky1 = `hsl(${hue + 20} 70% 86%)`, sky2 = `hsl(${hue} 55% 68%)`;
+  const id = `g${kind}${seed}`;
+  const grad = `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${sky1}"/><stop offset="1" stop-color="${sky2}"/></linearGradient></defs>`;
+  if (kind === "sea") {
+    return `<svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice">${grad}
+      <rect width="400" height="225" fill="url(#${id})"/>
+      <circle cx="${90 + seed * 40}" cy="70" r="26" fill="#fff6e4" opacity=".9"/>
+      <path d="M0 150 Q100 130 200 150 T400 150 V225 H0 Z" fill="hsl(${hue - 10} 55% 42%)"/>
+      <path d="M0 178 Q120 160 240 178 T400 172 V225 H0 Z" fill="hsl(${hue - 10} 60% 32%)"/></svg>`;
+  }
+  if (kind === "hills") {
+    return `<svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice">${grad}
+      <rect width="400" height="225" fill="url(#${id})"/>
+      <circle cx="320" cy="55" r="22" fill="#fff6e4" opacity=".85"/>
+      <path d="M0 150 Q90 100 190 145 T400 120 V225 H0 Z" fill="hsl(${hue + 10} 35% 55%)"/>
+      <path d="M0 185 Q130 140 260 180 T400 160 V225 H0 Z" fill="hsl(${hue + 10} 30% 38%)"/></svg>`;
+  }
+  const b = [];
+  let x = 0;
+  for (let i = 0; i < 10; i++) {
+    const w = 24 + ((seed + i * 7) % 20), h = 50 + ((seed * 13 + i * 29) % 110);
+    b.push(`<rect x="${x}" y="${225 - h}" width="${w}" height="${h}" fill="hsl(${hue + 10} 30% ${18 + (i % 3) * 3}%)"/>`);
+    if (h > 90) b.push(`<rect x="${x + w / 2 - 2}" y="${225 - h + 14}" width="4" height="7" fill="hsl(${hue - 40} 70% 70%)" opacity=".8"/>`);
+    x += w + 4;
+  }
+  return `<svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice">${grad}
+    <rect width="400" height="225" fill="url(#${id})"/>
+    <circle cx="70" cy="50" r="20" fill="#fff6e4" opacity=".8"/>${b.join("")}</svg>`;
+}
+
+/* ---------- data ---------- */
+const DATES = { 1: "Thursday, 12 June", 2: "Friday, 13 June", 4: "Sunday, 15 June", 5: "Monday, 16 June" };
+const ORDER = [
+  { type: "day", day: 1, kind: "sea", count: 3 },
+  { type: "chapter", id: "c1", day: 2, place: "Sintra" },
+  { type: "day", day: 2, kind: "hills", count: 2 },
+  { type: "chapter", id: "c2", day: 4, place: "Lisbon" },
+  { type: "day", day: 4, kind: "city", count: 3 },
+  { type: "chapter", id: "c3", day: 5, place: "Cascais" },
+  { type: "day", day: 5, kind: "sea", count: 2 },
+];
+const CHAPTERS = ORDER.filter((o) => o.type === "chapter");
+
+const STATE = {
+  width: "both", theme: "system", arranged: false, gps: true,
+  playerMode: "place", dayChaptersOn: true,
+  edits: { c1: { title: "Arrival in Sintra" } }, hidden: {},
+  sheet: { mode: "chapter", id: "c1" },
+};
+
+function autoTitle(ch) { return STATE.gps ? `Day ${ch.day} · ${ch.place}` : `Day ${ch.day}`; }
+function autoSubtitle(ch) { return DATES[ch.day]; }
+function curTitle(ch) { const e = STATE.edits[ch.id]; return e && e.title !== undefined ? e.title : autoTitle(ch); }
+function curSubtitle(ch) { const e = STATE.edits[ch.id]; return e && e.subtitle !== undefined ? e.subtitle : autoSubtitle(ch); }
+function isEdited(ch) { return curTitle(ch) !== autoTitle(ch) || curSubtitle(ch) !== autoSubtitle(ch); }
+function escapeHtml(s) { return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+function icon(name) {
+  const paths = {
+    close: '<path d="M5 5l10 10M15 5L5 15"/>',
+    play: '<path d="M6 4l10 6-10 6V4z"/>',
+    info: '<circle cx="10" cy="10" r="7.5"/><path d="M10 9v5M10 6.5v.1"/>',
+  };
+  return `<svg class="i${name === "play" ? " fill" : ""}" viewBox="0 0 20 20">${paths[name] || ""}</svg>`;
+}
+
+/* ---------- player (section 1) ---------- */
+function playerText() {
+  if (STATE.playerMode === "noGPS") return { title: "Day 3", subtitle: "Saturday, 14 June" };
+  if (STATE.playerMode === "german") return { title: "Tag 3 · Lisbon", subtitle: "Samstag, 14. Juni" };
+  return { title: "Day 3 · Lisbon", subtitle: "Saturday, 14 June" };
+}
+function groundSlide(t) {
+  return `<div class="slide ground pos-centre"><div class="bg" style="background:#2a2340"><div class="scrim"></div></div>
+    <div class="text"><h3 class="title">${escapeHtml(t.title)}</h3>
+      <p class="subtitle">${escapeHtml(t.subtitle)}</p></div></div>`;
+}
+function veilSlide(t, kind, seed) {
+  return `<div class="slide veil pos-lower"><div class="bg veil">${svgLandscape(kind, seed)}<div class="scrim"></div></div>
+    <div class="text"><h3 class="title">${escapeHtml(t.title)}</h3>
+      <p class="subtitle">${escapeHtml(t.subtitle)}</p></div></div>`;
+}
+function playerFrame(sizeClass, variant) {
+  const t = playerText();
+  const prevSvg = svgLandscape("hills", 2), nextSvg = svgLandscape("city", 4);
+  const chapterInner = variant === "a" ? groundSlide(t) : veilSlide(t, "sea", 1);
+  return `<div class="app ${sizeClass} ${resolvedTheme()}">
+    <div class="bar"><div class="crumbs"><b>Trip to Portugal</b></div></div>
+    <div style="flex:1;min-height:0;position:relative;">
+      <div class="chapdemo" data-phase="chapter" id="demo-${variant}-${sizeClass}">
+        <div class="layer prev"><div class="slide ground pos-centre">${svgWrap(prevSvg)}</div></div>
+        <div class="layer chapter">${chapterInner}</div>
+        <div class="layer next"><div class="slide ground pos-centre">${svgWrap(nextSvg)}</div></div>
+      </div>
+      <div class="playrow"><button class="roundbtn" data-act="play-demo" data-target="demo-${variant}-${sizeClass}">${icon("play")}Play</button></div>
+    </div></div>`;
+}
+function svgWrap(svg) { return `<div class="bg">${svg}</div>`; }
+function renderPlayer() {
+  const root = document.getElementById("playerRoot");
+  const variants = [
+    { v: "a", cap: "A — solid colour, text centred" },
+    { v: "b", cap: "B — first picture, darkened, text in the lower third" },
+  ];
+  root.className = "variant-stack";
+  root.innerHTML = variants.map(({ v, cap }) => `<div class="labelled">
+      <div class="row-wrap" style="gap:14px;">
+        ${showWidth("phone") ? playerFrame("phone", v) : ""}
+        ${showWidth("desktop") ? playerFrame("", v) : ""}
+      </div>
+      <p class="cap">${cap}</p>
+    </div>`).join("");
+}
+
+/* ---------- editor (section 2) ---------- */
+function ptileHtml(day, i) {
+  const seedBase = { 1: 1, 2: 2, 4: 4, 5: 5 }[day.day] * 3 + i;
+  return `<button class="ptile" tabindex="-1" aria-label="Picture">${svgLandscape(day.kind, seedBase)}</button>`;
+}
+function chaptileHtml(ch) {
+  const place = STATE.gps ? ch.place : null;
+  const label = isEdited(ch) ? curTitle(ch) : `Day ${ch.day}`;
+  const sub = isEdited(ch) ? curSubtitle(ch).split(",")[0] : (place || "");
+  return `<button class="chaptile" data-act="open-chapter" data-id="${ch.id}" aria-label="${escapeHtml(curTitle(ch))}">
+    ${isEdited(ch) ? '<span class="dot" title="Edited by hand"></span>' : ""}
+    <span class="d">${escapeHtml(label)}</span>${sub ? `<span class="p">${escapeHtml(sub)}</span>` : ""}
+  </button>`;
+}
+function chapbarHtml(ch) {
+  const label = isEdited(ch) ? `${curTitle(ch)} · ${curSubtitle(ch)}`
+    : `Day ${ch.day}${STATE.gps ? " · " + ch.place : ""} · ${autoSubtitle(ch)}`;
+  return `<button class="chapbar" data-act="open-chapter" data-id="${ch.id}" aria-label="${escapeHtml(curTitle(ch))}">
+    ${isEdited(ch) ? '<span class="dot" title="Edited by hand"></span>' : ""}
+    <span class="d">${escapeHtml(label)}</span>
+  </button>`;
+}
+function offNoteHtml() {
+  return `<button class="chaptile off" data-act="open-general" aria-label="Day chapters">
+    ${icon("info")}<span class="d">Day chapters off</span><span class="p">Arranged by hand</span></button>`;
+}
+function stripHtml(isPhone) {
+  const effectiveOn = STATE.dayChaptersOn && !STATE.arranged;
+  const tiles = [];
+  if (STATE.arranged) tiles.push(offNoteHtml());
+  ORDER.forEach((o) => {
+    if (o.type === "day") {
+      for (let i = 0; i < o.count; i++) tiles.push(ptileHtml(o, i));
+    } else if (effectiveOn && !STATE.hidden[o.id]) {
+      tiles.push(isPhone ? chapbarHtml(o) : chaptileHtml(o));
+    }
+  });
+  return tiles.join("");
+}
+function editorFrame(sizeClass) {
+  const isPhone = sizeClass === "phone";
+  const dock = isPhone ? "dock-bottom" : "dock-right";
+  return `<div class="app editor ${sizeClass} ${resolvedTheme()}">
+    <div class="bar"><div class="crumbs"><b>Trip to Portugal</b></div><div class="spacer"></div>
+      <button class="iconbtn" data-act="open-general" aria-label="Day chapters">${icon("info")}</button></div>
+    <div class="show">
+      <p class="stripnote">Day 1 opens with the title slide, so it gets no chapter. Day 3 has no
+        pictures, so the next chapter still reads "Day 4" — the gap counts.</p>
+      <div class="strip ${isPhone ? "grid" : "wrap"}" id="strip-${sizeClass || "d"}">${stripHtml(isPhone)}</div>
+    </div>
+    ${STATE.sheet ? sheetHtml(dock) : ""}
+  </div>`;
+}
+function renderEditor() {
+  const root = document.getElementById("editorRoot");
+  root.innerHTML = `${showWidth("phone") ? editorFrame("phone") : ""}${showWidth("desktop") ? editorFrame("") : ""}`;
+}
+
+/* ---------- sheet ---------- */
+function sheetHtml(dock) {
+  const s = STATE.sheet;
+  const dockClass = dock ? ` ${dock}` : "";
+  if (s.mode === "general") {
+    return `<div class="backdrop${dockClass}" data-act="close-sheet"><div class="sheet" role="dialog" aria-label="Day chapters">
+      <div class="shead"><b>Day chapters</b><button class="iconbtn" data-act="close-sheet" aria-label="Close">${icon("close")}</button></div>
+      ${masterSwitchHtml()}
+    </div></div>`;
+  }
+  const ch = CHAPTERS.find((c) => c.id === s.id);
+  const hidden = !!STATE.hidden[ch.id];
+  const title = curTitle(ch), subtitle = curSubtitle(ch);
+  return `<div class="backdrop${dockClass}" data-act="close-sheet"><div class="sheet" role="dialog" aria-label="Day chapter">
+    <div class="shead"><b>Day ${ch.day}${STATE.gps ? " · " + ch.place : ""}</b>
+      <button class="iconbtn" data-act="close-sheet" aria-label="Close">${icon("close")}</button></div>
+    <div class="pv-wrap"><div class="pv">${groundSlide({ title, subtitle })}</div></div>
+    <section class="sec">
+      <div class="row"><label class="eyebrow" for="f-title">Title</label></div>
+      <input class="field" id="f-title" maxlength="80" data-act="edit-title" data-id="${ch.id}" value="${escapeHtml(title)}">
+      <div class="row"><label class="eyebrow" for="f-sub">Subtitle</label></div>
+      <input class="field" id="f-sub" maxlength="80" data-act="edit-subtitle" data-id="${ch.id}" value="${escapeHtml(subtitle)}">
+      ${isEdited(ch) ? `<button class="resetlink" data-act="reset-chapter" data-id="${ch.id}">Reset to automatic</button>` : ""}
+    </section>
+    <section class="sec">
+      <div class="row"><label class="toggle" for="f-hide"><input type="checkbox" id="f-hide" data-act="hide-chapter" data-id="${ch.id}" ${hidden ? "checked" : ""}><span class="box"></span>Hide this chapter</label></div>
+      <p class="small">Leaves this day's pictures in place without a chapter slide before them.</p>
+    </section>
+    <section class="sec">${masterSwitchHtml()}</section>
+  </div></div>`;
+}
+function masterSwitchHtml() {
+  const disabled = STATE.arranged;
+  const checked = STATE.dayChaptersOn && !disabled;
+  const helper = disabled ? "Off while you arrange the order yourself." : "A short slide before each new day of the trip.";
+  return `<div class="row"><label class="toggle${disabled ? " disabled" : ""}" for="f-master"><input type="checkbox" id="f-master" data-act="master" ${checked ? "checked" : ""} ${disabled ? "disabled" : ""}><span class="box"></span>Day chapters</label></div>
+    <p class="small">${helper}</p>`;
+}
+
+/* ---------- shared helpers ---------- */
+function showWidth(size) { return STATE.width === "both" || STATE.width === size; }
+function resolvedTheme() {
+  if (STATE.theme === "system") return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return STATE.theme;
+}
+function setPressed(btn) {
+  btn.parentElement.querySelectorAll("[aria-pressed]").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+}
+function renderAll() {
+  document.documentElement.setAttribute("data-theme", STATE.theme === "system" ? "" : STATE.theme);
+  if (STATE.theme === "system") document.documentElement.removeAttribute("data-theme");
+  renderPlayer();
+  renderEditor();
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", (ev) => {
+  const seg = ev.target.closest("[data-width]");
+  if (seg) { STATE.width = seg.dataset.width; setPressed(seg); renderAll(); return; }
+  const th = ev.target.closest("[data-theme]");
+  if (th && th.closest(".seg")) { STATE.theme = th.dataset.theme; setPressed(th); renderAll(); return; }
+  const chip = ev.target.closest("[data-mode]");
+  if (chip) { STATE.playerMode = chip.dataset.mode; setPressed(chip); renderPlayer(); return; }
+  const play = ev.target.closest("[data-act='play-demo']");
+  if (play) { playDemo(play.dataset.target); return; }
+  const openCh = ev.target.closest("[data-act='open-chapter']");
+  if (openCh) { STATE.sheet = { mode: "chapter", id: openCh.dataset.id }; renderEditor(); return; }
+  const openGen = ev.target.closest("[data-act='open-general']");
+  if (openGen) { STATE.sheet = { mode: "general" }; renderEditor(); return; }
+  if (ev.target.classList.contains("backdrop") || ev.target.closest("[data-act='close-sheet'].iconbtn")) {
+    STATE.sheet = null; renderEditor(); return;
+  }
+  const reset = ev.target.closest("[data-act='reset-chapter']");
+  if (reset) { delete STATE.edits[reset.dataset.id]; renderEditor(); return; }
+});
+document.addEventListener("input", (ev) => {
+  const t = ev.target;
+  if (t.dataset.act === "edit-title" || t.dataset.act === "edit-subtitle") {
+    const id = t.dataset.id;
+    STATE.edits[id] = STATE.edits[id] || {};
+    STATE.edits[id][t.dataset.act === "edit-title" ? "title" : "subtitle"] = t.value;
+    const ch = CHAPTERS.find((c) => c.id === id);
+    document.querySelectorAll(`.pv .title`).forEach((el) => { el.textContent = curTitle(ch); });
+    document.querySelectorAll(`.pv .subtitle`).forEach((el) => { el.textContent = curSubtitle(ch); });
+    const resetHost = t.closest(".sec");
+    if (resetHost && !resetHost.querySelector(".resetlink") && isEdited(ch)) {
+      const btn = document.createElement("button");
+      btn.className = "resetlink"; btn.dataset.act = "reset-chapter"; btn.dataset.id = id;
+      btn.textContent = "Reset to automatic"; resetHost.appendChild(btn);
+    } else if (resetHost && !isEdited(ch)) {
+      const link = resetHost.querySelector(".resetlink"); if (link) link.remove();
+    }
+    const strips = document.querySelectorAll(".strip");
+    strips.forEach((s) => { s.innerHTML = stripHtml(s.classList.contains("grid")); });
+  }
+});
+document.addEventListener("change", (ev) => {
+  const t = ev.target;
+  if (t.dataset.act === "hide-chapter") { STATE.hidden[t.dataset.id] = t.checked; renderEditor(); }
+  if (t.dataset.act === "master") { STATE.dayChaptersOn = t.checked; renderEditor(); }
+  if (t.dataset.act === "arranged") { STATE.arranged = t.checked; STATE.sheet = null; renderAll(); }
+  if (t.dataset.act === "gps") { STATE.gps = t.checked; renderAll(); }
+});
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (STATE.theme === "system") renderAll(); });
+
+function playDemo(targetId) {
+  const root = document.getElementById(targetId);
+  if (!root) return;
+  const seq = [["prev", 650], ["chapter", 2500], ["next", 650], ["chapter", 0]];
+  let t = 0;
+  seq.forEach(([phase, dur]) => { setTimeout(() => { if (root.isConnected) root.dataset.phase = phase; }, t); t += dur; });
+}
+
+renderAll();
+</script>
+</body>
+</html>
