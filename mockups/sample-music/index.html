@@ -19,260 +19,244 @@ body.dark { --gl-ground: #121019; --gl-surface: #1a1723; --gl-ink: #edeaf3; --gl
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font: var(--gl-size-body) var(--gl-font-ui); }
 button { font: inherit; color: inherit; }
-.page { max-width: 1120px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 18px; }
+.page { max-width: 1180px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 18px; }
 h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
-.intro p { margin: 4px 0 0; color: var(--gl-muted); max-width: 72ch; line-height: 1.5; }
+.intro p, .intro li { color: var(--gl-muted); max-width: 80ch; line-height: 1.5; }
+.intro p { margin: 4px 0 0; }
+.intro ul { margin: 8px 0 0; padding-left: 18px; }
+.intro b { color: var(--gl-ink); }
 .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; }
 .seg button { border: 0; background: transparent; font-weight: 500; font-size: 13px; padding: 7px 11px; border-radius: 7px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.stage { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.frame-wrap { display: grid; gap: 8px; margin: 0; }
+.frame-wrap > figcaption { font-size: var(--gl-size-label); color: var(--gl-muted); }
 
-.app { border-radius: 16px; border: 1px solid var(--gl-line); background: var(--gl-ground); overflow: hidden; box-shadow: 0 20px 60px rgba(20,14,40,.14); max-width: 760px; }
-.hdr { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); font-size: 13px; color: var(--gl-muted); }
-.hdr b { color: var(--gl-ink); font-weight: 600; }
-.body { padding: 20px; display: grid; gap: 14px; }
-@media (max-width: 600px) { .body { padding: 14px; } }
-.step { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 0; }
-.hint { margin: 0; color: var(--gl-muted); }
-.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.tab { border: 1px solid var(--gl-line); background: var(--gl-surface); border-radius: var(--gl-radius-large); padding: 12px 14px; text-align: left; cursor: pointer; display: grid; gap: 2px; }
-.tab b { font-weight: 600; }
-.tab small { color: var(--gl-muted); font-size: var(--gl-size-small); }
-.tab[aria-pressed="true"] { border-color: var(--gl-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gl-accent) 35%, transparent); }
+/* phone */
+.phone { width: 390px; max-width: calc(100vw - 32px); height: 800px; border-radius: 28px; border: 1px solid var(--gl-line); background: var(--gl-ground); overflow: hidden; box-shadow: 0 20px 60px rgba(20,14,40,.18); display: flex; flex-direction: column; position: relative; }
+.bar-top { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); font-weight: 600; }
+.scroll { flex: 1; overflow-y: auto; padding: 16px; display: grid; gap: 16px; align-content: start; }
+.stepper { display: flex; align-items: center; gap: 10px; font-size: var(--gl-size-label); color: var(--gl-muted); }
+.stepper .dot { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; }
+.stepper .done { background: var(--gl-mint); color: #10302a; }
+.stepper .now { background: var(--gl-ink); color: var(--gl-surface); }
+.stepper .line { flex: 0 0 34px; height: 1px; background: var(--gl-line); }
+.stepper b { color: var(--gl-ink); font-weight: 600; }
+h2 { font: 700 22px var(--gl-font-display); margin: 0; }
+.hint { margin: 2px 0 0; color: var(--gl-muted); line-height: 1.45; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+h3 { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 0; }
+.sub { color: var(--gl-muted); font-size: var(--gl-size-small); }
+.panel { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); }
 
-/* grid variant */
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-@media (max-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
-.card { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--gl-shadow); }
-.card.added { border-color: var(--gl-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gl-accent) 35%, transparent); }
-.cover { position: relative; aspect-ratio: 1; width: 100%; flex: none; display: block; border: 0; padding: 0; cursor: pointer; background: var(--gl-hover); }
-.cover img { width: 100%; height: 100%; display: block; object-fit: cover; }
-.play { position: absolute; right: 10px; bottom: 10px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgb(255 255 255 / .92); color: #221d33; box-shadow: 0 4px 14px rgb(0 0 0 / .25); transition: transform .15s; }
-.cover:hover .play { transform: scale(1.06); }
-.play svg { width: 18px; height: 18px; }
-.bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgb(0 0 0 / .25); }
-.bar i { display: block; height: 100%; width: 0; background: var(--gl-accent); }
-.meta { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-.meta .row { margin-top: auto; }
-.title { font-weight: 600; line-height: 1.25; }
-.mood { color: var(--gl-muted); font-size: var(--gl-size-small); }
-.row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* soundtrack: the one playlist */
+.soundtrack { padding: 12px; display: grid; gap: 8px; }
+.soundtrack.empty { border-style: dashed; color: var(--gl-muted); text-align: center; padding: 16px 14px; font-size: var(--gl-size-label); line-height: 1.45; }
+.song { display: grid; grid-template-columns: 40px 1fr 28px; gap: 10px; align-items: center; }
+.song .thumb { width: 40px; height: 40px; border-radius: var(--gl-radius-small); overflow: hidden; background: var(--gl-hover); display: grid; place-items: center; color: var(--gl-muted); }
+.song .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.song .name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song .info { font-size: var(--gl-size-small); color: var(--gl-muted); display: flex; gap: 6px; align-items: center; }
+.song .x { border: 0; background: transparent; color: var(--gl-faint); cursor: pointer; font-size: 18px; width: 28px; height: 28px; border-radius: 50%; }
 .dur { font: var(--gl-size-small) var(--gl-font-mono); color: var(--gl-faint); }
-.add { border: 1px solid var(--gl-line); background: var(--gl-surface); border-radius: 99px; padding: 6px 12px; font-weight: 500; font-size: 13px; cursor: pointer; min-height: 32px; }
-.add[aria-pressed="true"] { background: var(--gl-accent); border-color: var(--gl-accent); color: var(--gl-accent-ink); }
+.tag { font: 500 11px var(--gl-font-mono); padding: 2px 7px; border-radius: 99px; background: color-mix(in srgb, var(--gl-accent) 28%, var(--gl-surface)); color: var(--gl-ink); }
+.progress { height: 3px; border-radius: 2px; background: var(--gl-hover); overflow: hidden; margin-top: 4px; }
+.progress i { display: block; height: 100%; background: var(--gl-accent); }
+.total { display: flex; justify-content: space-between; border-top: 1px solid var(--gl-line); padding-top: 8px; font-size: var(--gl-size-small); color: var(--gl-muted); }
 
-/* list variant */
-.list { display: grid; gap: 6px; }
-.item { display: grid; grid-template-columns: 56px 1fr auto auto; gap: 12px; align-items: center; padding: 8px 10px 8px 8px; background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); }
-.item.added { border-color: var(--gl-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gl-accent) 35%, transparent); }
-.item .cover { width: 56px; height: 56px; border-radius: var(--gl-radius); overflow: hidden; }
-.item .play { right: 50%; bottom: 50%; transform: translate(50%, 50%); width: 30px; height: 30px; }
-.item .cover:hover .play { transform: translate(50%, 50%) scale(1.06); }
-.item .play svg { width: 13px; height: 13px; }
-.item .bar { height: 3px; }
-@media (max-width: 600px) { .item { grid-template-columns: 56px 1fr auto; } .item .dur { display: none; } }
-
-.eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 12px; margin-right: 6px; vertical-align: -1px; }
-.eq i { width: 3px; background: var(--gl-accent); border-radius: 1px; animation: eq .8s infinite ease-in-out; }
+/* featured sample music */
+.featured { padding: 14px; display: grid; gap: 12px; background: linear-gradient(160deg, color-mix(in srgb, var(--gl-accent) 16%, var(--gl-surface)), var(--gl-surface) 55%); }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.chip { border: 1px solid var(--gl-line); background: var(--gl-surface); border-radius: 99px; padding: 5px 12px; font-size: var(--gl-size-label); cursor: pointer; white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); border-color: var(--gl-ink); }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.card { position: relative; border-radius: var(--gl-radius-large); overflow: hidden; background: var(--gl-hover); }
+.card .cover { display: block; width: 100%; aspect-ratio: 1; border: 0; padding: 0; cursor: pointer; background: none; }
+.card .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card .shade { position: absolute; inset: auto 0 0 0; padding: 26px 10px 9px; background: linear-gradient(transparent, rgb(10 8 16 / .78)); color: #fff; pointer-events: none; }
+.card .t { font-weight: 600; font-size: var(--gl-size-label); line-height: 1.2; }
+.card .m { font-size: 11px; opacity: .8; margin-top: 2px; }
+.card .play { position: absolute; left: 10px; top: 10px; width: 34px; height: 34px; border-radius: 50%; background: rgb(255 255 255 / .92); color: #221d33; display: grid; place-items: center; pointer-events: none; }
+.card .play svg { width: 13px; height: 13px; }
+.card .plus { position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer; background: rgb(20 16 30 / .55); color: #fff; display: grid; place-items: center; backdrop-filter: blur(6px); }
+.card .plus svg { width: 18px; height: 18px; }
+.card .plus[aria-pressed="true"] { background: var(--gl-accent); color: var(--gl-accent-ink); }
+.card.added { outline: 2px solid var(--gl-accent); outline-offset: -2px; }
+.card .pbar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgb(255 255 255 / .25); }
+.card .pbar i { display: block; height: 100%; background: var(--gl-accent); }
+.card.off { opacity: .45; }
+.card .ring { position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; border-radius: 50%; background: conic-gradient(var(--gl-accent) var(--p), rgb(20 16 30 / .55) 0); display: grid; place-items: center; }
+.card .ring::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: rgb(20 16 30 / .8); }
+.card .ring b { position: relative; z-index: 1; color: #fff; font: 500 10px var(--gl-font-mono); }
+.eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 10px; margin-right: 5px; }
+.eq i { width: 2px; background: var(--gl-accent); border-radius: 1px; animation: eq .8s infinite ease-in-out; }
 .eq i:nth-child(2) { animation-delay: .2s; } .eq i:nth-child(3) { animation-delay: .4s; }
-@keyframes eq { 0%,100% { height: 3px; } 50% { height: 12px; } }
-
-.offline { opacity: .55; }
-.saved { font-size: var(--gl-size-small); color: var(--gl-muted); }
-.foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; border-top: 1px solid var(--gl-line); padding: 14px 20px; background: var(--gl-surface); }
+@keyframes eq { 0%,100% { height: 3px; } 50% { height: 10px; } }
 .credit { font-size: var(--gl-size-small); color: var(--gl-muted); }
-.credit a { color: inherit; }
-.primary { border: 0; background: var(--gl-accent); color: var(--gl-accent-ink); border-radius: 99px; padding: 10px 18px; font-weight: 600; cursor: pointer; min-height: 40px; }
-.primary:disabled { opacity: .45; cursor: default; }
-.banner { font-size: 13px; padding: 8px 12px; border-radius: var(--gl-radius); background: var(--gl-hover); color: var(--gl-muted); }
+.notice { display: flex; gap: 8px; padding: 10px 12px; border-radius: var(--gl-radius); background: color-mix(in srgb, var(--gl-lemon) 20%, var(--gl-surface)); font-size: var(--gl-size-label); line-height: 1.4; }
 
-.playlist { display: grid; gap: 6px; }
-.song { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px 8px 8px; border-radius: var(--gl-radius); background: var(--gl-surface); border: 1px solid var(--gl-line); }
-.song img { width: 40px; height: 40px; border-radius: var(--gl-radius-small); }
-.song small { display: block; color: var(--gl-muted); font: var(--gl-size-small) var(--gl-font-mono); }
-.badge { font: 500 var(--gl-size-small) var(--gl-font-mono); padding: 3px 8px; border-radius: 99px; background: color-mix(in srgb, var(--gl-mint) 30%, var(--gl-surface)); white-space: nowrap; }
-.prog { height: 4px; border-radius: 2px; background: var(--gl-hover); overflow: hidden; margin-top: 4px; }
-.prog i { display: block; height: 100%; background: var(--gl-mint); transition: width .2s linear; }
+/* own music */
+.own { padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+.own .ic { width: 40px; height: 40px; border-radius: var(--gl-radius); background: var(--gl-hover); display: grid; place-items: center; color: var(--gl-muted); flex: none; }
+.own .txt { flex: 1; min-width: 0; }
+.own .txt b { display: block; font-weight: 600; }
+.btn { border: 1px solid var(--gl-line); background: var(--gl-surface); border-radius: 99px; padding: 8px 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn.primary { background: var(--gl-accent); border-color: var(--gl-accent); color: var(--gl-accent-ink); font-weight: 600; }
+.timing { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: var(--gl-size-label); }
+.timing b { display: block; font-size: var(--gl-size-body); }
+.stepbtn { display: flex; align-items: center; gap: 10px; font-family: var(--gl-font-mono); }
+.stepbtn span { width: 34px; height: 34px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); display: grid; place-items: center; }
+.foot { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--gl-line); background: var(--gl-surface); }
+.foot .btn { padding: 12px 16px; border-radius: var(--gl-radius); }
+.foot .btn.primary { flex: 1; }
 
-.concept { max-width: 760px; }
-.concept h2 { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 8px 0; }
-.concept li { line-height: 1.55; margin-bottom: 6px; color: var(--gl-muted); }
-.concept b { color: var(--gl-ink); }
+/* variant B: two doors + sheet */
+.entries { display: grid; gap: 10px; }
+.entry { padding: 14px; display: grid; gap: 10px; }
+.mosaic { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border-radius: var(--gl-radius); overflow: hidden; }
+.mosaic img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.entry .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sheet { position: absolute; inset: 60px 0 0 0; background: var(--gl-surface); border-radius: 20px 20px 0 0; box-shadow: 0 -10px 40px rgb(0 0 0 / .35); display: flex; flex-direction: column; }
+.sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--gl-line); margin: 8px auto 0; }
+.sheet .head { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px 4px; }
+.sheet .scroll { padding-top: 8px; }
+.scrim { position: absolute; inset: 0; background: rgb(0 0 0 / .45); }
 </style>
 </head>
-<body>
+<body class="dark">
 <div class="page">
   <div class="intro">
-    <h1>Sample music</h1>
-    <p>In the music step of a new slideshow (and behind “Add a song” in the music editor), a second tab offers nine tracks that come with Glissando. Tap a cover to listen, tap “Add” to put the track into the playlist. Try both layouts, the dark theme and the offline state.</p>
-  </div>
-  <div class="controls">
-    <div class="seg" data-k="layout"><button data-v="grid">A · Covers</button><button data-v="list">B · List</button></div>
-    <div class="seg" data-k="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
-    <div class="seg" data-k="net"><button data-v="online">Online</button><button data-v="offline">Offline</button></div>
-  </div>
-  <div class="app" id="app"></div>
-  <div class="concept">
-    <h2>How it works</h2>
+    <h1>Sample music, second round</h1>
+    <p>The tabs hid the sample music behind a second tab, and adding a track there changed what the other tab showed. This round drops the tabs: <b>one soundtrack</b> holds every chosen song, wherever it came from, and the sample music is the step's centrepiece.</p>
     <ul>
-      <li><b>Listen first.</b> Tapping a cover streams the track from the Glissando site; only one plays at a time, tapping again pauses. Nothing is stored for a preview.</li>
-      <li><b>Add means download.</b> “Add” downloads the track once and stores it in the slideshow like your own music, so the trim, fades, volume and beat changes work as usual, and every export (.glissando file, web page, video) carries it.</li>
-      <li><b>Offline.</b> Without a connection, previews and new downloads are not possible; tracks already in a slideshow on this device stay available and are marked “On this device”.</li>
-      <li><b>Credit.</b> The tracks are CC BY-NC 4.0: the picker names the licence, and an exported web page and video carry the credit line.</li>
-      <li><b>Size.</b> Nothing is bundled in the app; the nine tracks are fetched only when picked.</li>
+      <li><b>A — one page (recommended).</b> Soundtrack on top, then “Music for your slideshow” as a cover grid with mood chips, then a slim “Your own music” row. Adding is the + on a cover; the song appears in the soundtrack right above, so a tap's effect shows where it happens.</li>
+      <li><b>B — two doors.</b> The step stays short: a large “Music for your slideshow” card with a cover mosaic and a slim “Your own music” row; the first opens the grid as a sheet. The soundtrack sits below both.</li>
+      <li>The music editor's “Add a song” opens the same picker as variant B's sheet, in both variants.</li>
     </ul>
   </div>
+  <div class="controls">
+    <div class="seg" id="variant"><button aria-pressed="true" data-v="a">A · one page</button><button aria-pressed="false" data-v="b">B · two doors</button></div>
+    <div class="seg" id="state"><button aria-pressed="true" data-s="empty">Nothing chosen</button><button aria-pressed="false" data-s="chosen">Songs chosen</button><button aria-pressed="false" data-s="offline">Offline</button></div>
+    <div class="seg" id="theme"><button aria-pressed="true" data-t="dark">Dark</button><button aria-pressed="false" data-t="light">Light</button></div>
+  </div>
+  <div class="stage" id="stage"></div>
 </div>
 <script>
+const COVERS = "../../music/covers/";
 const TRACKS = [
-  { id: "hold-the-frame", title: "Hold the Frame", mood: "Very calm · minimal · portraits", dur: 175 },
-  { id: "through-the-rain-slicked-glass", title: "Through the Rain-Slicked Glass", mood: "Warm · harmonious · melancholic", dur: 168 },
-  { id: "before-the-world-awakens", title: "Before the World Awakens", mood: "Warm · harmonious · everyday", dur: 175 },
-  { id: "seven-floors-above", title: "Seven Floors Above", mood: "Urban · modern · floating", dur: 171 },
-  { id: "morning-latitude", title: "Morning Latitude", mood: "Cheerful · bright · upbeat", dur: 177 },
-  { id: "top-down-cruising", title: "Top Down Cruising", mood: "Sunny · upbeat · road trip", dur: 167 },
-  { id: "arrival-at-dawn", title: "Arrival at Dawn", mood: "Festive · cinematic · open", dur: 170 },
-  { id: "where-the-mountains-meet", title: "Where the Mountains Meet", mood: "Festive · cinematic · wide", dur: 181 },
-  { id: "the-view-from-the-summit", title: "The View from the Summit", mood: "Epic · anthemic", dur: 178 },
+  ["hold-the-frame", "Hold the Frame", "Very calm · minimal", "2:55", "calm"],
+  ["through-the-rain-slicked-glass", "Through the Rain-Slicked Glass", "Warm · melancholic", "2:47", "calm"],
+  ["before-the-world-awakens", "Before the World Awakens", "Warm · everyday", "2:55", "calm"],
+  ["seven-floors-above", "Seven Floors Above", "Urban · floating", "2:51", "upbeat"],
+  ["morning-latitude", "Morning Latitude", "Cheerful · bright", "2:56", "upbeat"],
+  ["top-down-cruising", "Top Down Cruising", "Sunny · road trip", "2:46", "upbeat"],
+  ["arrival-at-dawn", "Arrival at Dawn", "Festive · cinematic", "2:49", "epic"],
+  ["where-the-mountains-meet", "Where the Mountains Meet", "Festive · wide", "3:00", "epic"],
+  ["the-view-from-the-summit", "The View from the Summit", "Epic · anthemic", "2:58", "epic"],
 ];
-const SOUND = id => `../../music/${id}.mp3`;
-const DOWNLOAD_STEP_MS = 120;
-const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
-const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
+const ICON = {
+  play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>',
+  pause: '<svg viewBox="0 0 16 16"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/></svg>',
+  plus: '<svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  check: '<svg viewBox="0 0 20 20"><path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  note: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M9 18V6l11-2v12" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="6.5" cy="18" r="2.5" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="17.5" cy="16" r="2.5" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>',
+};
+let variant = "a", state = "empty", mood = "all";
+const cover = (id) => `<img src="${COVERS}${id}.svg" alt="">`;
 
-const state = { layout: "grid", theme: "light", net: "online", tab: "samples", playing: null, added: [], downloads: {}, saved: new Set(["morning-latitude"]) };
-const audio = new Audio();
-
-const time = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
-const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const coverSrc = t => `../../music/covers/${t.id}.svg`;
-const offline = () => state.net === "offline";
-const available = t => !offline() || state.saved.has(t.id);
-
-function playButton(t) {
-  const on = state.playing === t.id && !audio.paused;
-  const label = on ? `Pause ${t.title}` : `Listen to ${t.title}`;
-  return `<button class="cover" data-play="${t.id}" aria-label="${esc(label)}" ${available(t) ? "" : "disabled"}>
-    <img src="${coverSrc(t)}" alt="">
-    ${available(t) ? `<span class="play">${on ? ICON_PAUSE : ICON_PLAY}</span>` : ""}
-    ${state.playing === t.id ? '<span class="bar"><i id="bar"></i></span>' : ""}
-  </button>`;
-}
-function addButton(t) {
-  const on = state.added.includes(t.id);
-  return `<button class="add" data-add="${t.id}" aria-pressed="${on}" ${available(t) ? "" : "disabled"}>${on ? "✓ Added" : "Add"}</button>`;
-}
-function titleLine(t) {
-  const eq = state.playing === t.id && !audio.paused ? '<span class="eq"><i></i><i></i><i></i></span>' : "";
-  return `<div class="title">${eq}${esc(t.title)}</div>`;
-}
-function status(t) {
-  if (state.saved.has(t.id)) return '<span class="saved">On this device</span>';
-  if (offline()) return '<span class="saved">Needs a connection</span>';
-  return "";
-}
-function gridView() {
-  return `<div class="grid">${TRACKS.map(t => `
-    <div class="card ${state.added.includes(t.id) ? "added" : ""} ${available(t) ? "" : "offline"}">
-      ${playButton(t)}
-      <div class="meta">
-        ${titleLine(t)}
-        <div class="mood">${esc(t.mood)}</div>
-        <div class="row"><span class="dur">${time(t.dur)}</span>${addButton(t)}</div>
-        ${status(t)}
-      </div>
-    </div>`).join("")}</div>`;
-}
-function listView() {
-  return `<div class="list">${TRACKS.map(t => `
-    <div class="item ${state.added.includes(t.id) ? "added" : ""} ${available(t) ? "" : "offline"}">
-      ${playButton(t)}
-      <div>${titleLine(t)}<div class="mood">${esc(t.mood)}</div>${status(t)}</div>
-      <span class="dur">${time(t.dur)}</span>
-      ${addButton(t)}
-    </div>`).join("")}</div>`;
-}
-function playlistView() {
-  const rows = state.added.map(id => {
-    const t = TRACKS.find(x => x.id === id);
-    const pct = state.downloads[id];
-    const busy = pct !== undefined && pct < 100;
-    return `<div class="song"><img src="${coverSrc(t)}" alt="">
-      <div><b>${esc(t.title)}</b><small>${busy ? `downloading · ${pct} %` : time(t.dur)}</small>
-      ${busy ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ""}</div>
-      <span class="badge">Sample</span></div>`;
-  }).join("");
-  return rows ? `<p class="hint">Playlist</p><div class="playlist">${rows}</div>` : "";
-}
-function render() {
-  document.body.classList.toggle("dark", state.theme === "dark");
-  document.querySelectorAll(".seg").forEach(seg => seg.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(state[seg.dataset.k] === b.dataset.v))));
-  const own = state.tab === "own";
-  const picker = own
-    ? `<div class="banner">The device's file picker opens here: one or more songs in any format the browser plays.</div>`
-    : `${offline() ? '<div class="banner">You are offline. Tracks already on this device can be added; listening to the others needs a connection.</div>' : ""}
-       ${state.layout === "grid" ? gridView() : listView()}`;
-  const n = state.added.length;
-  document.getElementById("app").innerHTML = `
-    <div class="hdr">New slideshow · <b>2 Music</b></div>
-    <div class="body">
-      <h2 class="step">Music for the slideshow</h2>
-      <div class="tabs">
-        <button class="tab" data-tab="own" aria-pressed="${own}"><b>My music</b><small>From this device</small></button>
-        <button class="tab" data-tab="samples" aria-pressed="${!own}"><b>Sample music</b><small>9 tracks that come with Glissando</small></button>
-      </div>
-      ${picker}
-      ${playlistView()}
-    </div>
-    <div class="foot">
-      <span class="credit">Music: Glissando · <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a> · free for non-commercial use</span>
-      <button class="primary" ${n ? "" : "disabled"}>${n ? `Next · ${n} song${n > 1 ? "s" : ""}` : "Next"}</button>
+function cards() {
+  const offline = state === "offline";
+  return TRACKS.map((t, i) => [t, i]).filter(([t]) => mood === "all" || t[4] === mood).map(([[id, title, m, len], i]) => {
+    const added = state === "chosen" && i === 1;
+    const loading = state === "chosen" && i === 4;
+    const playing = state === "chosen" && i === 6;
+    const onDevice = offline && i === 1;
+    const off = offline && !onDevice;
+    const action = loading
+      ? `<div class="ring" style="--p:42%" aria-label="Downloading 42 %"><b>42</b></div>`
+      : off ? "" : `<button class="plus" aria-pressed="${added}" aria-label="${added ? "Remove " : "Add "}${title}">${added ? ICON.check : ICON.plus}</button>`;
+    return `<div class="card${added ? " added" : ""}${off ? " off" : ""}">
+      <button class="cover" aria-label="Listen to ${title}"${off ? " disabled" : ""}>${cover(id)}</button>
+      ${off ? "" : `<span class="play">${playing ? ICON.pause : ICON.play}</span>`}
+      ${action}
+      <div class="shade"><div class="t">${playing ? '<span class="eq"><i></i><i></i><i></i></span>' : ""}${title}</div><div class="m">${off ? "Needs a connection" : onDevice ? "On this device · " + len : m + " · " + len}</div></div>
+      ${playing ? '<div class="pbar"><i style="width:38%"></i></div>' : ""}
     </div>`;
+  }).join("");
 }
 
-function play(id) {
-  if (state.playing === id && !audio.paused) { audio.pause(); render(); return; }
-  if (state.playing !== id) {
-    state.playing = id;
-    audio.src = SOUND(id);
+function chips() {
+  return `<div class="chips">${[["all", "All 9"], ["calm", "Calm"], ["upbeat", "Upbeat"], ["epic", "Festive & epic"]]
+    .map(([k, l]) => `<button class="chip" data-mood="${k}" aria-pressed="${mood === k}">${l}</button>`).join("")}</div>`;
+}
+
+function picker(withHead) {
+  return `${withHead ? `<div class="section-head"><h3>Music for your slideshow</h3><span class="sub">9 tracks</span></div>
+    <p class="hint" style="margin-top:-6px">Free to use, made for Glissando. Tap a cover to listen, + to add.</p>` : ""}
+    ${state === "offline" ? '<div class="notice">You are offline. Tracks already on this device can be added; listening to the others needs a connection.</div>' : ""}
+    ${chips()}
+    <div class="grid">${cards()}</div>
+    <div class="credit">Music: Glissando, CC BY-NC 4.0 · free for non-commercial use</div>`;
+}
+
+function soundtrack() {
+  if (state !== "chosen") {
+    return `<div class="panel soundtrack empty">No music yet — add a track below or your own songs.<br>Without music each picture stays 5 s.</div>`;
   }
-  audio.play().catch(() => {});
-  render();
-}
-audio.addEventListener("timeupdate", () => {
-  const bar = document.getElementById("bar");
-  if (!bar || !audio.duration) return;
-  bar.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
-});
-audio.addEventListener("ended", () => { state.playing = null; render(); });
-
-function toggleAdd(id) {
-  if (state.added.includes(id)) { state.added = state.added.filter(x => x !== id); delete state.downloads[id]; render(); return; }
-  state.added.push(id);
-  if (state.saved.has(id)) { render(); return; }
-  state.downloads[id] = 0;
-  const step = () => {
-    if (!state.added.includes(id)) return;
-    state.downloads[id] = Math.min(100, state.downloads[id] + 7);
-    if (state.downloads[id] >= 100) state.saved.add(id); else setTimeout(step, DOWNLOAD_STEP_MS);
-    render();
-  };
-  setTimeout(step, DOWNLOAD_STEP_MS);
-  render();
+  const t1 = TRACKS[1], t4 = TRACKS[4];
+  return `<div class="panel soundtrack">
+    <div class="song"><div class="thumb">${cover(t1[0])}</div><div><div class="name">${t1[1]}</div><div class="info"><span class="tag">Sample</span><span class="dur">${t1[3]}</span></div></div><button class="x" aria-label="Remove">×</button></div>
+    <div class="song"><div class="thumb">${ICON.note}</div><div><div class="name">Summer evening.mp3</div><div class="info"><span class="dur">3:12</span></div></div><button class="x" aria-label="Remove">×</button></div>
+    <div class="song"><div class="thumb">${cover(t4[0])}</div><div><div class="name">${t4[1]}</div><div class="info">Downloading · 42 %</div><div class="progress"><i style="width:42%"></i></div></div><button class="x" aria-label="Cancel">×</button></div>
+    <div class="total"><span>3 songs</span><span class="dur">8:55</span></div>
+  </div>`;
 }
 
-document.addEventListener("click", e => {
-  const el = e.target.closest("button");
-  if (!el || el.disabled) return;
-  const seg = el.closest(".seg");
-  if (seg) {
-    state[seg.dataset.k] = el.dataset.v;
-    if (seg.dataset.k === "net" && offline() && state.playing && !state.saved.has(state.playing)) { audio.pause(); state.playing = null; }
-    render();
-  } else if (el.dataset.play) play(el.dataset.play);
-  else if (el.dataset.add) toggleAdd(el.dataset.add);
-  else if (el.dataset.tab) { state.tab = el.dataset.tab; render(); }
-});
+const own = `<div class="panel own"><div class="ic">${ICON.note}</div><div class="txt"><b>Your own music</b><span class="sub">MP3, M4A, FLAC, WAV, Ogg …</span></div><button class="btn">Choose files</button></div>`;
+const timing = `<div class="panel timing"><div><b>Time per picture</b><span class="sub">Default 5 s, in half seconds</span></div><div class="stepbtn"><span>−</span>5 s<span>+</span></div></div>`;
+const head = `<div class="bar-top">‹ <span>Music</span></div>`;
+const intro = `<div class="stepper"><span class="dot done">✓</span>Pictures<span class="line"></span><span class="dot now">2</span><b>Music</b></div>
+  <div><h2>Which music?</h2><p class="hint">Songs play one after another; the pictures change on their beat.</p></div>`;
+const foot = () => `<div class="foot"><button class="btn">‹ Pictures</button><button class="btn primary">${state === "chosen" ? "Create slideshow" : "Create without music"}</button></div>`;
+const soundtrackBlock = () => `<div><div class="section-head" style="margin-bottom:8px"><h3>Soundtrack</h3></div>${soundtrack()}</div>`;
+
+function variantA() {
+  return `<figure class="frame-wrap"><figcaption>A · the music step</figcaption><div class="phone">${head}<div class="scroll">${intro}
+    ${soundtrackBlock()}
+    <div class="panel featured">${picker(true)}</div>
+    ${own}${timing}</div>${foot()}</div></figure>`;
+}
+
+function variantB() {
+  const mosaic = TRACKS.slice(0, 8).map((t) => cover(t[0])).join("");
+  const step = `<figure class="frame-wrap"><figcaption>B · the music step</figcaption><div class="phone">${head}<div class="scroll">${intro}
+    <div class="entries">
+      <div class="panel featured entry"><div class="mosaic">${mosaic}</div>
+        <div class="row"><div><h3>Music for your slideshow</h3><span class="sub">9 tracks, free to use · listen first</span></div><button class="btn primary">Browse</button></div></div>
+      ${own}
+    </div>
+    ${soundtrackBlock()}
+    ${timing}</div>${foot()}</div></figure>`;
+  const sheet = `<figure class="frame-wrap"><figcaption>B · “Browse” (also the music editor's “Add a song”)</figcaption><div class="phone">${head}<div class="scroll" style="opacity:.4">${intro}</div><div class="scrim"></div>
+    <div class="sheet"><div class="grab"></div><div class="head"><h3>Music for your slideshow</h3><button class="btn primary">${state === "chosen" ? "Done · 2 added" : "Done"}</button></div>
+    <div class="scroll">${picker(false)}</div></div></div></figure>`;
+  return step + sheet;
+}
+
+function render() {
+  document.getElementById("stage").innerHTML = variant === "a" ? variantA() : variantB();
+  document.querySelectorAll(".chip").forEach((c) => c.onclick = () => { mood = c.dataset.mood; render(); });
+}
+function seg(id, key, apply) {
+  document.querySelectorAll(`#${id} button`).forEach((b) => b.onclick = () => {
+    document.querySelectorAll(`#${id} button`).forEach((o) => o.setAttribute("aria-pressed", String(o === b)));
+    apply(b.dataset[key]); render();
+  });
+}
+seg("variant", "v", (v) => variant = v);
+seg("state", "s", (s) => state = s);
+seg("theme", "t", (t) => document.body.classList.toggle("dark", t === "dark"));
 render();
 </script>
 </body>
