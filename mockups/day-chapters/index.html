@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Glissando — Day chapters</title>
+<title>Glissando — Trip chapters</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=Geist+Mono:wght@500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -56,12 +56,8 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 .sectionwrap h2 { font-family: var(--display); font-weight: 700; font-size: 20px; margin: 0; letter-spacing: -0.01em; }
 .sectionwrap > p { margin: -4px 0 0; color: var(--page-muted); max-width: 76ch; line-height: 1.5; }
 .row-wrap { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; justify-content: center; }
-.variant-stack { display: grid; gap: 30px; }
-.labelled { display: grid; gap: 8px; justify-items: stretch; }
-.labelled .cap { justify-self: center; }
-.labelled .cap { font-size: 12.5px; color: var(--page-muted); text-align: center; max-width: 320px; line-height: 1.4; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-.chips button { border: 1px solid var(--page-line); background: var(--page-line, transparent); background: transparent; color: var(--page-ink); font: 500 12.5px var(--ui); padding: 6px 11px; border-radius: 999px; cursor: pointer; }
+.chips button { border: 1px solid var(--page-line); background: transparent; color: var(--page-ink); font: 500 12.5px var(--ui); padding: 6px 11px; border-radius: 999px; cursor: pointer; }
 .chips button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); border-color: var(--chip-on); }
 
 /* ---------- app frame ---------- */
@@ -78,7 +74,6 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 .bar { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 52px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; }
 .crumbs { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-weight: 500; }
 .crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.crumbs .sep { color: var(--faint); }
 .spacer { flex: 1; }
 .iconbtn { width: 34px; height: 34px; border-radius: 9px; border: 0; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
 .iconbtn:hover { background: var(--hover); }
@@ -86,7 +81,7 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); }
 
-/* mini slide render, shared by player frames, strip-free use, and sheet preview */
+/* mini slide render, shared by player frames and the sheet preview */
 .slide { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; }
 .slide .bg { position: absolute; inset: 0; }
 .slide .bg svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -98,7 +93,6 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 .slide.pos-lower .text { justify-content: flex-end; align-items: flex-start; text-align: left; padding-bottom: 13%; }
 .slide .title { margin: 0; font-family: var(--display); font-weight: 700; font-size: clamp(16px,4cqi,23px); letter-spacing: -.01em; text-wrap: balance; max-width: 100%; }
 .slide .subtitle { margin: .3em 0 0; font-family: var(--mono); font-size: clamp(10.5px,2.2cqi,12.5px); opacity: .82; max-width: 100%; }
-.slide.ground .text { color: #fff; }
 .slide.veil .text { color: #fff; }
 .slide .title, .slide .subtitle { transition: opacity .9s ease, transform .9s ease; }
 .chapdemo { position: relative; width: 100%; height: 100%; }
@@ -110,13 +104,17 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 
 /* editor strip */
 .show { padding: 18px; display: grid; gap: 12px; align-content: start; }
+.app.phone .show { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.app.phone .show .strip { flex: 1 1 auto; overflow-y: auto; }
+.app.phone .actionbar { margin-top: auto; }
 .strip { display: flex; gap: 8px; padding: 4px 2px 14px; align-items: stretch; }
 .strip.wrap { flex-wrap: wrap; }
 .strip.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: stretch; }
 .strip.grid .ptile { width: 100%; }
 .ptile, .chaptile { flex: none; border: 0; padding: 0; cursor: pointer; border-radius: 8px; container-type: inline-size; }
-.ptile { width: 118px; aspect-ratio: 16/9; position: relative; overflow: hidden; background: var(--hover); }
+.ptile { width: 118px; aspect-ratio: 16/9; position: relative; overflow: hidden; background: var(--hover); outline: 2px solid transparent; outline-offset: -2px; }
 .ptile svg { width: 100%; height: 100%; display: block; }
+.ptile.selected { outline-color: var(--accent); }
 .chaptile { width: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-align: center; border: 1.5px dashed var(--faint); background: var(--raised); color: var(--muted); position: relative; padding: 10px 4px 4px; }
 .chaptile:hover { border-color: var(--accent); background: var(--hover); }
 .chaptile .d { font: 600 11px var(--mono); color: var(--ink); line-height: 1.25; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; word-break: break-word; }
@@ -130,6 +128,14 @@ body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 
 .chapbar:hover { border-color: var(--accent); background: var(--hover); }
 .chapbar .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
 .stripnote { font-size: 12px; color: var(--muted); margin: 0; display: flex; align-items: center; gap: 6px; }
+
+/* selection action bar */
+.actionbar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.actionbar button { height: 34px; border-radius: 9px; border: 1px solid var(--line); background: var(--raised); color: var(--ink); font: 600 12.5px var(--ui); padding: 0 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.actionbar button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.actionbar button:disabled { opacity: .45; cursor: not-allowed; }
+.actionbar svg.i { width: 15px; height: 15px; }
+.app:not(.phone) .actionbar { margin: 0 2px; border-radius: 8px; border-bottom: 1px solid var(--line); }
 
 /* sheet */
 .backdrop { position: absolute; inset: 0; background: var(--backdrop); z-index: 10; display: grid; place-items: center; padding: 20px; }
@@ -159,11 +165,13 @@ footer.about .k { font-weight: 600; text-transform: uppercase; letter-spacing: .
 <body>
 <div class="page">
   <header class="intro">
-    <h1>Day chapters</h1>
-    <p>A short slide before each new day of a trip, named after the day's most common place. On by
-      default for any slideshow spanning two or more calendar days; off while the picture order is
-      arranged by hand. Use the bar below to try phone and desktop sizes, both themes, and the two
-      states that turn chapters off.</p>
+    <h1>Trip chapters</h1>
+    <p>A short slide wherever the trip moves on to a new place. Consecutive days spent near the
+      same place form one stay, and a stay gets one chapter, at its start, named after the place —
+      two weeks in one spot is still a single chapter, while a day trip in between gets its own.
+      Without location data there is nothing to name a chapter after, so it has to be added by
+      hand. Use the bar below to try phone and desktop sizes, both themes, and the states that
+      change what you see.</p>
   </header>
 
   <div class="controlbar">
@@ -186,13 +194,15 @@ footer.about .k { font-weight: 600; text-transform: uppercase; letter-spacing: .
   </div>
 
   <section class="sectionwrap">
-    <h2>Player — two looks</h2>
-    <p>Same card style as the title slide, just quieter. Pick the chips to see a chapter with a
-      place, without GPS, and in German. Play runs the real sequence: previous picture → chapter →
-      next picture.</p>
+    <h2>Player — chapter slide</h2>
+    <p>The day's first picture, darkened, with the title in the lower third — the same card as the
+      opening slide, just quieter. Pick a chip to preview a multi-day stay, a single-day trip, a
+      manual chapter with no GPS to name it, or German UI text. Play runs the real sequence:
+      previous picture → chapter → next picture.</p>
     <div class="chips" data-act="playertext">
-      <button data-mode="place" aria-pressed="true">With place</button>
-      <button data-mode="noGPS" aria-pressed="false">No GPS</button>
+      <button data-mode="multi" aria-pressed="true">Stay of several days</button>
+      <button data-mode="single" aria-pressed="false">Day trip</button>
+      <button data-mode="noGPS" aria-pressed="false">No GPS (manual)</button>
       <button data-mode="german" aria-pressed="false">German UI</button>
     </div>
     <div class="row-wrap" id="playerRoot"></div>
@@ -200,9 +210,11 @@ footer.about .k { font-weight: 600; text-transform: uppercase; letter-spacing: .
 
   <section class="sectionwrap">
     <h2>Editor — picture strip</h2>
-    <p>A slimmer tile sits between the days. Tap one to open its sheet: the automatic text is
-      editable, a link resets it, and each chapter can be hidden on its own. Turn chapters off for
-      the whole slideshow from the same sheet.</p>
+    <p>A slimmer tile sits before a stay's first picture. Tap an existing chapter to open its
+      sheet: the automatic text is editable, a link resets it, and an automatic chapter can be
+      hidden on its own. Tap a picture instead to select it, then insert a chapter by hand at that
+      point. Turn automatic chapters off for the whole slideshow from the same sheet — chapters
+      added by hand stay either way.</p>
     <div class="row-wrap" id="editorRoot"></div>
   </section>
 
@@ -223,7 +235,7 @@ function svgLandscape(kind, seed) {
   if (kind === "sea") {
     return `<svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice">${grad}
       <rect width="400" height="225" fill="url(#${id})"/>
-      <circle cx="${90 + seed * 40}" cy="70" r="26" fill="#fff6e4" opacity=".9"/>
+      <circle cx="${90 + (seed % 7) * 40}" cy="70" r="26" fill="#fff6e4" opacity=".9"/>
       <path d="M0 150 Q100 130 200 150 T400 150 V225 H0 Z" fill="hsl(${hue - 10} 55% 42%)"/>
       <path d="M0 178 Q120 160 240 178 T400 172 V225 H0 Z" fill="hsl(${hue - 10} 60% 32%)"/></svg>`;
   }
@@ -247,31 +259,58 @@ function svgLandscape(kind, seed) {
     <circle cx="70" cy="50" r="20" fill="#fff6e4" opacity=".8"/>${b.join("")}</svg>`;
 }
 
-/* ---------- data ---------- */
-const DATES = { 1: "Thursday, 12 June", 2: "Friday, 13 June", 4: "Sunday, 15 June", 5: "Monday, 16 June" };
-const ORDER = [
-  { type: "day", day: 1, kind: "sea", count: 3 },
-  { type: "chapter", id: "c1", day: 2, place: "Sintra" },
-  { type: "day", day: 2, kind: "hills", count: 2 },
-  { type: "chapter", id: "c2", day: 4, place: "Lisbon" },
-  { type: "day", day: 4, kind: "city", count: 3 },
-  { type: "chapter", id: "c3", day: 5, place: "Cascais" },
-  { type: "day", day: 5, kind: "sea", count: 2 },
+/* ---------- trip data: stays, each a run of consecutive days near one place ---------- */
+const STAYS = [
+  { id: "s1", place: "Lisbon", kind: "city", startDay: 1, endDay: 9, autoChapter: false, sampleDays: [1, 4, 8] },
+  { id: "s2", place: "Sintra", kind: "hills", startDay: 10, endDay: 10, autoChapter: true, sampleDays: [10, 10] },
+  { id: "s3", place: "Lisbon", kind: "city", startDay: 11, endDay: 12, autoChapter: true, sampleDays: [11, 12] },
+  { id: "s4", place: "Algarve", kind: "sea", startDay: 13, endDay: 16, autoChapter: true, sampleDays: [13, 15, 16] },
 ];
-const CHAPTERS = ORDER.filter((o) => o.type === "chapter");
+const AUTO_CHAPTERS = STAYS.filter((s) => s.autoChapter).map((s) => ({
+  id: `auto-${s.id}`, manual: false, stayId: s.id, place: s.place, kind: s.kind,
+  startDay: s.startDay, endDay: s.endDay, day: s.startDay, seed: s.startDay * 10,
+}));
+
+const WEEKDAYS = ["Thursday", "Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"]; // day 1 = Thursday
+function weekdayOf(day) { return WEEKDAYS[(day - 1) % 7]; }
+function dateOf(day) { return `${11 + day} June`; }
+function multiDaySubtitle(startDay, endDay) { return `Day ${startDay}–${endDay} · ${11 + startDay}–${11 + endDay} June`; }
+function singleDaySubtitle(day) { return `Day ${day} · ${weekdayOf(day)}, ${dateOf(day)}`; }
+function noPlaceSubtitle(day) { return `${weekdayOf(day)}, ${dateOf(day)}`; }
+
+function allTiles() {
+  const tiles = [];
+  STAYS.forEach((stay) => { stay.sampleDays.forEach((day, i) => tiles.push({ key: `${stay.id}-${i}`, stay, day, i })); });
+  return tiles;
+}
 
 const STATE = {
   width: "both", theme: "system", arranged: false, gps: true,
-  playerMode: "place", dayChaptersOn: true,
-  edits: { c1: { title: "Arrival in Sintra" } }, hidden: {},
-  sheet: { mode: "chapter", id: "c1" },
+  playerMode: "multi", autoOn: true,
+  edits: { "auto-s2": { title: "Arrival in Sintra" } }, hidden: {},
+  manualChapters: [], manualCounter: 0,
+  selectedTileKey: null,
+  sheet: { mode: "chapter", id: "auto-s3" },
 };
 
-function autoTitle(ch) { return STATE.gps ? `Day ${ch.day} · ${ch.place}` : `Day ${ch.day}`; }
-function autoSubtitle(ch) { return DATES[ch.day]; }
+function findChapter(id) { return AUTO_CHAPTERS.find((c) => c.id === id) || STATE.manualChapters.find((c) => c.id === id); }
+function autoTitle(ch) {
+  if (ch.manual) return STATE.gps ? ch.place : `Day ${ch.day}`;
+  return ch.place;
+}
+function autoSubtitle(ch) {
+  if (ch.manual) return STATE.gps ? singleDaySubtitle(ch.day) : noPlaceSubtitle(ch.day);
+  if (ch.startDay !== ch.endDay) return multiDaySubtitle(ch.startDay, ch.endDay);
+  return singleDaySubtitle(ch.day);
+}
 function curTitle(ch) { const e = STATE.edits[ch.id]; return e && e.title !== undefined ? e.title : autoTitle(ch); }
 function curSubtitle(ch) { const e = STATE.edits[ch.id]; return e && e.subtitle !== undefined ? e.subtitle : autoSubtitle(ch); }
 function isEdited(ch) { return curTitle(ch) !== autoTitle(ch) || curSubtitle(ch) !== autoSubtitle(ch); }
+function chapterIdentity(ch) {
+  if (ch.manual && !STATE.gps) return `Day ${ch.day}`;
+  const dayPart = (!ch.manual && ch.startDay !== ch.endDay) ? `Day ${ch.startDay}–${ch.endDay}` : `Day ${ch.day}`;
+  return `${ch.place} · ${dayPart}`;
+}
 function escapeHtml(s) { return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
 function icon(name) {
@@ -279,107 +318,114 @@ function icon(name) {
     close: '<path d="M5 5l10 10M15 5L5 15"/>',
     play: '<path d="M6 4l10 6-10 6V4z"/>',
     info: '<circle cx="10" cy="10" r="7.5"/><path d="M10 9v5M10 6.5v.1"/>',
+    plus: '<path d="M10 4v12M4 10h12"/>',
   };
   return `<svg class="i${name === "play" ? " fill" : ""}" viewBox="0 0 20 20">${paths[name] || ""}</svg>`;
 }
 
 /* ---------- player (section 1) ---------- */
 function playerText() {
+  if (STATE.playerMode === "single") return { title: "Sintra", subtitle: "Day 10 · Saturday, 21 June" };
   if (STATE.playerMode === "noGPS") return { title: "Day 3", subtitle: "Saturday, 14 June" };
-  if (STATE.playerMode === "german") return { title: "Tag 3 · Lisbon", subtitle: "Samstag, 14. Juni" };
-  return { title: "Day 3 · Lisbon", subtitle: "Saturday, 14 June" };
-}
-function groundSlide(t) {
-  return `<div class="slide ground pos-centre"><div class="bg" style="background:#2a2340"><div class="scrim"></div></div>
-    <div class="text"><h3 class="title">${escapeHtml(t.title)}</h3>
-      <p class="subtitle">${escapeHtml(t.subtitle)}</p></div></div>`;
+  if (STATE.playerMode === "german") return { title: "Lisbon", subtitle: "Tag 3–9 · 14.–20. Juni" };
+  return { title: "Lisbon", subtitle: "Day 3–9 · 14–20 June" };
 }
 function veilSlide(t, kind, seed) {
   return `<div class="slide veil pos-lower"><div class="bg veil">${svgLandscape(kind, seed)}<div class="scrim"></div></div>
     <div class="text"><h3 class="title">${escapeHtml(t.title)}</h3>
       <p class="subtitle">${escapeHtml(t.subtitle)}</p></div></div>`;
 }
-function playerFrame(sizeClass, variant) {
+function svgWrap(svg) { return `<div class="bg">${svg}</div>`; }
+function playerFrame(sizeClass) {
   const t = playerText();
   const prevSvg = svgLandscape("hills", 2), nextSvg = svgLandscape("city", 4);
-  const chapterInner = variant === "a" ? groundSlide(t) : veilSlide(t, "sea", 1);
+  const target = `demo-${sizeClass || "d"}`;
   return `<div class="app ${sizeClass} ${resolvedTheme()}">
     <div class="bar"><div class="crumbs"><b>Trip to Portugal</b></div></div>
     <div style="flex:1;min-height:0;position:relative;">
-      <div class="chapdemo" data-phase="chapter" id="demo-${variant}-${sizeClass}">
-        <div class="layer prev"><div class="slide ground pos-centre">${svgWrap(prevSvg)}</div></div>
-        <div class="layer chapter">${chapterInner}</div>
-        <div class="layer next"><div class="slide ground pos-centre">${svgWrap(nextSvg)}</div></div>
+      <div class="chapdemo" data-phase="chapter" id="${target}">
+        <div class="layer prev"><div class="slide pos-centre">${svgWrap(prevSvg)}</div></div>
+        <div class="layer chapter">${veilSlide(t, "sea", 1)}</div>
+        <div class="layer next"><div class="slide pos-centre">${svgWrap(nextSvg)}</div></div>
       </div>
-      <div class="playrow"><button class="roundbtn" data-act="play-demo" data-target="demo-${variant}-${sizeClass}">${icon("play")}Play</button></div>
+      <div class="playrow"><button class="roundbtn" data-act="play-demo" data-target="${target}">${icon("play")}Play</button></div>
     </div></div>`;
 }
-function svgWrap(svg) { return `<div class="bg">${svg}</div>`; }
 function renderPlayer() {
   const root = document.getElementById("playerRoot");
-  const variants = [
-    { v: "a", cap: "A — solid colour, text centred" },
-    { v: "b", cap: "B — first picture, darkened, text in the lower third" },
-  ];
-  root.className = "variant-stack";
-  root.innerHTML = variants.map(({ v, cap }) => `<div class="labelled">
-      <div class="row-wrap" style="gap:14px;">
-        ${showWidth("phone") ? playerFrame("phone", v) : ""}
-        ${showWidth("desktop") ? playerFrame("", v) : ""}
-      </div>
-      <p class="cap">${cap}</p>
-    </div>`).join("");
+  root.className = "row-wrap";
+  root.innerHTML = `${showWidth("phone") ? playerFrame("phone") : ""}${showWidth("desktop") ? playerFrame("") : ""}`;
 }
 
 /* ---------- editor (section 2) ---------- */
-function ptileHtml(day, i) {
-  const seedBase = { 1: 1, 2: 2, 4: 4, 5: 5 }[day.day] * 3 + i;
-  return `<button class="ptile" tabindex="-1" aria-label="Picture">${svgLandscape(day.kind, seedBase)}</button>`;
+function ptileHtml(tile) {
+  const selected = STATE.selectedTileKey === tile.key;
+  return `<button class="ptile${selected ? " selected" : ""}" data-act="select-tile" data-key="${tile.key}"
+    aria-label="Picture, day ${tile.day}" aria-pressed="${selected}">${svgLandscape(tile.stay.kind, tile.day * 10 + tile.i)}</button>`;
 }
 function chaptileHtml(ch) {
-  const place = STATE.gps ? ch.place : null;
-  const label = isEdited(ch) ? curTitle(ch) : `Day ${ch.day}`;
-  const sub = isEdited(ch) ? curSubtitle(ch).split(",")[0] : (place || "");
   return `<button class="chaptile" data-act="open-chapter" data-id="${ch.id}" aria-label="${escapeHtml(curTitle(ch))}">
     ${isEdited(ch) ? '<span class="dot" title="Edited by hand"></span>' : ""}
-    <span class="d">${escapeHtml(label)}</span>${sub ? `<span class="p">${escapeHtml(sub)}</span>` : ""}
+    <span class="d">${escapeHtml(curTitle(ch))}</span><span class="p">${escapeHtml(curSubtitle(ch))}</span>
   </button>`;
 }
 function chapbarHtml(ch) {
-  const label = isEdited(ch) ? `${curTitle(ch)} · ${curSubtitle(ch)}`
-    : `Day ${ch.day}${STATE.gps ? " · " + ch.place : ""} · ${autoSubtitle(ch)}`;
   return `<button class="chapbar" data-act="open-chapter" data-id="${ch.id}" aria-label="${escapeHtml(curTitle(ch))}">
     ${isEdited(ch) ? '<span class="dot" title="Edited by hand"></span>' : ""}
-    <span class="d">${escapeHtml(label)}</span>
+    <span class="d">${escapeHtml(curTitle(ch))} · ${escapeHtml(curSubtitle(ch))}</span>
   </button>`;
 }
-function offNoteHtml() {
-  return `<button class="chaptile off" data-act="open-general" aria-label="Day chapters">
-    ${icon("info")}<span class="d">Day chapters off</span><span class="p">Arranged by hand</span></button>`;
+function autoOffReason() {
+  if (!STATE.gps) return "No GPS on these pictures";
+  if (STATE.arranged) return "Off while you arrange the order yourself";
+  if (!STATE.autoOn) return "Automatic chapters are off";
+  return null;
+}
+function offNoteHtml(reason) {
+  return `<button class="chaptile off" data-act="open-general" aria-label="Trip chapters">
+    ${icon("info")}<span class="d">Automatic chapters off</span><span class="p">${escapeHtml(reason)}</span></button>`;
 }
 function stripHtml(isPhone) {
-  const effectiveOn = STATE.dayChaptersOn && !STATE.arranged;
-  const tiles = [];
-  if (STATE.arranged) tiles.push(offNoteHtml());
-  ORDER.forEach((o) => {
-    if (o.type === "day") {
-      for (let i = 0; i < o.count; i++) tiles.push(ptileHtml(o, i));
-    } else if (effectiveOn && !STATE.hidden[o.id]) {
-      tiles.push(isPhone ? chapbarHtml(o) : chaptileHtml(o));
+  const tiles = allTiles();
+  const autoVisible = STATE.autoOn && !STATE.arranged && STATE.gps;
+  const out = [];
+  const reason = autoOffReason();
+  if (reason) out.push(offNoteHtml(reason));
+  let lastStayId = null;
+  tiles.forEach((tile) => {
+    if (tile.stay.id !== lastStayId) {
+      lastStayId = tile.stay.id;
+      if (tile.stay.autoChapter && autoVisible) {
+        const ch = AUTO_CHAPTERS.find((c) => c.stayId === tile.stay.id);
+        if (ch && !STATE.hidden[ch.id]) out.push(isPhone ? chapbarHtml(ch) : chaptileHtml(ch));
+      }
     }
+    STATE.manualChapters.filter((m) => m.beforeKey === tile.key).forEach((m) => out.push(isPhone ? chapbarHtml(m) : chaptileHtml(m)));
+    out.push(ptileHtml(tile));
   });
-  return tiles.join("");
+  return out.join("");
+}
+function actionbarHtml() {
+  return `<div class="actionbar">
+    <button class="primary" data-act="insert-chapter">${icon("plus")}Insert chapter</button>
+    <div class="spacer"></div>
+    <button disabled title="Not wired up in this mockup">Move</button>
+    <button disabled title="Not wired up in this mockup">Remove</button>
+  </div>`;
 }
 function editorFrame(sizeClass) {
   const isPhone = sizeClass === "phone";
   const dock = isPhone ? "dock-bottom" : "dock-right";
+  const bar = STATE.selectedTileKey ? actionbarHtml() : "";
   return `<div class="app editor ${sizeClass} ${resolvedTheme()}">
     <div class="bar"><div class="crumbs"><b>Trip to Portugal</b></div><div class="spacer"></div>
-      <button class="iconbtn" data-act="open-general" aria-label="Day chapters">${icon("info")}</button></div>
+      <button class="iconbtn" data-act="open-general" aria-label="Trip chapters">${icon("info")}</button></div>
     <div class="show">
-      <p class="stripnote">Day 1 opens with the title slide, so it gets no chapter. Day 3 has no
-        pictures, so the next chapter still reads "Day 4" — the gap counts.</p>
+      <p class="stripnote">Compressed for this mockup: a few pictures stand in for a 16-day trip
+        across Lisbon, Sintra, Lisbon again, and the Algarve.</p>
+      ${!isPhone ? bar : ""}
       <div class="strip ${isPhone ? "grid" : "wrap"}" id="strip-${sizeClass || "d"}">${stripHtml(isPhone)}</div>
+      ${isPhone ? bar : ""}
     </div>
     ${STATE.sheet ? sheetHtml(dock) : ""}
   </div>`;
@@ -394,18 +440,19 @@ function sheetHtml(dock) {
   const s = STATE.sheet;
   const dockClass = dock ? ` ${dock}` : "";
   if (s.mode === "general") {
-    return `<div class="backdrop${dockClass}" data-act="close-sheet"><div class="sheet" role="dialog" aria-label="Day chapters">
-      <div class="shead"><b>Day chapters</b><button class="iconbtn" data-act="close-sheet" aria-label="Close">${icon("close")}</button></div>
+    return `<div class="backdrop${dockClass}" data-act="close-sheet"><div class="sheet" role="dialog" aria-label="Trip chapters">
+      <div class="shead"><b>Trip chapters</b><button class="iconbtn" data-act="close-sheet" aria-label="Close">${icon("close")}</button></div>
       ${masterSwitchHtml()}
     </div></div>`;
   }
-  const ch = CHAPTERS.find((c) => c.id === s.id);
+  const ch = findChapter(s.id);
+  if (!ch) return "";
   const hidden = !!STATE.hidden[ch.id];
   const title = curTitle(ch), subtitle = curSubtitle(ch);
-  return `<div class="backdrop${dockClass}" data-act="close-sheet"><div class="sheet" role="dialog" aria-label="Day chapter">
-    <div class="shead"><b>Day ${ch.day}${STATE.gps ? " · " + ch.place : ""}</b>
+  return `<div class="backdrop${dockClass}" data-act="close-sheet"><div class="sheet" role="dialog" aria-label="Trip chapter">
+    <div class="shead"><b>${escapeHtml(chapterIdentity(ch))}</b>
       <button class="iconbtn" data-act="close-sheet" aria-label="Close">${icon("close")}</button></div>
-    <div class="pv-wrap"><div class="pv">${groundSlide({ title, subtitle })}</div></div>
+    <div class="pv-wrap"><div class="pv">${veilSlide({ title, subtitle }, ch.kind, ch.seed)}</div></div>
     <section class="sec">
       <div class="row"><label class="eyebrow" for="f-title">Title</label></div>
       <input class="field" id="f-title" maxlength="80" data-act="edit-title" data-id="${ch.id}" value="${escapeHtml(title)}">
@@ -414,18 +461,39 @@ function sheetHtml(dock) {
       ${isEdited(ch) ? `<button class="resetlink" data-act="reset-chapter" data-id="${ch.id}">Reset to automatic</button>` : ""}
     </section>
     <section class="sec">
-      <div class="row"><label class="toggle" for="f-hide"><input type="checkbox" id="f-hide" data-act="hide-chapter" data-id="${ch.id}" ${hidden ? "checked" : ""}><span class="box"></span>Hide this chapter</label></div>
-      <p class="small">Leaves this day's pictures in place without a chapter slide before them.</p>
+      ${ch.manual
+        ? `<button class="resetlink" data-act="delete-chapter" data-id="${ch.id}">Delete chapter</button>`
+        : `<div class="row"><label class="toggle" for="f-hide"><input type="checkbox" id="f-hide" data-act="hide-chapter" data-id="${ch.id}" ${hidden ? "checked" : ""}><span class="box"></span>Hide this chapter</label></div>
+           <p class="small">Leaves this stay's pictures in place without a chapter slide before them.</p>`}
     </section>
     <section class="sec">${masterSwitchHtml()}</section>
   </div></div>`;
 }
 function masterSwitchHtml() {
   const disabled = STATE.arranged;
-  const checked = STATE.dayChaptersOn && !disabled;
-  const helper = disabled ? "Off while you arrange the order yourself." : "A short slide before each new day of the trip.";
-  return `<div class="row"><label class="toggle${disabled ? " disabled" : ""}" for="f-master"><input type="checkbox" id="f-master" data-act="master" ${checked ? "checked" : ""} ${disabled ? "disabled" : ""}><span class="box"></span>Day chapters</label></div>
+  const checked = STATE.autoOn && !disabled;
+  let helper;
+  if (disabled) helper = "Off while you arrange the order yourself. Chapters you added stay.";
+  else if (!STATE.autoOn) helper = "Chapters you added stay.";
+  else helper = "A short slide wherever the trip moves on to a new place.";
+  return `<div class="row"><label class="toggle${disabled ? " disabled" : ""}" for="f-master"><input type="checkbox" id="f-master" data-act="master" ${checked ? "checked" : ""} ${disabled ? "disabled" : ""}><span class="box"></span>Automatic chapters</label></div>
     <p class="small">${helper}</p>`;
+}
+
+/* ---------- manual chapters ---------- */
+function insertChapterAt(key) {
+  if (!key) return;
+  const tile = allTiles().find((t) => t.key === key);
+  if (!tile) return;
+  STATE.manualCounter += 1;
+  const id = `manual-${STATE.manualCounter}`;
+  STATE.manualChapters.push({
+    id, manual: true, beforeKey: key, day: tile.day,
+    place: tile.stay.place, kind: tile.stay.kind, seed: tile.day * 10 + tile.i,
+  });
+  STATE.selectedTileKey = null;
+  STATE.sheet = { mode: "chapter", id };
+  renderEditor();
 }
 
 /* ---------- shared helpers ---------- */
@@ -454,15 +522,21 @@ document.addEventListener("click", (ev) => {
   if (chip) { STATE.playerMode = chip.dataset.mode; setPressed(chip); renderPlayer(); return; }
   const play = ev.target.closest("[data-act='play-demo']");
   if (play) { playDemo(play.dataset.target); return; }
+  const sel = ev.target.closest("[data-act='select-tile']");
+  if (sel) { const key = sel.dataset.key; STATE.selectedTileKey = STATE.selectedTileKey === key ? null : key; STATE.sheet = null; renderEditor(); return; }
+  const insert = ev.target.closest("[data-act='insert-chapter']");
+  if (insert) { insertChapterAt(STATE.selectedTileKey); return; }
   const openCh = ev.target.closest("[data-act='open-chapter']");
-  if (openCh) { STATE.sheet = { mode: "chapter", id: openCh.dataset.id }; renderEditor(); return; }
+  if (openCh) { STATE.selectedTileKey = null; STATE.sheet = { mode: "chapter", id: openCh.dataset.id }; renderEditor(); return; }
   const openGen = ev.target.closest("[data-act='open-general']");
-  if (openGen) { STATE.sheet = { mode: "general" }; renderEditor(); return; }
+  if (openGen) { STATE.selectedTileKey = null; STATE.sheet = { mode: "general" }; renderEditor(); return; }
   if (ev.target.classList.contains("backdrop") || ev.target.closest("[data-act='close-sheet'].iconbtn")) {
     STATE.sheet = null; renderEditor(); return;
   }
   const reset = ev.target.closest("[data-act='reset-chapter']");
   if (reset) { delete STATE.edits[reset.dataset.id]; renderEditor(); return; }
+  const del = ev.target.closest("[data-act='delete-chapter']");
+  if (del) { STATE.manualChapters = STATE.manualChapters.filter((c) => c.id !== del.dataset.id); STATE.sheet = null; renderEditor(); return; }
 });
 document.addEventListener("input", (ev) => {
   const t = ev.target;
@@ -470,7 +544,7 @@ document.addEventListener("input", (ev) => {
     const id = t.dataset.id;
     STATE.edits[id] = STATE.edits[id] || {};
     STATE.edits[id][t.dataset.act === "edit-title" ? "title" : "subtitle"] = t.value;
-    const ch = CHAPTERS.find((c) => c.id === id);
+    const ch = findChapter(id);
     document.querySelectorAll(`.pv .title`).forEach((el) => { el.textContent = curTitle(ch); });
     document.querySelectorAll(`.pv .subtitle`).forEach((el) => { el.textContent = curSubtitle(ch); });
     const resetHost = t.closest(".sec");
@@ -481,16 +555,22 @@ document.addEventListener("input", (ev) => {
     } else if (resetHost && !isEdited(ch)) {
       const link = resetHost.querySelector(".resetlink"); if (link) link.remove();
     }
-    const strips = document.querySelectorAll(".strip");
-    strips.forEach((s) => { s.innerHTML = stripHtml(s.classList.contains("grid")); });
+    document.querySelectorAll(".strip").forEach((s) => { s.innerHTML = stripHtml(s.classList.contains("grid")); });
   }
 });
 document.addEventListener("change", (ev) => {
   const t = ev.target;
   if (t.dataset.act === "hide-chapter") { STATE.hidden[t.dataset.id] = t.checked; renderEditor(); }
-  if (t.dataset.act === "master") { STATE.dayChaptersOn = t.checked; renderEditor(); }
-  if (t.dataset.act === "arranged") { STATE.arranged = t.checked; STATE.sheet = null; renderAll(); }
-  if (t.dataset.act === "gps") { STATE.gps = t.checked; renderAll(); }
+  if (t.dataset.act === "master") { STATE.autoOn = t.checked; renderEditor(); }
+  if (t.dataset.act === "arranged") { STATE.arranged = t.checked; STATE.selectedTileKey = null; renderAll(); }
+  if (t.dataset.act === "gps") {
+    STATE.gps = t.checked; STATE.selectedTileKey = null;
+    if (!STATE.gps && STATE.sheet && STATE.sheet.mode === "chapter") {
+      const ch = findChapter(STATE.sheet.id);
+      if (ch && !ch.manual) STATE.sheet = null;
+    }
+    renderAll();
+  }
 });
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (STATE.theme === "system") renderAll(); });
 
