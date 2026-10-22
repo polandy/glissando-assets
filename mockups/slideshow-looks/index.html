@@ -91,7 +91,7 @@ h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
 .mini button { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 6px; overflow: hidden; aspect-ratio: 3 / 2; outline: 2px solid transparent; outline-offset: 1px; }
 .mini button[aria-current="true"] { outline-color: var(--gl-ink); }
 .mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.looks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.looks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .phone .looks { grid-template-columns: repeat(3, 1fr); }
 .look { border: 0; padding: 0; background: none; color: var(--gl-ink); cursor: pointer; display: grid; gap: 5px; text-align: left; font: 500 var(--gl-size-label) var(--gl-font-ui); }
 .look .sw { aspect-ratio: 3 / 2; border-radius: var(--gl-radius-tile); overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; position: relative; }
@@ -127,6 +127,14 @@ svg.defs { position: absolute; width: 0; height: 0; }
     <feColorMatrix type="matrix" values="1.08 0.02 0 0 0.015  0.01 1.01 0 0 0.008  0 0 0.86 0 0  0 0 0 1 0"/>
     <feComponentTransfer><feFuncR type="table" tableValues="0 0.27 0.53 0.78 1"/><feFuncG type="table" tableValues="0 0.25 0.51 0.76 0.98"/><feFuncB type="table" tableValues="0 0.23 0.47 0.72 0.94"/></feComponentTransfer>
   </filter>
+  <filter id="look-cool" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0.9 0 0 0 0  0 1.0 0.02 0 0.01  0 0.03 1.1 0 0.03  0 0 0 1 0"/>
+    <feComponentTransfer><feFuncR type="table" tableValues="0 0.24 0.49 0.74 0.95"/><feFuncG type="table" tableValues="0 0.25 0.51 0.76 0.98"/><feFuncB type="table" tableValues="0.02 0.28 0.53 0.78 1"/></feComponentTransfer>
+  </filter>
+  <filter id="look-vivid" color-interpolation-filters="sRGB">
+    <feColorMatrix type="saturate" values="1.35"/>
+    <feComponentTransfer><feFuncR type="table" tableValues="0 0.2 0.5 0.82 1"/><feFuncG type="table" tableValues="0 0.2 0.5 0.82 1"/><feFuncB type="table" tableValues="0 0.2 0.5 0.82 1"/></feComponentTransfer>
+  </filter>
   <filter id="look-film" color-interpolation-filters="sRGB">
     <feColorMatrix type="saturate" values="0.82"/>
     <feComponentTransfer><feFuncR type="table" tableValues="0.05 0.2 0.5 0.82 0.97"/><feFuncG type="table" tableValues="0.05 0.21 0.49 0.79 0.94"/><feFuncB type="table" tableValues="0.1 0.25 0.48 0.73 0.88"/></feComponentTransfer>
@@ -159,12 +167,14 @@ svg.defs { position: absolute; width: 0; height: 0; }
 const LOOKS = [
   { id: "none", name: "None", tag: "Default" },
   { id: "warm", name: "Warm", tag: "Golden" },
+  { id: "cool", name: "Cool", tag: "Crisp blue" },
+  { id: "vivid", name: "Vivid", tag: "Punchy" },
   { id: "film", name: "Film", tag: "Soft, muted" },
   { id: "bw", name: "Black & white", tag: "Mono" },
   { id: "faded", name: "Faded", tag: "Lifted blacks" },
 ];
 const VARIANTS = {
-  A: { label: "A · Look sheet (recommended)", note: "<b>A — a Look row in the slideshow details, opening a sheet</b> like Transitions. A large preview on one of your pictures with its caption (hold to see the original), four pictures to switch to, and a tile per look on the same picture. The strip shows the look as well. Fits the existing pattern and has room for a real preview." },
+  A: { label: "A · Look sheet (recommended)", note: "<b>Chosen.</b> <b>A — a Look row in the slideshow details, opening a sheet</b> like Transitions. A large preview on one of your pictures with its caption (hold to see the original), four pictures to switch to, and a tile per look on the same picture. The strip shows the look as well. Fits the existing pattern and has room for a real preview." },
   B: { label: "B · Inline swatches", note: "<b>B — swatches right in the details panel</b>, no sheet. One tap, and the strip shows the look at once. Quickest, but the swatches are small (64 px), so it's hard to judge a look before choosing it." },
   C: { label: "C · In the play preview", note: "<b>C — choose while watching</b>: a Look button in the play preview opens a row of swatches over the running slideshow. You see it in motion, but it's hidden from the details panel and from keyboard and TV users." },
 };
@@ -275,7 +285,6 @@ function sheet() {
     <div class="mini">${PICS.slice(0, 4).map((p, i) => `<button aria-current="${i === state.pick}" aria-label="${p.caption}" data-pick="${i}">${img(i, state.look)}</button>`).join("")}</div>
     <div class="looks" role="radiogroup" aria-labelledby="look-title">${LOOKS.map((l) => `<button class="look" role="radio" aria-checked="${l.id === state.look}" data-look="${l.id}"><span class="sw">${img(state.pick, l.id)}</span><span>${l.name}<br><span class="tag">${l.tag}</span></span></button>`).join("")}</div>
     <p class="hint">Applies to every picture and video in this slideshow, also in the exported video and web page. Title and closing slides and captions stay as they are.</p>
-    ${evenOutRow()}
     <footer class="sheet-foot"><button class="btn ghost" data-look="none">Back to None</button><button class="btn primary" data-act="close">Done</button></footer>
   </div></div>`;
 }
@@ -298,7 +307,7 @@ function draw() {
   const f = document.getElementById("frame"); f.className = `frame ${state.width}`;
   const hdr = `<div class="hdr"><b>Glissando</b> · Summer 2026</div>`;
   if (state.variant === "C" && state.sheet) { f.innerHTML = player(); return; }
-  const extra = state.variant === "B" ? evenOutRow() : "";
+  const extra = "";
   f.innerHTML = `${hdr}<div class="edit">${panel(extra)}${strip()}</div>${state.variant === "A" && state.sheet ? sheet() : ""}`;
 }
 document.addEventListener("click", (e) => {
