@@ -121,6 +121,10 @@ h3 { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 0; }
 .grid3 .card .play svg { width: 11px; height: 11px; }
 .grid3 .card .plus, .grid3 .card .ring { width: 34px; height: 34px; right: 5px; top: 5px; }
 .grid3 .card .plus svg { width: 16px; height: 16px; }
+.more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s ease, opacity .32s ease; opacity: 0; margin-top: -10px; }
+.more[aria-hidden="false"] { grid-template-rows: 1fr; opacity: 1; margin-top: 0; }
+.more-inner { overflow: hidden; display: grid; gap: 10px; min-height: 0; }
+@media (prefers-reduced-motion: reduce) { .more { transition: none; } }
 .toggle { display: flex; justify-content: center; align-items: center; gap: 6px; width: 100%; border: 1px solid var(--gl-line); background: var(--gl-surface); border-radius: var(--gl-radius); padding: 9px; font-weight: 600; cursor: pointer; }
 .toggle svg { width: 14px; height: 14px; transition: transform .2s; }
 .toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
@@ -134,7 +138,7 @@ h3 { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 0; }
     <h1>Sample music, second round</h1>
     <p>No tabs: <b>one soundtrack</b> holds every chosen song, wherever it came from. Both ways in — <b>Glissando music</b> and <b>your own</b> — show on the phone's first screen without scrolling. Each frame is one screen of a typical phone (412 × 780).</p>
     <ul>
-      <li><b>Glissando music</b> shows its first three covers; “Show all 9” opens the block in place to the full 3 × 3 grid, “Show fewer” closes it. Tap a cover to listen, + to add; the song appears in the soundtrack below.</li>
+      <li><b>Glissando music</b> shows its first three covers; “Show all 9” unfolds the block in place like an accordion to the full 3 × 3 grid and the credit, “Show fewer” folds it again — try it. Tap a cover to listen, + to add; the song appears in the soundtrack below.</li>
       <li><b>Your own music</b> follows after “or”, one row with “Choose files”.</li>
       <li>The music editor's “Add a song” sheet holds the same two blocks, the music block opened.</li>
     </ul>
@@ -168,9 +172,9 @@ const ICON = {
 let state = "empty";
 const cover = (id) => `<img src="${COVERS}${id}.svg" alt="">`;
 
-function cards(limit = TRACKS.length) {
+function cards(from = 0, to = TRACKS.length) {
   const offline = state === "offline";
-  return TRACKS.map((t, i) => [t, i]).filter(([, i]) => i < limit).map(([[id, title, m, len], i]) => {
+  return TRACKS.map((t, i) => [t, i]).filter(([, i]) => i >= from && i < to).map(([[id, title, m, len], i]) => {
     const added = state === "chosen" && i === 1;
     const loading = state === "chosen" && i === 4;
     const playing = state === "chosen" && i === 6;
@@ -213,27 +217,35 @@ const soundtrackBlock = () => `<div><div class="section-head" style="margin-bott
 const CHEVRON = '<svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 const offlineNotice = () => state === "offline" ? '<div class="notice">You are offline. Tracks already on this device can be added; listening to the others needs a connection.</div>' : "";
 
-function musicBlock(open) {
+let open = false;
+
+function musicBlock() {
   return `<div class="panel featured choose">
-      <div class="section-head"><h3>Glissando music</h3><span class="sub">9 tracks · free to use</span></div>
+      <div class="section-head"><h3>Glissando music</h3><span class="sub">9 tracks · come with Glissando</span></div>
       ${offlineNotice()}
-      <div class="grid3">${cards(open ? TRACKS.length : 3)}</div>
-      <button class="toggle" aria-expanded="${open}">${open ? "Show fewer" : "Show all 9"} ${CHEVRON}</button>
-      ${open ? '<div class="credit">Music: Glissando, CC BY-NC 4.0 · free for non-commercial use</div>' : ""}
+      <div class="grid3">${cards(0, 3)}</div>
+      <div class="more" id="more" aria-hidden="${!open}"><div class="more-inner">
+        <div class="grid3">${cards(3)}</div>
+        <div class="credit">Music: Glissando, CC BY-NC 4.0 · free for non-commercial use</div>
+      </div></div>
+      <button class="toggle" id="toggle" aria-expanded="${open}" aria-controls="more">${open ? "Show fewer" : "Show all 9"} ${CHEVRON}</button>
     </div>`;
 }
 
-function step(open, caption) {
-  return `<figure class="frame-wrap"><figcaption>${caption}</figcaption><div class="phone">${head}<div class="scroll">${intro}
-    ${musicBlock(open)}
+function render() {
+  document.getElementById("stage").innerHTML = `<figure class="frame-wrap"><figcaption>The music step — tap “Show all 9”</figcaption><div class="phone">${head}<div class="scroll">${intro}
+    ${musicBlock()}
     <div class="or">or</div>
     ${own}
     ${soundtrackBlock()}
     ${timing}</div>${foot()}</div></figure>`;
-}
-
-function render() {
-  document.getElementById("stage").innerHTML = step(false, "The music step") + step(true, "After “Show all 9”");
+  const toggle = document.getElementById("toggle");
+  toggle.onclick = () => {
+    open = !open;
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.firstChild.textContent = open ? "Show fewer " : "Show all 9 ";
+    document.getElementById("more").setAttribute("aria-hidden", String(!open));
+  };
 }
 function seg(id, key, apply) {
   document.querySelectorAll(`#${id} button`).forEach((b) => b.onclick = () => {
