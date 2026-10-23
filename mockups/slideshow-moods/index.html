@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slideshow Moods</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif; --gl-font-display: "Bricolage Grotesque", system-ui, sans-serif; --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-size-small: 12px; --gl-size-label: 13px; --gl-size-body: 14px; --gl-size-name: 17px; --gl-size-heading: 26px;
+  --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-tile: 8px;
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33; --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-backdrop: rgb(20 17 28 / .38);
+  --gl-card-plum: #2a2340; --gl-card-cream: #f7efe3;
+  --gl-shadow: 0 1px 2px rgb(34 29 51 / .06), 0 6px 18px rgb(34 29 51 / .06);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .3); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .3); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font: var(--gl-size-body)/1.4 var(--gl-font-ui); }
+.page { max-width: 1180px; margin: 0 auto; padding: 24px 16px 60px; display: grid; gap: 18px; }
+h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
+.intro p { margin: 6px 0 0; color: var(--gl-muted); max-width: 76ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.controls label { font: 600 12px var(--gl-font-ui); color: var(--gl-muted); text-transform: uppercase; letter-spacing: .04em; margin-right: 6px; }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--gl-ink); font: 500 13px var(--gl-font-ui); padding: 7px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.variant-note { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); padding: 12px 14px; color: var(--gl-muted); }
+.variant-note b { color: var(--gl-ink); }
+.stage { display: flex; justify-content: center; }
+.frame { position: relative; width: 100%; border: 1px solid var(--gl-line); border-radius: 18px; background: var(--gl-ground); overflow: hidden; box-shadow: 0 20px 60px rgb(20 14 40 / .14); min-height: 640px; }
+.frame.phone { max-width: 412px; }
+.frame.desktop { max-width: 1100px; }
+.hdr { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); font-size: 13px; color: var(--gl-muted); }
+.hdr b { color: var(--gl-ink); font-weight: 600; }
+.edit { display: grid; gap: 16px; padding: 16px; }
+.desktop .edit { grid-template-columns: 1fr 360px; align-items: start; }
+.desktop .panel { order: 2; } .desktop .strip { order: 1; }
+.panel { display: grid; gap: 14px; padding: 18px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); background: var(--gl-surface); }
+.eyebrow { font: 600 12px var(--gl-font-ui); color: var(--gl-muted); text-transform: uppercase; letter-spacing: .04em; }
+.title { font: 700 22px var(--gl-font-display); margin: 2px 0; }
+.mono { font-family: var(--gl-font-mono); font-size: var(--gl-size-small); color: var(--gl-muted); }
+.btn { border: 1px solid var(--gl-line); background: var(--gl-surface); color: var(--gl-ink); border-radius: var(--gl-radius); padding: 9px 14px; font: 600 var(--gl-size-body) var(--gl-font-ui); cursor: pointer; }
+.btn.primary { background: var(--gl-accent); border-color: var(--gl-accent); color: var(--gl-accent-ink); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--gl-muted); }
+.rows { display: grid; gap: 2px; margin: 0; }
+.row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--gl-line); }
+.row dt { color: var(--gl-muted); } .row dd { margin: 0; text-align: right; }
+.row.action { grid-template-columns: 1fr auto auto; }
+.row .value { font-weight: 500; }
+.link { border: 0; background: none; color: var(--gl-ink); font: 600 var(--gl-size-body) var(--gl-font-ui); text-decoration: underline; text-decoration-color: var(--gl-accent); text-underline-offset: 3px; cursor: pointer; padding: 4px 0; }
+.pill { font: 500 var(--gl-size-small) var(--gl-font-mono); padding: 3px 8px; border-radius: 99px; background: var(--gl-hover); }
+.pill.own { background: color-mix(in srgb, var(--gl-accent) 24%, var(--gl-surface)); }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.phone .strip { grid-template-columns: repeat(3, 1fr); }
+.tile { position: relative; aspect-ratio: 3 / 2; border-radius: var(--gl-radius-tile); overflow: hidden; background: var(--gl-hover); }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card { display: grid; place-items: center; text-align: center; background: var(--gl-card-plum); color: var(--gl-card-cream); font: 700 15px var(--gl-font-display); padding: 6px; }
+.card small { display: block; font: 400 10px var(--gl-font-ui); opacity: .8; }
+.ungraded { position: absolute; left: 4px; bottom: 4px; font: 500 10px var(--gl-font-mono); background: rgb(0 0 0 / .45); color: #fff; border-radius: 99px; padding: 1px 6px; }
+/* chips (variant B) */
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
+.chip { flex: 0 0 auto; display: grid; gap: 4px; justify-items: center; border: 0; background: none; color: var(--gl-ink); font: 500 12px var(--gl-font-ui); cursor: pointer; padding: 0; }
+.chip .sw { width: 64px; height: 44px; border-radius: var(--gl-radius-tile); overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; }
+.chip .sw img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.chip[aria-checked="true"] .sw { outline-color: var(--gl-accent); }
+.chip[aria-checked="true"] { font-weight: 600; }
+/* sheet (variant A) */
+.scrim { position: absolute; inset: 0; background: var(--gl-backdrop); display: grid; z-index: 5; }
+.phone .scrim { align-items: end; }
+.desktop .scrim { place-items: center; }
+.sheet > * { flex-shrink: 0; }
+.sheet { background: var(--gl-surface); display: flex; flex-direction: column; gap: 14px; padding: 18px; max-height: 100%; overflow: auto; }
+.phone .sheet { border-radius: 18px 18px 0 0; }
+.desktop .sheet { width: 560px; border-radius: var(--gl-radius-large); box-shadow: var(--gl-shadow); }
+.sheet-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sheet-head h2 { font: 700 var(--gl-size-name) var(--gl-font-display); margin: 0; }
+.big { position: relative; aspect-ratio: 3 / 2; border-radius: var(--gl-radius-large); overflow: hidden; background: #000; user-select: none; }
+.big img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.caption { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; color: #fff; font: 500 15px var(--gl-font-ui); text-shadow: 0 1px 3px rgb(0 0 0 / .7); }
+.hold { position: absolute; top: 8px; right: 8px; border: 0; border-radius: 99px; padding: 6px 10px; background: rgb(0 0 0 / .5); color: #fff; font: 500 12px var(--gl-font-ui); cursor: pointer; touch-action: none; }
+.orig-tag { position: absolute; top: 8px; left: 8px; border-radius: 99px; padding: 3px 9px; background: rgb(0 0 0 / .5); color: #fff; font: 500 11px var(--gl-font-mono); }
+.mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.mini button { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 6px; overflow: hidden; aspect-ratio: 3 / 2; outline: 2px solid transparent; outline-offset: 1px; }
+.mini button[aria-current="true"] { outline-color: var(--gl-ink); }
+.mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.looks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.phone .looks { grid-template-columns: repeat(3, 1fr); }
+.look { border: 0; padding: 0; background: none; color: var(--gl-ink); cursor: pointer; display: grid; gap: 5px; text-align: left; font: 500 var(--gl-size-label) var(--gl-font-ui); }
+.look .sw { aspect-ratio: 3 / 2; border-radius: var(--gl-radius-tile); overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; position: relative; }
+.look .sw img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.look[aria-checked="true"] .sw { outline-color: var(--gl-accent); }
+.look[aria-checked="true"] { font-weight: 600; }
+.tag { font: 400 11px var(--gl-font-mono); color: var(--gl-muted); }
+.hint { margin: 0; color: var(--gl-muted); font-size: var(--gl-size-label); }
+.toggle-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px dashed var(--gl-faint); border-radius: var(--gl-radius); }
+.toggle-row small { display: block; color: var(--gl-muted); }
+.switch { width: 40px; height: 24px; border-radius: 99px; border: 0; background: var(--gl-hover); position: relative; cursor: pointer; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--gl-surface); box-shadow: 0 1px 2px rgb(0 0 0 / .3); transition: left .15s; }
+.switch[aria-checked="true"] { background: var(--gl-accent); }
+.switch[aria-checked="true"]::after { left: 19px; }
+.opt { font: 600 10px var(--gl-font-mono); color: var(--gl-accent-ink); background: var(--gl-accent); border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: 2px; }
+footer.sheet-foot { display: flex; justify-content: space-between; gap: 10px; }
+/* player (variant C) */
+.player { position: relative; background: #000; min-height: 640px; display: grid; align-content: center; }
+.desktop .player { min-height: 620px; }
+.player .big { border-radius: 0; }
+.player-bar { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 16px 18px; background: linear-gradient(transparent, rgb(0 0 0 / .8)); display: grid; gap: 10px; color: #fff; }
+.player-bar .chip { color: #fff; }
+.player-top { position: absolute; top: 12px; left: 16px; right: 16px; display: flex; justify-content: space-between; color: #fff; font-size: 13px; }
+.player-top button { border: 0; border-radius: 99px; background: rgb(255 255 255 / .16); color: #fff; padding: 7px 12px; font: 500 13px var(--gl-font-ui); cursor: pointer; }
+.player-top button[aria-pressed="true"] { background: #fff; color: #000; }
+svg.defs { position: absolute; width: 0; height: 0; }
+/* moods */
+.moods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mood { border: 1px solid var(--gl-line); background: var(--gl-raised); color: var(--gl-ink); border-radius: var(--gl-radius); padding: 10px; display: grid; gap: 3px; text-align: left; cursor: pointer; font: 600 var(--gl-size-body) var(--gl-font-ui); }
+.mood .tag { font: 400 var(--gl-size-small) var(--gl-font-ui); }
+.mood[aria-checked="true"] { border-color: var(--gl-accent); box-shadow: 0 0 0 1px var(--gl-accent) inset; background: color-mix(in srgb, var(--gl-accent) 12%, var(--gl-surface)); }
+.sets { display: grid; gap: 0; margin: 0; }
+.sets .row:first-child { border-top: 0; }
+.by { color: var(--gl-faint); font: 400 var(--gl-size-small) var(--gl-font-mono); margin-right: 6px; }
+.live { position: relative; aspect-ratio: 3 / 2; border-radius: var(--gl-radius-large); overflow: hidden; background: #000; }
+.live img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; will-change: transform, opacity; }
+.badge { position: absolute; top: 8px; left: 8px; display: flex; align-items: center; gap: 6px; border-radius: 99px; padding: 4px 10px; background: rgb(0 0 0 / .5); color: #fff; font: 500 11px var(--gl-font-mono); z-index: 2; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gl-accent); opacity: .35; }
+.dot.on { opacity: 1; transform: scale(1.4); }
+.dot.phrase.on { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gl-accent) 45%, transparent); }
+.timeline { display: grid; gap: 4px; }
+.ruler { position: relative; height: 12px; }
+.ruler i { position: absolute; top: 4px; width: 1px; height: 8px; background: var(--gl-faint); }
+.ruler i.ph { top: 0; height: 12px; background: var(--gl-muted); }
+.blocks { position: relative; height: 34px; }
+.blocks span { position: absolute; top: 0; bottom: 0; border-radius: 6px; overflow: hidden; background: var(--gl-hover); }
+.blocks span img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .9; }
+.blocks b { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gl-accent) 70%, transparent), transparent); z-index: 1; }
+.playhead { position: absolute; top: -16px; bottom: 0; width: 2px; background: var(--gl-ink); z-index: 2; }
+.tl-legend { display: flex; justify-content: space-between; }
+.toast { position: absolute; left: 16px; right: 16px; bottom: 16px; z-index: 6; background: var(--gl-ink); color: var(--gl-surface); border-radius: var(--gl-radius); padding: 10px 12px; display: flex; gap: 10px; align-items: center; justify-content: space-between; box-shadow: var(--gl-shadow); }
+.toast button { border: 0; background: none; color: var(--gl-accent); font: 600 var(--gl-size-body) var(--gl-font-ui); cursor: pointer; }
+.desktop .toast { left: auto; width: 420px; }
+.music { display: grid; gap: 12px; padding: 18px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); background: var(--gl-surface); }
+.radio-card { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); cursor: pointer; background: var(--gl-raised); }
+.radio-card[aria-checked="true"] { border-color: var(--gl-accent); background: color-mix(in srgb, var(--gl-accent) 12%, var(--gl-surface)); }
+.radio-card .rb { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--gl-faint); margin-top: 2px; }
+.radio-card[aria-checked="true"] .rb { border: 5px solid var(--gl-accent); }
+.radio-card small { display: block; color: var(--gl-muted); font-weight: 400; }
+@media (prefers-reduced-motion: reduce) { .dot.on { transform: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="intro">
+    <h1>Slideshow moods</h1>
+    <p>One mood per slideshow — <b>Calm</b>, <b>Lively</b> or <b>Custom</b> (today's single settings, the default). A mood sets the transition, how long a picture stays and how strongly it moves, and fits the picture times to the song's beats and phrases. Switch the song tempo to see the times adapt. Pictures are generated on a canvas.</p>
+  </div>
+  <div class="controls">
+    <div><label>Option</label><span class="seg" id="seg-variant"></span></div>
+    <div><label>Song</label><span class="seg" id="seg-tempo"></span></div>
+    <div><label>Theme</label><span class="seg" id="seg-theme"></span></div>
+    <div><label>Width</label><span class="seg" id="seg-width"></span></div>
+  </div>
+  <div class="variant-note" id="note"></div>
+  <div class="stage"><div class="frame" id="frame"></div></div>
+</div>
+
+<script>
+function noise(ctx, w, h, amount) {
+  const d = ctx.getImageData(0, 0, w, h); const p = d.data;
+  for (let i = 0; i < p.length; i += 4) { const n = (Math.random() - .5) * amount; p[i] += n; p[i + 1] += n; p[i + 2] += n; }
+  ctx.putImageData(d, 0, 0);
+}
+function cast(ctx, w, h, [r, g, b]) {
+  const d = ctx.getImageData(0, 0, w, h); const p = d.data;
+  for (let i = 0; i < p.length; i += 4) { p[i] *= r; p[i + 1] *= g; p[i + 2] *= b; }
+  ctx.putImageData(d, 0, 0);
+}
+function grad(ctx, y0, y1, stops) { const g = ctx.createLinearGradient(0, y0, 0, y1); stops.forEach(([o, c]) => g.addColorStop(o, c)); return g; }
+const SCENES = [
+  { caption: "Last light on the beach", cast: [1.08, 0.98, 0.86], draw(c, w, h) {
+    c.fillStyle = grad(c, 0, h * .6, [[0, "#3a5f9c"], [.6, "#f2a46b"], [1, "#ffd59a"]]); c.fillRect(0, 0, w, h);
+    c.fillStyle = "#fff1c8"; c.beginPath(); c.arc(w * .68, h * .52, 34, 0, 7); c.fill();
+    c.fillStyle = grad(c, h * .55, h * .78, [[0, "#2f5d84"], [1, "#183a57"]]); c.fillRect(0, h * .55, w, h * .25);
+    c.fillStyle = "rgba(255,220,160,.5)"; c.fillRect(w * .6, h * .56, w * .16, 4); c.fillRect(w * .62, h * .62, w * .12, 3);
+    c.fillStyle = grad(c, h * .78, h, [[0, "#d9b48a"], [1, "#a8835e"]]); c.fillRect(0, h * .78, w, h * .22);
+    c.fillStyle = "#1b1a22"; c.fillRect(w * .2, h * .66, 7, 34); c.beginPath(); c.arc(w * .2 + 3.5, h * .64, 7, 0, 7); c.fill(); } },
+  { caption: "Morning at the lake", cast: [0.88, 0.97, 1.12], draw(c, w, h) {
+    c.fillStyle = grad(c, 0, h * .5, [[0, "#8fb8e6"], [1, "#dfeaf3"]]); c.fillRect(0, 0, w, h);
+    const peaks = (y, col, pts) => { c.fillStyle = col; c.beginPath(); c.moveTo(0, h * .62); pts.forEach(([x, py]) => c.lineTo(w * x, h * py)); c.lineTo(w, h * .62); c.fill(); };
+    peaks(0, "#6e7f99", [[.1, .4], [.25, .22], [.4, .42], [.55, .28], [.72, .18], [.9, .4], [1, .35]]);
+    c.fillStyle = "#f4f7fb"; c.beginPath(); c.moveTo(w * .66, h * .26); c.lineTo(w * .72, h * .18); c.lineTo(w * .78, h * .27); c.fill();
+    peaks(0, "#3f5e3c", [[.0, .52], [.2, .45], [.35, .55], [.6, .47], [.8, .55], [1, .5]]);
+    c.fillStyle = grad(c, h * .62, h, [[0, "#5d84a6"], [1, "#24425e"]]); c.fillRect(0, h * .62, w, h * .38);
+    c.fillStyle = "#c2412f"; c.fillRect(w * .3, h * .74, 40, 6); } },
+  { caption: "Market street", cast: [0.95, 1.1, 0.9], draw(c, w, h) {
+    c.fillStyle = "#c9d6de"; c.fillRect(0, 0, w, h);
+    const cols = ["#c96f4a", "#e0b65c", "#7c9a8a", "#b9576a", "#d9c7a7", "#5f7ea1"];
+    for (let i = 0; i < 6; i++) { const x = i * w / 6; const top = h * (.08 + (i % 3) * .06); c.fillStyle = cols[i]; c.fillRect(x, top, w / 6 + 1, h * .75);
+      c.fillStyle = "rgba(30,30,40,.55)"; for (let r = 0; r < 4; r++) for (let k = 0; k < 2; k++) c.fillRect(x + 12 + k * 30, top + 14 + r * 38, 18, 24); }
+    c.fillStyle = "#4b4a50"; c.fillRect(0, h * .8, w, h * .2);
+    ["#e8463a", "#f2c230", "#2f8f6d", "#3b6fd8"].forEach((col, i) => { c.fillStyle = col; c.fillRect(30 + i * 110, h * .64, 80, 10); c.fillStyle = "#f3efe6"; c.fillRect(34 + i * 110, h * .67, 72, 22); }); } },
+  { caption: "Into the woods", cast: [1.02, 1.0, 0.94], draw(c, w, h) {
+    c.fillStyle = grad(c, 0, h, [[0, "#e7efd6"], [1, "#9cb37c"]]); c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 14; i++) { const x = (i * 37) % w; const s = 40 + (i * 13) % 50; c.fillStyle = i % 2 ? "#2f5a35" : "#3f6b3a";
+      c.beginPath(); c.moveTo(x, h * .85); c.lineTo(x + s / 2, h * .85 - s * 2.6); c.lineTo(x + s, h * .85); c.fill(); }
+    c.fillStyle = "#8a6a45"; c.beginPath(); c.moveTo(w * .42, h); c.lineTo(w * .5, h * .7); c.lineTo(w * .56, h * .7); c.lineTo(w * .7, h); c.fill();
+    c.fillStyle = "rgba(255,245,200,.35)"; c.beginPath(); c.moveTo(w * .7, 0); c.lineTo(w * .9, 0); c.lineTo(w * .55, h); c.lineTo(w * .45, h); c.fill(); } },
+  { caption: "Grandma's garden", cast: [1.05, 0.96, 1.03], draw(c, w, h) {
+    c.fillStyle = grad(c, 0, h, [[0, "#a9cbe8"], [.45, "#e9f0f2"], [.46, "#6f9a4e"], [1, "#466d33"]]); c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 40; i++) { const x = (i * 53) % w, y = h * .55 + ((i * 29) % 120); c.fillStyle = ["#e35d6a", "#f4d35e", "#f7f1ee", "#b46ad8"][i % 4];
+      c.beginPath(); c.arc(x, y, 6 + (i % 3) * 2, 0, 7); c.fill(); } } },
+];
+const W = 480, H = 320;
+function render(scene, balanced) {
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const c = cv.getContext("2d", { willReadFrequently: true });
+  scene.draw(c, W, H); noise(c, W, H, 14); cast(c, W, H, scene.cast);
+  if (balanced) { // gray world: scale each channel so the picture's average is neutral
+    const d = c.getImageData(0, 0, W, H), p = d.data, sum = [0, 0, 0];
+    for (let i = 0; i < p.length; i += 4) { sum[0] += p[i]; sum[1] += p[i + 1]; sum[2] += p[i + 2]; }
+    const avg = (sum[0] + sum[1] + sum[2]) / 3; const k = sum.map((s) => 1 + .7 * (avg / s - 1));
+    for (let i = 0; i < p.length; i += 4) { p[i] *= k[0]; p[i + 1] *= k[1]; p[i + 2] *= k[2]; }
+    c.putImageData(d, 0, 0);
+  }
+  return cv.toDataURL("image/jpeg", .86);
+}
+
+const PICS = SCENES.map((s) => ({ caption: s.caption, src: render(s, false) }));
+
+/* A mood: target seconds per picture, snapped to whole groups of beats (4 = a phrase); motion zoom; fade share. */
+const MOODS = [
+  { id: "calm", name: "Calm", tag: "Slow, soft", targetS: 7, groupBeats: 4, transition: "Crossfade", effects: ["fade"], fadeShare: 0.4, fadeCapS: 1.6, zoom: 1.08, motion: "Gentle" },
+  { id: "lively", name: "Lively", tag: "Quick, on the beat", targetS: 3, groupBeats: 2, transition: "Mixed", effects: ["slide", "zoom", "fade"], fadeShare: 0.15, fadeCapS: 0.5, zoom: 1.25, motion: "Strong" },
+  { id: "custom", name: "Custom", tag: "Your settings", fixedS: 5, transition: "Crossfade", effects: ["fade"], fadeShare: 0.3, fadeCapS: 1, zoom: 1.15, motion: "Automatic" },
+];
+const TEMPOS = { slow: { name: "Slow song", bpm: 76 }, fast: { name: "Fast song", bpm: 128 }, none: { name: "No beat found", bpm: 0 } };
+const VARIANTS = {
+  A: "<b>A · Mood sheet (recommended).</b> A Mood row on the slideshow screen opens a sheet like the Look sheet: a live preview plays the first pictures with the mood's motion, transitions and picture times on the song's beat; below, what the mood sets. Transitions, picture times and Ken Burns show “by mood” and stay changeable — changing one turns the mood into Custom with the values kept.",
+  B: "<b>B · Inline choice with a beat timeline.</b> The mood is a three-way switch right in the slideshow panel; under it a timeline shows where picture changes land on the beats and phrases, with a play head. No sheet, but no moving picture either.",
+  C: "<b>C · In the music editor.</b> The mood sits beside the song, where picture times are set today, as radio cards that replace “Picture times”; the beat timeline previews it. Close to the tempo, but further from Transitions and Look.",
+};
+const state = { variant: "A", tempo: "slow", theme: "light", width: "phone", mood: "calm", sheet: true, toast: "" };
+const mood = () => MOODS.find((m) => m.id === state.mood);
+
+function pictureSeconds(m, bpm) {
+  if (m.fixedS) return { s: m.fixedS, beats: 0 };
+  if (!bpm) return { s: m.targetS, beats: 0 };
+  const groupS = (m.groupBeats * 60) / bpm;
+  const groups = Math.max(1, Math.round(m.targetS / groupS));
+  return { s: groups * groupS, beats: groups * m.groupBeats };
+}
+const fadeSeconds = (m, s) => Math.min(m.fadeCapS, s * m.fadeShare);
+function timesText(m) {
+  const { s, beats } = pictureSeconds(m, TEMPOS[state.tempo].bpm);
+  if (m.fixedS) return `${s} s each`;
+  return beats ? `~${s.toFixed(1)} s · ${beats} beats` : `~${s} s · evenly`;
+}
+
+/* ---------- pieces ---------- */
+const img = (i) => `<img src="${PICS[i % PICS.length].src}" alt="">`;
+const moodPill = () => `<span class="pill ${state.mood === "custom" ? "" : "own"}">${mood().name}</span>`;
+const byMood = (v) => state.mood === "custom" ? `<span class="pill">${v}</span>` : `<span class="by">by mood</span><span class="pill">${v}</span>`;
+function settingRows() {
+  const m = mood();
+  return `<div class="row action"><dt>Picture times</dt><dd>${byMood(timesText(m))}</dd><dd><button class="link" data-single>Change</button></dd></div>
+    <div class="row action"><dt>Transitions</dt><dd>${byMood(m.transition)}</dd><dd><button class="link" data-single>Change</button></dd></div>
+    <div class="row action"><dt>Ken Burns</dt><dd>${byMood(m.motion)}</dd><dd><button class="link" data-single>Change</button></dd></div>`;
+}
+function moodChoice(cls) {
+  return `<div class="moods" role="radiogroup" aria-label="Mood">${MOODS.map((m) => `<button class="${cls}" role="radio" aria-checked="${m.id === state.mood}" data-mood="${m.id}">${cls === "radio-card" ? `<span class="rb"></span><span>${m.name}<small>${m.tag} · ${timesText(m)}</small></span>` : `${m.name}<span class="tag">${m.tag}</span>`}</button>`).join("")}</div>`;
+}
+function panel() {
+  const moodRow = state.variant === "A"
+    ? `<div class="row action"><dt>Mood</dt><dd>${moodPill()}</dd><dd><button class="link" data-act="open">Change</button></dd></div>`
+    : state.variant === "B"
+      ? `<div class="row" style="grid-template-columns:1fr"><dt>Mood</dt></div>${moodChoice("mood")}${timeline()}`
+      : `<div class="row action"><dt>Mood</dt><dd>${moodPill()}</dd><dd><span class="mono">set with the music</span></dd></div>`;
+  return `<aside class="panel">
+    <div><div class="eyebrow">Slideshow</div><div class="title">Summer 2026</div><div class="mono">12 Jul – 2 Aug 2026 · 5 pictures</div></div>
+    <button class="btn primary">▶ Play</button>
+    <dl class="rows">
+      <div class="row action"><dt>Music</dt><dd class="value">${TEMPOS[state.tempo].name}</dd><dd><button class="link" data-act="music">Edit</button></dd></div>
+      ${moodRow}${settingRows()}
+      <div class="row action"><dt>Look</dt><dd><span class="pill">None</span></dd><dd><button class="link">Change</button></dd></div>
+    </dl></aside>`;
+}
+function strip() {
+  return `<div class="strip">${PICS.map((_, i) => `<div class="tile">${img(i)}</div>`).join("")}</div>`;
+}
+function liveBox() {
+  const bpm = TEMPOS[state.tempo].bpm;
+  return `<div class="live" id="live"><img id="la" alt=""><img id="lb" alt="">
+    <span class="badge">${bpm ? `<span class="dot" id="dot"></span>♪ ${bpm} BPM` : "♪ no beat found"} · ${mood().name}</span></div>`;
+}
+const PREVIEW_S = 12;
+function timeline() {
+  const m = mood(), bpm = TEMPOS[state.tempo].bpm, { s } = pictureSeconds(m, bpm);
+  const pct = (t) => `${(100 * t) / PREVIEW_S}%`;
+  let ticks = "";
+  if (bpm) for (let b = 0, t = 0; t < PREVIEW_S; b++, t = (b * 60) / bpm) ticks += `<i class="${b % 4 ? "" : "ph"}" style="left:${pct(t)}"></i>`;
+  let blocks = "";
+  for (let i = 0, t = 0; t < PREVIEW_S; i++, t += s) {
+    blocks += `<span style="left:${pct(t)};width:calc(${pct(Math.min(s, PREVIEW_S - t))} - 2px)">${img(i)}</span>`;
+    const f = fadeSeconds(m, s);
+    if (t + s < PREVIEW_S) blocks += `<b style="left:${pct(t + s - f / 2)};width:${pct(f)}"></b>`;
+  }
+  return `<div class="timeline"><div class="ruler">${ticks}</div><div class="blocks">${blocks}<span class="playhead" id="ph" style="left:0;background:var(--gl-ink);border-radius:0"></span></div>
+    <div class="tl-legend mono"><span>0 s</span><span>${bpm ? "tall tick = phrase (4 beats)" : "no beats: even times"}</span><span>${PREVIEW_S} s</span></div></div>`;
+}
+function whatItSets() {
+  const m = mood();
+  return `<dl class="sets"><div class="row"><dt>Picture times</dt><dd class="value">${timesText(m)}</dd></div>
+    <div class="row"><dt>Transitions</dt><dd class="value">${m.transition}, ${m.id === "calm" ? "long" : m.id === "lively" ? "short" : "standard"}</dd></div>
+    <div class="row"><dt>Ken Burns</dt><dd class="value">${m.motion}</dd></div></dl>`;
+}
+function sheet() {
+  return `<div class="scrim" data-act="close"><div class="sheet" role="dialog" aria-labelledby="mood-title" data-stop>
+    <div class="sheet-head"><h2 id="mood-title">Mood</h2>${moodPill()}</div>
+    ${liveBox()}
+    ${moodChoice("mood")}
+    ${whatItSets()}
+    <p class="hint">${state.mood === "custom" ? "Your own picture times, transitions and Ken Burns, as set on the slideshow." : "Picture times follow the song's beats and phrases. Pictures with their own duration, transition or motion keep them."}</p>
+    <footer class="sheet-foot"><button class="btn ghost" data-mood="custom">Back to Custom</button><button class="btn primary" data-act="close">Done</button></footer>
+  </div></div>`;
+}
+function musicEditor() {
+  return `<section class="music"><div class="eyebrow">Music</div><div class="title">${TEMPOS[state.tempo].name}</div>
+    <div class="mono">${TEMPOS[state.tempo].bpm ? `${TEMPOS[state.tempo].bpm} BPM · beats found` : "no beat found"}</div>
+    <div class="row" style="grid-template-columns:1fr"><dt>Mood</dt></div>
+    <div style="display:grid;gap:8px" role="radiogroup">${MOODS.map((m) => `<div class="radio-card" role="radio" aria-checked="${m.id === state.mood}" data-mood="${m.id}"><span class="rb"></span><span><b>${m.name}</b><small>${m.tag} · ${timesText(m)} · ${m.transition} · ${m.motion} motion</small></span></div>`).join("")}</div>
+    ${timeline()}
+    <button class="btn" data-act="back">Done</button></section>`;
+}
+function toast() {
+  return state.toast ? `<div class="toast" role="status"><span>${state.toast}</span><button data-act="undo">Undo</button></div>` : "";
+}
+
+/* ---------- live preview loop ---------- */
+let raf = 0, t0 = 0, last = { mood: "", tempo: "" };
+function tick(now) {
+  const box = document.getElementById("live"), ph = document.getElementById("ph");
+  if (!box && !ph) return;
+  if (last.mood !== state.mood || last.tempo !== state.tempo) { t0 = now; last = { mood: state.mood, tempo: state.tempo }; }
+  const m = mood(), bpm = TEMPOS[state.tempo].bpm, { s } = pictureSeconds(m, bpm), f = fadeSeconds(m, s);
+  const t = ((now - t0) / 1000) % PREVIEW_S;
+  if (ph) ph.style.left = `${(100 * t) / PREVIEW_S}%`;
+  if (box) {
+    const i = Math.floor(t / s), local = t - i * s, a = document.getElementById("la"), b = document.getElementById("lb");
+    const kb = (p, k) => `scale(${1 + (m.zoom - 1) * p}) translateX(${(k % 2 ? -1 : 1) * (m.zoom - 1) * 12 * p}%)`;
+    if (a.dataset.i != i) { a.src = PICS[i % PICS.length].src; a.dataset.i = i; }
+    if (b.dataset.i != i + 1) { b.src = PICS[(i + 1) % PICS.length].src; b.dataset.i = i + 1; }
+    const into = local - (s - f / 2), p = Math.max(0, Math.min(1, into / f));
+    const effect = m.effects[i % m.effects.length];
+    a.style.transform = kb(local / s, i); a.style.opacity = 1;
+    b.style.opacity = 0; b.style.transform = kb(0, i + 1);
+    if (into > 0) {
+      if (effect === "fade") { b.style.opacity = p; }
+      else if (effect === "slide") { b.style.opacity = 1; b.style.transform = `translateX(${(1 - p) * 100}%) ${kb(0, i + 1)}`; a.style.transform = `translateX(${-p * 100}%) ${kb(local / s, i)}`; }
+      else { b.style.opacity = p; b.style.transform = `scale(${1.3 - 0.3 * p})`; }
+    }
+    const dot = document.getElementById("dot");
+    if (dot && bpm) { const beat = (60 / bpm), phase = (t % beat) / beat, n = Math.floor(t / beat); dot.classList.toggle("on", phase < 0.18); dot.classList.toggle("phrase", n % 4 === 0); }
+  }
+  raf = requestAnimationFrame(tick);
+}
+
+/* ---------- render ---------- */
+function seg(id, items, key) {
+  document.getElementById(id).innerHTML = items.map(([v, l]) => `<button aria-pressed="${state[key] === v}" data-seg="${key}" data-val="${v}">${l}</button>`).join("");
+}
+function draw() {
+  document.documentElement.dataset.theme = state.theme;
+  seg("seg-variant", [["A", "A · Sheet"], ["B", "B · Inline"], ["C", "C · Music editor"]], "variant");
+  seg("seg-tempo", Object.entries(TEMPOS).map(([k, v]) => [k, v.bpm ? `${v.name} · ${v.bpm} BPM` : v.name]), "tempo");
+  seg("seg-theme", [["light", "Light"], ["dark", "Dark"]], "theme");
+  seg("seg-width", [["phone", "Phone 412"], ["desktop", "Desktop"]], "width");
+  document.getElementById("note").innerHTML = VARIANTS[state.variant];
+  const fr = document.getElementById("frame");
+  fr.className = `frame ${state.width}`;
+  const body = state.variant === "C" && state.sheet ? musicEditor() : `${strip()}${panel()}`;
+  fr.innerHTML = `<div class="hdr"><b>Glissando</b> · Summer 2026</div><div class="edit">${body}</div>${state.variant === "A" && state.sheet ? sheet() : ""}${toast()}`;
+  cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
+}
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-seg],[data-mood],[data-act],[data-single],[data-stop]");
+  if (!el) return;
+  if (el.dataset.seg) { state[el.dataset.seg] = el.dataset.val; if (el.dataset.seg === "variant") state.sheet = el.dataset.val !== "B"; state.toast = ""; }
+  else if (el.dataset.mood) { state.mood = el.dataset.mood; state.toast = ""; }
+  else if (el.dataset.single !== undefined) {
+    if (state.mood !== "custom") { const m = mood(); state.prev = state.mood; state.mood = "custom"; state.toast = `Mood is now Custom — ${m.name}'s settings kept to change.`; }
+  }
+  else if (el.dataset.act === "undo") { state.mood = state.prev || state.mood; state.toast = ""; }
+  else if (el.dataset.act === "open" || (el.dataset.act === "music" && state.variant === "C")) { state.sheet = true; state.toast = ""; }
+  else if (el.dataset.act === "close" || el.dataset.act === "back") { if (e.target !== el && el.dataset.act === "close" && el.classList.contains("scrim") && e.target.closest("[data-stop]")) return; state.sheet = false; }
+  else if (el.dataset.stop !== undefined) return;
+  draw();
+});
+if (matchMedia("(prefers-color-scheme: dark)").matches) state.theme = "dark";
+for (const [k, v] of new URLSearchParams(location.search)) if (k in state) state[k] = v === "false" ? false : v;
+draw();
+</script>
+</body>
+</html>
