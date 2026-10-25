@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Energy In Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif; --gl-font-display: "Bricolage Grotesque", system-ui, sans-serif; --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-size-small: 12px; --gl-size-label: 13px; --gl-size-body: 14px; --gl-size-name: 17px; --gl-size-heading: 26px;
+  --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-tile: 8px;
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33; --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-backdrop: rgb(20 17 28 / .38);
+  --gl-card-plum: #2a2340; --gl-card-cream: #f7efe3;
+  --gl-shadow: 0 1px 2px rgb(34 29 51 / .06), 0 6px 18px rgb(34 29 51 / .06);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .3); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .3); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font: var(--gl-size-body)/1.4 var(--gl-font-ui); }
+.page { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; display: grid; gap: 18px; }
+h1 { font: 700 var(--gl-size-heading) var(--gl-font-display); margin: 0; }
+.intro p { margin: 6px 0 0; color: var(--gl-muted); max-width: 72ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.controls label { font: 600 12px var(--gl-font-ui); color: var(--gl-muted); text-transform: uppercase; letter-spacing: .04em; margin-right: 6px; }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; color: var(--gl-ink); font: 500 13px var(--gl-font-ui); padding: 7px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.stage { display: flex; justify-content: center; }
+.frame { width: 100%; max-width: 412px; border: 1px solid var(--gl-line); border-radius: 18px; background: var(--gl-ground); overflow: hidden; box-shadow: 0 20px 60px rgb(20 14 40 / .14); }
+.hdr { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); font-size: 13px; color: var(--gl-muted); }
+.hdr b { color: var(--gl-ink); }
+.under { padding: 16px; }
+.panel { padding: 18px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); background: var(--gl-surface); display: grid; gap: 6px; }
+.title { font: 700 22px var(--gl-font-display); margin: 0 0 6px; }
+dl { margin: 0; }
+.row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--gl-line); }
+dl .row:first-child { border-top: 0; }
+dt { color: var(--gl-muted); } dd { margin: 0; text-align: right; }
+.mono { font-family: var(--gl-font-mono); }
+.by { display: block; color: var(--gl-faint); font: 400 var(--gl-size-small) var(--gl-font-mono); }
+.link { border: 0; background: none; color: var(--gl-ink); font: 600 var(--gl-size-body) var(--gl-font-ui); text-decoration: underline; text-decoration-color: var(--gl-accent); text-underline-offset: 3px; cursor: pointer; padding: 4px 0; margin-left: 10px; }
+.row.energy { background: color-mix(in srgb, var(--gl-accent) 0%, transparent); }
+.row.energy dt { color: var(--gl-ink); }
+.row.energy small { display: block; color: var(--gl-muted); font-size: var(--gl-size-label); }
+.switch { width: 40px; height: 24px; border-radius: 99px; border: 0; background: var(--gl-line); position: relative; cursor: pointer; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--gl-surface); box-shadow: 0 1px 2px rgb(0 0 0 / .3); transition: left .15s; }
+.switch[aria-checked="true"] { background: var(--gl-accent); }
+.switch[aria-checked="true"]::after { left: 19px; }
+.note { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); padding: 12px 14px; color: var(--gl-muted); }
+.note b { color: var(--gl-ink); }
+@media (prefers-reduced-motion: reduce) { .switch::after { transition: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="intro">
+    <h1>Energy pacing in the info panel</h1>
+    <p>“Follow the music's energy” gets its own switch row in the slideshow's info panel, right under Picture times, so it is one tap away without opening the Mood sheet. The Mood sheet keeps its switch too; both store the same setting. The row shows only when the slideshow has music.</p>
+  </div>
+  <div class="controls">
+    <div><label>Theme</label><span class="seg" id="theme"><button data-v="light" aria-pressed="true">Light</button><button data-v="dark" aria-pressed="false">Dark</button></span></div>
+    <div><label>Mood</label><span class="seg" id="mood"><button data-v="Calm" aria-pressed="true">Calm</button><button data-v="Custom" aria-pressed="false">Custom</button></span></div>
+    <div><label>Music</label><span class="seg" id="music"><button data-v="yes" aria-pressed="true">With music</button><button data-v="no" aria-pressed="false">No music</button></span></div>
+  </div>
+  <div class="note" id="note"></div>
+  <div class="stage"><div class="frame">
+    <div class="hdr"><span>‹ Library</span><b>Summer by the Lake</b></div>
+    <div class="under"><div class="panel">
+      <p class="title">Summer by the Lake</p>
+      <dl id="rows"></dl>
+    </div></div>
+  </div></div>
+</div>
+<script>
+const state = { theme: "light", mood: "Calm", music: "yes", energy: false };
+function seg(id, key) {
+  document.querySelectorAll(`#${id} button`).forEach((b) => b.onclick = () => {
+    state[key] = b.dataset.v;
+    document.querySelectorAll(`#${id} button`).forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    render();
+  });
+}
+seg("theme", "theme"); seg("mood", "mood"); seg("music", "music");
+function row(dt, dd) { return `<div class="row"><dt>${dt}</dt><dd>${dd}</dd></div>`; }
+function render() {
+  document.documentElement.dataset.theme = state.theme;
+  const music = state.music === "yes", calm = state.mood === "Calm", on = music && state.energy;
+  let times;
+  if (calm) times = on ? `<span class="mono">4 s – 14 s</span><span class="by">· by energy</span>` : `<span class="mono">7 s</span><span class="by">by mood</span>`;
+  else times = `<span class="mono">5 s</span>${on ? `<span class="by">follows the energy</span>` : ""}`;
+  let html = row("Pictures", `<span class="mono">42</span>`)
+    + row("Duration", `<span class="mono">2:49</span>`)
+    + row("Music", `${music ? "Arrival at Dawn" : "None"}<button class="link">${music ? "Edit" : "Add music"}</button>`)
+    + row("Mood", `${state.mood}<button class="link">Change</button>`)
+    + row("Picture times", times);
+  if (music) html += `<div class="row energy"><dt>Follow the music's energy<small>Slower when it's quiet, quicker when it's loud</small></dt><dd><button class="switch" role="switch" aria-checked="${on}" aria-label="Follow the music's energy" id="sw"></button></dd></div>`;
+  html += row("Ken Burns", calm ? `Gentle<span class="by">by mood</span>` : "Medium")
+    + row("Transitions", `Crossfade<button class="link">Change</button>`);
+  document.getElementById("rows").innerHTML = html;
+  const sw = document.getElementById("sw");
+  if (sw) sw.onclick = () => { state.energy = !state.energy; render(); };
+  document.getElementById("note").innerHTML = !music
+    ? "<b>No music:</b> there is no energy to follow, so the row is not shown."
+    : on ? "<b>On:</b> Picture times shows the range by energy (under a mood) or “follows the energy” (under Custom). Tap the switch to turn it off — it stores at once, like in the Mood sheet."
+    : "<b>Off:</b> tap the switch — it stores at once and the picture times follow the music's energy.";
+}
+render();
+</script>
+</body>
+</html>
