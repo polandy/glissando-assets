@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Title Slide Repetition</title>
+<style>
+:root {
+  --ground: #F6F5F8; --surface: #FFFFFF; --raised: #FBFAFC; --ink: #221D33;
+  --muted: #6B6580; --line: #E5E2EB; --accent: #FF9F7F; --accent-ink: #2A1A14;
+  --mint: #6FCFB4; --coral: #F2786B;
+  --ui: "Instrument Sans", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #121019; --surface: #1A1723; --raised: #221E2D; --ink: #EDEAF3;
+    --muted: #9A94AB; --line: #2C2838; --accent: #FFB59A;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #121019; --surface: #1A1723; --raised: #221E2D; --ink: #EDEAF3;
+  --muted: #9A94AB; --line: #2C2838; --accent: #FFB59A;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.45 var(--ui); }
+main { max-width: 1240px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font: 700 26px/1.2 var(--display); margin: 0 0 6px; }
+h2 { font: 700 19px/1.2 var(--display); margin: 40px 0 6px; }
+p.lead, p.note { color: var(--muted); margin: 0 0 14px; max-width: 70ch; }
+.seg { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; margin: 6px 0 18px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; color: var(--ink); font: 500 14px var(--ui); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+.col { display: grid; gap: 8px; width: min(412px, 100%); }
+.col.wide { width: min(640px, 100%); }
+.col.wider { width: min(760px, 100%); }
+.cap { font: 500 12px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+/* Card sheet */
+.sheet { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 20px 20px 0 0; padding: 14px 16px 18px; box-shadow: 0 -6px 30px #0002; }
+.sheet.wide { border-radius: 16px; }
+.grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 12px; }
+.sheet h3 { margin: 0 0 12px; font: 600 16px var(--ui); }
+.field { margin-top: 12px; }
+.field label { display: flex; justify-content: space-between; font: 500 13px var(--ui); color: var(--muted); margin-bottom: 4px; }
+.field label span { font-family: var(--mono); }
+.field input { width: 100%; font: 400 15px var(--ui); color: var(--ink); background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.field input::placeholder { color: var(--muted); opacity: .6; }
+.diff { outline: 2px solid var(--mint); outline-offset: 2px; }
+
+/* 16:9 stage with a generated "picture" */
+.stage { position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 12px; overflow: hidden; color: #fff;
+  background: radial-gradient(120% 90% at 20% 30%, #F7B267 0%, transparent 55%),
+              radial-gradient(90% 80% at 80% 70%, #2E6F95 0%, transparent 60%),
+              linear-gradient(160deg, #F4845F, #3A2E5C); }
+.stage.pic2 { background: radial-gradient(100% 80% at 70% 20%, #9AD1D4 0%, transparent 55%), linear-gradient(200deg, #5B8E7D, #1F3B4D); }
+.stage .veil { position: absolute; inset: 0; background: #2A234099; }
+.stage .card { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 0 8%; }
+.stage .card b { font: 700 clamp(20px, 6.4cqw, 52px)/1.05 var(--display); }
+.stage .card i { font: 400 clamp(11px, 2.4cqw, 20px)/1.3 var(--ui); font-style: normal; opacity: .9; margin-top: .4em; }
+.stage { container-type: inline-size; }
+.stage .card i:empty { display: none; }
+
+/* Player */
+.player { position: relative; background: #000; border-radius: 14px; overflow: hidden; container-type: inline-size; }
+.player.phone { width: 100%; aspect-ratio: 412 / 232; }
+.player.desk { width: 100%; aspect-ratio: 16 / 9; }
+.player .stage { position: absolute; inset: 0; border-radius: 0; aspect-ratio: auto; }
+.top { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 10px; padding: 10px 12px 26px; color: #fff;
+  background: linear-gradient(#000a, transparent); }
+.glass { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #ffffff26; backdrop-filter: blur(8px); font-size: 15px; }
+.heading { flex: 1; min-width: 0; display: grid; }
+.heading .name { font: 700 15px/1.2 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.heading small { font: 400 11px var(--mono); opacity: .7; }
+.counter { font: 500 12px var(--mono); }
+.bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 12px 10px; background: linear-gradient(transparent, #000a); color: #fff; display: flex; align-items: center; gap: 10px; }
+.bar { flex: 1; height: 4px; border-radius: 2px; background: #ffffff40; position: relative; }
+.bar::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p, 4%); background: #fff; border-radius: 2px; }
+.play { width: 34px; height: 34px; border-radius: 50%; background: #fff; color: #000; display: grid; place-items: center; font-size: 13px; }
+.time { font: 400 11px var(--mono); }
+.repeat { position: relative; }
+.repeat::after { content: ""; position: absolute; inset: -3px -5px; border: 2px dashed var(--coral); border-radius: 6px; }
+@media (max-width: 520px) { .row { gap: 18px; } h1 { font-size: 22px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Stop the title slide repeating its title</h1>
+  <p class="lead">Today, a new title slide shows "July 2025" twice, and the player's top bar shows it a third time.
+    The fix has two parts. A new title slide gets an empty subtitle while the slideshow keeps its automatic month title, and the day range once you have renamed the slideshow.
+    On a title or closing slide, the top bar shows no heading. Pictures are generated gradients.</p>
+
+  <h2>1 · A new title slide's text</h2>
+  <p class="note">This is the card sheet as it opens for a slideshow that has no title slide yet. The default is set once, when the slide is created. After that the fields are yours.</p>
+  <div class="seg" role="group" aria-label="Slideshow title">
+    <button type="button" data-title="auto" aria-pressed="true">Automatic title "July 2025"</button>
+    <button type="button" data-title="renamed" aria-pressed="false">Renamed to "Sardinia"</button>
+    <button type="button" data-title="before" aria-pressed="false">Today (before)</button>
+  </div>
+  <div class="row">
+    <div class="col"><span class="cap">Phone · 412 px</span>
+      <div class="sheet" data-sheet>
+        <div class="grab"></div><h3>Title slide</h3>
+        <div class="stage"><div class="veil"></div><div class="card"><b data-t></b><i data-s></i></div></div>
+        <div class="field"><label>Title <span data-tc></span></label><input data-ti readonly></div>
+        <div class="field"><label>Subtitle <span data-sc></span></label><input data-si readonly placeholder=""></div>
+      </div></div>
+    <div class="col wide"><span class="cap">Desktop · dialog from 720 px</span>
+      <div class="sheet wide" data-sheet>
+        <h3>Title slide</h3>
+        <div class="stage"><div class="veil"></div><div class="card"><b data-t></b><i data-s></i></div></div>
+        <div class="field"><label>Title <span data-tc></span></label><input data-ti readonly></div>
+        <div class="field"><label>Subtitle <span data-sc></span></label><input data-si readonly placeholder=""></div>
+      </div></div>
+  </div>
+
+  <h2>2 · The player's top bar over the title slide</h2>
+  <p class="note">The controls show when the player opens, so the title slide's first seconds run under the top bar. On a card slide, the heading (title and date) is left out. Close, the counter and fullscreen stay. On a picture slide, nothing changes.</p>
+  <div class="seg" role="group" aria-label="Player state">
+    <button type="button" data-player="after" aria-pressed="true">Title slide · new</button>
+    <button type="button" data-player="before" aria-pressed="false">Title slide · today</button>
+    <button type="button" data-player="picture" aria-pressed="false">Next picture · unchanged</button>
+  </div>
+  <div class="row">
+    <div class="col"><span class="cap">Phone landscape</span><div class="player phone" data-player-view></div></div>
+    <div class="col wider"><span class="cap">Desktop</span><div class="player desk" data-player-view></div></div>
+  </div>
+</main>
+<script>
+const TITLES = {
+  auto:    { title: "July 2025", subtitle: "" },
+  renamed: { title: "Sardinia",  subtitle: "12–28 July 2025" },
+  before:  { title: "July 2025", subtitle: "July 2025" },
+};
+function showTitle(key) {
+  const { title, subtitle } = TITLES[key];
+  document.querySelectorAll("[data-title]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.title === key)));
+  document.querySelectorAll("[data-sheet]").forEach(sheet => {
+    sheet.querySelector("[data-t]").textContent = title;
+    sheet.querySelector("[data-s]").textContent = subtitle;
+    sheet.querySelector("[data-ti]").value = title;
+    sheet.querySelector("[data-si]").value = subtitle;
+    sheet.querySelector("[data-tc]").textContent = `${title.length} / 80`;
+    sheet.querySelector("[data-sc]").textContent = `${subtitle.length} / 80`;
+    sheet.querySelector("[data-si]").classList.toggle("diff", key !== "before");
+  });
+}
+const PLAYER = {
+  after:   { card: true,  heading: null, counter: "1 / 13", p: "2%" },
+  before:  { card: true,  heading: { name: "July 2025", date: "12 July 2025" }, counter: "1 / 13", p: "2%", repeat: true },
+  picture: { card: false, heading: { name: "July 2025", date: "12 July 2025" }, counter: "2 / 13", p: "9%" },
+};
+function showPlayer(key) {
+  const s = PLAYER[key];
+  document.querySelectorAll("[data-player]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.player === key)));
+  const subtitle = key === "before" ? "July 2025" : "";
+  const stage = s.card
+    ? `<div class="stage"><div class="veil"></div><div class="card"><b>July 2025</b><i>${subtitle}</i></div></div>`
+    : `<div class="stage pic2"></div>`;
+  const heading = s.heading
+    ? `<div class="heading"><span class="name${s.repeat ? " repeat" : ""}">${s.heading.name}</span><small>${s.heading.date}</small></div>`
+    : `<div class="heading"></div>`;
+  document.querySelectorAll("[data-player-view]").forEach(view => {
+    view.innerHTML = `${stage}
+      <div class="top"><span class="glass" aria-hidden="true">✕</span>${heading}<span class="counter">${s.counter}</span><span class="glass" aria-hidden="true">⤢</span></div>
+      <div class="bottom"><span class="play" aria-hidden="true">❚❚</span><span class="bar" style="--p:${s.p}"></span><span class="time">0:01 / 1:04</span></div>`;
+  });
+}
+document.querySelectorAll("[data-title]").forEach(b => b.addEventListener("click", () => showTitle(b.dataset.title)));
+document.querySelectorAll("[data-player]").forEach(b => b.addEventListener("click", () => showPlayer(b.dataset.player)));
+showTitle("auto"); showPlayer("after");
+</script>
+</body>
+</html>
