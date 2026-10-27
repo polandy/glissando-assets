@@ -1,0 +1,223 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Slideshow Details Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif; --gl-font-display: "Bricolage Grotesque", system-ui, sans-serif; --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-size-small: 12px; --gl-size-label: 13px; --gl-size-body: 14px; --gl-size-name: 17px; --gl-size-heading: 26px;
+  --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-tile: 8px;
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33; --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-backdrop: rgb(20 17 28 / .38);
+  --gl-shadow: 0 1px 2px rgb(34 29 51 / .06), 0 6px 18px rgb(34 29 51 / .06);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .3); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3; --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .3); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font: var(--gl-size-body)/1.4 var(--gl-font-ui); }
+.page { padding-inline: 16px; padding-block: 24px 48px; max-width: 1240px; margin: 0 auto; display: grid; gap: 18px; }
+h1 { font: 700 var(--gl-size-heading)/1.15 var(--gl-font-display); margin: 0; text-wrap: balance; }
+.intro p { margin: 6px 0 0; color: var(--gl-muted); max-width: 72ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.controls .grp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.controls .lbl { font: 600 12px var(--gl-font-ui); color: var(--gl-muted); text-transform: uppercase; letter-spacing: .04em; }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; color: var(--gl-ink); font: 500 13px var(--gl-font-ui); padding: 7px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+button:focus-visible { outline: 2px solid var(--gl-accent); outline-offset: 2px; }
+
+.stage { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+.col { display: grid; gap: 8px; flex: 1 1 360px; min-width: 0; max-width: 412px; }
+.stage.desktop .col { max-width: 100%; flex-basis: 100%; }
+.coltitle { font: 600 var(--gl-size-label) var(--gl-font-ui); color: var(--gl-muted); }
+.coltitle b { color: var(--gl-ink); }
+.frame { width: 100%; border: 1px solid var(--gl-line); border-radius: 18px; background: var(--gl-ground); overflow: hidden; box-shadow: 0 20px 60px rgb(20 14 40 / .12); }
+.appbar { display: flex; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); font-size: 13px; color: var(--gl-muted); }
+.appbar b { color: var(--gl-ink); }
+.screen { padding: 14px; display: grid; gap: 14px; }
+.stage.desktop .screen { grid-template-columns: 340px 1fr; align-items: start; }
+.stage.desktop .frame { overflow-x: auto; }
+.stage.desktop .screen { min-width: 760px; }
+
+.panel { padding: 18px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); background: var(--gl-surface); display: grid; gap: 14px; }
+.eyebrow { font: 600 11px var(--gl-font-ui); text-transform: uppercase; letter-spacing: .06em; color: var(--gl-muted); }
+.title { font: 700 22px/1.2 var(--gl-font-display); margin: 2px 0 4px; }
+.range { font: 400 var(--gl-size-small) var(--gl-font-mono); color: var(--gl-muted); font-variant-numeric: tabular-nums; }
+.play { display: inline-flex; justify-content: center; align-items: center; gap: 8px; border: 0; border-radius: var(--gl-radius); background: var(--gl-accent); color: var(--gl-accent-ink); font: 600 15px var(--gl-font-ui); padding: 12px 18px; cursor: pointer; }
+.play svg { width: 14px; height: 14px; fill: currentColor; }
+
+/* Variant A: three tiles */
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tile { text-align: left; border: 1px solid var(--gl-line); background: var(--gl-raised); border-radius: var(--gl-radius); padding: 10px 10px 11px; color: var(--gl-ink); font: inherit; cursor: pointer; display: grid; gap: 3px; align-content: start; min-height: 92px; }
+.tile:hover { background: var(--gl-hover); }
+.tile .k { font: 600 11px var(--gl-font-ui); color: var(--gl-muted); text-transform: uppercase; letter-spacing: .05em; display: flex; justify-content: space-between; align-items: center; }
+.tile .v { font: 600 var(--gl-size-name)/1.2 var(--gl-font-ui); overflow-wrap: anywhere; }
+.tile .s { font-size: var(--gl-size-small); color: var(--gl-muted); line-height: 1.35; }
+.tile .s .mono, .row .s .mono { font-family: var(--gl-font-mono); }
+.tile.add .v { color: var(--gl-muted); }
+.tile .plus { color: var(--gl-ink); font: 600 var(--gl-size-label) var(--gl-font-ui); text-decoration: underline; text-decoration-color: var(--gl-accent); text-underline-offset: 3px; }
+
+/* Rows: up-front in variant B, fine settings in both */
+.rows { display: grid; }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; width: 100%; text-align: left; border: 0; border-top: 1px solid var(--gl-line); background: none; color: var(--gl-ink); font: inherit; padding: 10px 4px; cursor: pointer; border-radius: 0; }
+.rows .row:first-child { border-top: 0; }
+.row:hover { background: var(--gl-hover); }
+.row .k { color: var(--gl-muted); font-size: var(--gl-size-label); }
+.row .v { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.row .s { display: block; color: var(--gl-muted); font-size: var(--gl-size-small); }
+.chev { width: 16px; height: 16px; stroke: var(--gl-faint); fill: none; stroke-width: 2; }
+.swatch { width: 18px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid var(--gl-line); flex: none; }
+.up .row { padding-block: 11px; }
+
+.fold { display: grid; gap: 6px; border-top: 1px solid var(--gl-line); padding-top: 4px; }
+.toggle { display: flex; justify-content: space-between; align-items: center; border: 0; background: none; color: var(--gl-ink); font: 600 var(--gl-size-body) var(--gl-font-ui); padding: 8px 4px; cursor: pointer; border-radius: 6px; }
+.toggle:hover { background: var(--gl-hover); }
+.toggle .chev { transition: transform .15s; }
+.toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .toggle .chev { transition: none; } }
+.group { font: 600 11px var(--gl-font-ui); color: var(--gl-muted); text-transform: uppercase; letter-spacing: .05em; padding: 12px 4px 2px; }
+.act { display: flex; flex-wrap: wrap; gap: 8px; padding: 6px 4px; align-items: center; color: var(--gl-muted); font-size: var(--gl-size-label); }
+.btn { border: 1px solid var(--gl-line); background: var(--gl-surface); color: var(--gl-ink); font: 500 var(--gl-size-label) var(--gl-font-ui); padding: 7px 11px; border-radius: 8px; cursor: pointer; }
+
+.pics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.stage.desktop .pics { grid-template-columns: repeat(5, 1fr); }
+.pic { aspect-ratio: 4/3; border-radius: var(--gl-radius-tile); }
+
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--gl-ink); color: var(--gl-surface); padding: 10px 14px; border-radius: 10px; font-size: 13px; box-shadow: var(--gl-shadow); max-width: calc(100% - 32px); }
+.notes { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); padding: 14px 16px; color: var(--gl-muted); display: grid; gap: 6px; max-width: 80ch; }
+.notes h2 { font: 600 var(--gl-size-name) var(--gl-font-ui); color: var(--gl-ink); margin: 0 0 2px; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.notes b { color: var(--gl-ink); }
+</style>
+</head><body>
+
+<div class="page">
+  <div class="intro">
+    <h1>Slideshow Details, simplified</h1>
+    <p>Mood, look and music sit up front and never fold. Everything else is under <b>Fine settings</b>, which this device remembers open or closed (try it, then switch states). There are two layouts for the up-front part side by side. A tap on any setting opens its sheet, and the sheets themselves don't change. Pictures are generated gradients.</p>
+  </div>
+
+  <div class="controls" id="controls"></div>
+  <div class="stage" id="stage"></div>
+
+  <div class="notes">
+    <h2>What changes</h2>
+    <ul>
+      <li><b>One form:</b> every setting is a tappable tile or row with a chevron. The "Change" and "Edit" buttons, the "by mood" chips and the panel's switch are gone.</li>
+      <li><b>Follow the music's energy</b> is set only in the Mood sheet. The Mood summary ends in "follows the energy" while it's on.</li>
+      <li><b>Picture times and Ken Burns</b> move into the Mood summary. <b>Pictures and Duration</b> are already in the header. When the music runs shorter or longer than the slideshow, the Music summary says "11:20 of music". The <b>Captions</b> count is dropped.</li>
+      <li><b>Fine settings:</b> Transitions, Portrait pictures and Trip chapters, followed by storage, link and TV, which stay as they are until the separate Share todo. It works the same at every width.</li>
+    </ul>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const S = { width: "phone", mood: "calm", energy: true, music: true, server: false };
+let fineOpen = false;
+try { fineOpen = localStorage.getItem("fineOpen") === "1"; } catch (e) {}
+
+const chev = '<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>';
+const controls = [
+  ["Width", "width", [["phone", "Phone"], ["desktop", "Desktop"]]],
+  ["Mood", "mood", [["calm", "Calm"], ["lively", "Lively"], ["custom", "Custom"]]],
+  ["Energy", "energy", [[true, "On"], [false, "Off"]]],
+  ["Music", "music", [[true, "3 songs"], [false, "None"]]],
+  ["Stored", "server", [[false, "Device"], [true, "Server"]]],
+];
+function renderControls() {
+  document.getElementById("controls").innerHTML = controls.map(([label, key, opts]) =>
+    `<div class="grp"><span class="lbl">${label}</span><span class="seg">${opts.map(([v, t]) =>
+      `<button type="button" data-k="${key}" data-v="${v}" aria-pressed="${S[key] === v}">${t}</button>`).join("")}</span></div>`).join("");
+}
+document.getElementById("controls").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const raw = b.dataset.v; S[b.dataset.k] = raw === "true" ? true : raw === "false" ? false : raw;
+  render();
+});
+
+function model() {
+  const energy = S.energy && S.music;
+  const moods = {
+    calm: { v: "Calm", times: S.music ? '<span class="mono">~6.3 s · 8 beats</span>' : '<span class="mono">~7 s</span>', motion: "gentle motion", range: '<span class="mono">4.1–9.0 s</span>' },
+    lively: { v: "Lively", times: S.music ? '<span class="mono">~3.2 s · 4 beats</span>' : '<span class="mono">~3 s</span>', motion: "strong motion", range: '<span class="mono">2.0–5.1 s</span>' },
+    custom: { v: "Custom", times: S.music ? 'fills the music' : '<span class="mono">5 s</span> each', motion: "standard motion", range: '<span class="mono">3.1–8.4 s</span>' },
+  };
+  const m = moods[S.mood];
+  const moodSummary = (energy ? m.range : m.times) + ` · ${m.motion}` + (energy ? " · follows the energy" : "");
+  const tr = { calm: ["Crossfade, long", "by mood"], lively: ["Mixed, short", "by mood"], custom: ["Crossfade", "default"] }[S.mood];
+  return {
+    music: S.music ? { v: "3 songs", s: '<span class="mono">11:20</span> of music' } : null,
+    mood: { v: m.v, s: moodSummary },
+    look: { v: "Warm", s: "film grain off" },
+    fine: [
+      ["Transitions", tr[0], tr[1], "Transitions"],
+      ["Portrait pictures", "Automatic", "pairs side by side", "Portrait pictures"],
+      ["Trip chapters", "4 chapters", "automatic", "Trip chapters"],
+    ],
+  };
+}
+const warm = "linear-gradient(90deg,#f6c27a,#e8875c)";
+
+function tiles(md) {
+  const music = md.music
+    ? `<button class="tile" data-open="Music"><span class="k">Music ${chev}</span><span class="v">${md.music.v}</span><span class="s">${md.music.s}</span></button>`
+    : `<button class="tile add" data-open="Music"><span class="k">Music ${chev}</span><span class="v">None</span><span class="plus">Add music</span></button>`;
+  return `<div class="tiles">${music}
+    <button class="tile" data-open="Mood"><span class="k">Mood ${chev}</span><span class="v">${md.mood.v}</span><span class="s">${md.mood.s}</span></button>
+    <button class="tile" data-open="Look"><span class="k">Look ${chev}</span><span class="v" style="display:flex;gap:6px;align-items:center"><span class="swatch" style="background:${warm}"></span>${md.look.v}</span></button></div>`;
+}
+function row(k, v, s, open, swatch) {
+  return `<button class="row" data-open="${open}"><span><span class="k">${k}</span><span class="v">${swatch || ""}${v}</span>${s ? `<span class="s">${s}</span>` : ""}</span>${chev}</button>`;
+}
+function upRows(md) {
+  return `<div class="rows up">${md.music ? row("Music", md.music.v, md.music.s, "Music") : row("Music", "None", "Add music", "Music")}
+    ${row("Mood", md.mood.v, md.mood.s, "Mood")}
+    ${row("Look", md.look.v, "", "Look", `<span class="swatch" style="background:${warm}"></span>`)}</div>`;
+}
+function fine(md, id) {
+  const where = S.server
+    ? `<div class="act">On the Glissando server</div><div class="act"><button class="btn" data-open="Link">Create link</button><button class="btn" data-open="Show on TV">Show on TV</button></div>`
+    : `<div class="act">On this device <button class="btn" data-open="Save as">Save as…</button><button class="btn" data-open="Link">Share link</button></div>`;
+  return `<div class="fold"><button class="toggle" aria-expanded="${fineOpen}" aria-controls="${id}" data-fold>Fine settings ${chev}</button>
+    <div id="${id}" ${fineOpen ? "" : "hidden"}><div class="rows">${md.fine.map(f => row(f[0], f[1], f[2], f[3])).join("")}</div>
+    <div class="group">Storage and sharing</div>${where}</div></div>`;
+}
+function pics() {
+  const hues = [12, 28, 200, 160, 330, 45, 260, 190, 15, 95, 300, 220, 35, 175, 350];
+  return `<div class="pics">${hues.map((h, i) => `<div class="pic" style="background:linear-gradient(${30 + i * 23}deg,hsl(${h} 65% 62%),hsl(${(h + 40) % 360} 55% 38%))"></div>`).join("")}</div>`;
+}
+function screen(variant) {
+  const md = model();
+  return `<div class="frame"><div class="appbar">‹ <b>Library</b> <span style="margin-left:auto">⋯</span></div><div class="screen">
+    <aside class="panel"><div><div class="eyebrow">Slideshow</div><div class="title">Lofoten in June</div>
+    <div class="range">12 Jun – 20 Jun 2026 · 48 pictures · 12:40</div></div>
+    <button class="play" data-open="Play"><svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z"/></svg>Play</button>
+    ${variant === "A" ? tiles(md) : upRows(md)}
+    ${fine(md, "fine-" + variant)}</aside>${pics()}</div></div>`;
+}
+function render() {
+  renderControls();
+  const st = document.getElementById("stage");
+  st.className = "stage " + S.width;
+  st.innerHTML = [["A", "Three tiles"], ["B", "Three rows"]].map(([v, t]) =>
+    `<div class="col"><div class="coltitle"><b>${v}</b> · ${t}${v === "A" ? "  (my pick)" : ""}</div>${screen(v)}</div>`).join("");
+}
+document.getElementById("stage").addEventListener("click", e => {
+  if (e.target.closest("[data-fold]")) {
+    fineOpen = !fineOpen;
+    try { localStorage.setItem("fineOpen", fineOpen ? "1" : "0"); } catch (err) {}
+    render(); return;
+  }
+  const o = e.target.closest("[data-open]"); if (!o) return;
+  const t = document.getElementById("toast");
+  t.textContent = o.dataset.open === "Play" ? "Plays the slideshow" : `Opens the ${o.dataset.open} sheet (unchanged)`;
+  t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => (t.hidden = true), 1800);
+});
+render();
+</script>
+</body></html>
