@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glissando: import pace comes from the mood</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #fff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #fff;
+  --ui: "Instrument Sans", system-ui, sans-serif; --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+  --peach: #ff9f7f; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b; --lilac: #b9a6f2; --sky: #7fb8ff;
+}
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark; --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f; --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font: 14px var(--ui); }
+.page { max-width: 1480px; margin: 0 auto; padding: 20px 16px 56px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.page > * { min-width: 0; }
+h1 { font: 700 26px var(--display); margin: 0; }
+h2 { font: 700 19px var(--display); margin: 0; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 76ch; line-height: 1.5; }
+.intro ul { margin: 8px 0 0; padding-left: 20px; color: var(--page-muted); max-width: 76ch; line-height: 1.55; display: grid; gap: 4px; }
+.intro li b { color: var(--page-ink); }
+.toolbox { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 12px; }
+.toolboxlbl { font: 700 11px var(--ui); color: var(--page-muted); text-transform: uppercase; letter-spacing: .06em; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+.ctrlgroup { display: grid; gap: 6px; }
+.ctrlgroup > span.lbl { font: 600 11px var(--ui); color: var(--page-muted); text-transform: uppercase; letter-spacing: .04em; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.stepper { display: flex; align-items: center; gap: 8px; }
+.stepper button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 16px var(--ui); cursor: pointer; flex: 0 0 auto; }
+.stepper button:disabled { opacity: .35; cursor: default; }
+.stepper b { font: 500 13px var(--mono); min-width: 38px; text-align: center; }
+
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.presetbtn { border: 1px solid var(--page-line); background: var(--page-card); color: var(--page-ink); border-radius: 10px; padding: 8px 14px; font: 500 13px var(--ui); cursor: pointer; }
+.presetbtn:hover { background: var(--chip); }
+
+.frames { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; min-width: 0; }
+@media (max-width: 1000px) { .frames { flex-direction: column; align-items: stretch; } }
+.frame-wrap { display: grid; gap: 8px; min-width: 0; max-width: 100%; }
+.framelabel { font: 600 12px var(--mono); color: var(--page-muted); text-transform: uppercase; letter-spacing: .05em; }
+.frame { border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(20,14,40,.16); }
+.frame.phone { width: min(412px, 100%); }
+.frame.desktop { width: min(960px, 100%); }
+
+.app { width: 100%; border: 1px solid var(--line); background: var(--ground); color: var(--ink); font: 14px var(--ui); }
+.app.light { --ground: #f6f5f8; --surface: #fff; --ink: #221d33; --muted: #6b6580; --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; }
+.app.dark { --ground: #121019; --surface: #1a1723; --ink: #edeaf3; --muted: #9a94ab; --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; color-scheme: dark; }
+.hdr { display: flex; align-items: center; gap: 6px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: var(--surface); font-size: 13px; color: var(--muted); }
+.hdr b { color: var(--ink); font-weight: 600; }
+
+.screen-import { padding: 18px 20px 0; display: grid; gap: 14px; max-width: 560px; margin: 0 auto; }
+.screen-import h2 { font: 700 20px var(--display); margin: 0; }
+.lead { margin: 0; color: var(--muted); line-height: 1.5; max-width: 52ch; }
+.thumbstrip { display: flex; gap: 4px; flex-wrap: wrap; }
+.thumb { width: 32px; height: 32px; border-radius: 6px; flex: 0 0 auto; }
+.thumbmore { display: grid; place-items: center; font: 600 11px var(--mono); color: var(--muted); }
+
+.sub { font: 600 11px var(--ui); color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 0; }
+.songs { display: grid; gap: 6px; }
+.song2 { display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+.song2 .num { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font: 600 11px var(--mono); color: #221d33; }
+.song2 .name { font-weight: 600; }
+.song2 small { display: block; color: var(--muted); font: 11px var(--mono); }
+.soundtrack-empty { margin: 0; color: var(--muted); font-size: 12.5px; }
+
+.sec { display: grid; gap: 8px; }
+.sec h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.reason { font-size: 12px; color: var(--muted); margin: 0; line-height: 1.45; }
+.reason.muted { opacity: .85; }
+.radios { display: flex; background: var(--hover); border-radius: 9px; padding: 3px; gap: 2px; }
+.radios button { flex: 1; border: 0; background: transparent; color: var(--ink); font: 500 13px var(--ui); padding: 7px 8px; border-radius: 7px; cursor: pointer; }
+.radios button[aria-checked="true"] { background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.15); font-weight: 600; }
+
+.moodline { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 2px 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.moodline svg { flex: 0 0 auto; margin-top: 2px; opacity: .8; }
+.moodline b { color: var(--ink); font-weight: 600; }
+
+.panelcard { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; background: var(--surface); }
+.panelcard .text { flex: 1; min-width: 0; }
+.panelcard .text b { display: block; font-weight: 600; }
+.panelcard .text .meta { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 12px; }
+.tl { position: relative; height: 30px; border-radius: 6px; background: var(--hover); overflow: hidden; }
+.tl .blk { position: absolute; top: 4px; bottom: 4px; border-radius: 5px; display: flex; align-items: center; padding: 0 6px; font: 600 11px var(--mono); color: #221d33; overflow: hidden; white-space: nowrap; transition: left .25s ease, width .25s ease; }
+.tl .blk.unheard { opacity: .35; }
+.tl .blk.rep { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.3) 0 4px, transparent 4px 8px); }
+.tl .blk .glyph { font-size: 10px; margin-left: 3px; opacity: .85; }
+.tl .xf { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(90deg, rgba(34,29,51,.35) 0 1px, transparent 1px 4px); border-radius: 5px; transition: left .25s ease, width .25s ease; }
+.tl .end { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--coral); transition: left .25s ease; }
+.tl .silent-lemon { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--lemon) 70%, var(--surface)) 0 4px, color-mix(in srgb, var(--lemon) 35%, var(--surface)) 4px 8px); transition: left .25s ease, width .25s ease; }
+.fitline { display: flex; justify-content: space-between; font: 12px var(--mono); color: var(--muted); }
+
+.card { border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; }
+.card.note-fit { border-left: 3px solid var(--mint); background: color-mix(in srgb, var(--mint) 12%, var(--surface)); }
+.card.note-short { border-left: 3px solid var(--lemon); background: color-mix(in srgb, var(--lemon) 14%, var(--surface)); }
+.card b { font-size: 13px; }
+.note-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 0; border-radius: 99px; padding: 9px 16px; background: var(--accent); color: var(--accent-ink); font: 600 13px var(--ui); cursor: pointer; }
+.btn.secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.linkbtn { border: 0; background: none; padding: 0; font: 600 12.5px var(--ui); color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+.timing { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; }
+.timing div { display: flex; flex-direction: column-reverse; gap: 2px; padding: 10px 12px; background: var(--hover); }
+.timing div + div { border-left: 1px solid var(--line); }
+.timing dd { margin: 0; font-weight: 600; font-size: 14px; font-family: var(--mono); }
+.timing dt { margin: 0; color: var(--muted); font-size: 11px; }
+
+.wizactions { display: flex; justify-content: space-between; gap: 8px; padding: 14px 20px; margin-top: 2px; border-top: 1px solid var(--line); }
+
+.decided { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 14px; padding: 16px 20px; display: grid; gap: 10px; max-width: 900px; }
+.decided ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; line-height: 1.5; }
+code { font-family: var(--mono); font-size: 12.5px; }
+footer.credit { color: var(--page-muted); font-size: 12px; }
+</style>
+<div class="page">
+  <div class="intro">
+    <h1>Pace comes from the mood, not a picture-length choice</h1>
+    <p>The music step no longer asks how long each picture should last. A new slideshow always starts on the mood <b>Calm</b> — about 7 s per picture, paced to the music's phrases — and that stays changeable later, in the slideshow itself.</p>
+    <ul>
+      <li><b>Removed:</b> the "Picture length" choice (About 5 s each / Fill the music) and its stepper, and — without music — the "Time per picture" card and stepper.</li>
+      <li><b>In their place:</b> one quiet line stating the mood and its pace, with a pointer to where it can still be changed.</li>
+      <li><b>Unchanged:</b> the thumbnail strip, the fit notes (fits / too short / repeats / music longer) and the "Pictures · per picture · Total" row — now reading Calm's 7 s.</li>
+    </ul>
+  </div>
+
+  <div class="toolbox">
+    <div class="toolboxlbl">Mockup controls — not part of the app</div>
+    <div class="ctrls">
+      <div class="ctrlgroup"><span class="lbl">Step shown</span>
+        <div class="seg" data-k="before"><button data-v="false">After (new)</button><button data-v="true">Before (today)</button></div>
+      </div>
+      <div class="ctrlgroup"><span class="lbl">Seconds per picture (Before only)</span>
+        <div class="stepper" data-stepper="seconds"><button data-step="-0.5" aria-label="Shorter">−</button><b id="secval"></b><button data-step="0.5" aria-label="Longer">+</button></div>
+      </div>
+      <div class="ctrlgroup"><span class="lbl">Theme</span>
+        <div class="seg" data-k="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
+      </div>
+    </div>
+    <div class="toolboxlbl">State</div>
+    <div class="presets" data-k="scenario">
+      <button class="presetbtn" data-v="none">No music</button>
+      <button class="presetbtn" data-v="longer">Longer music</button>
+      <button class="presetbtn" data-v="fits">Shorter music, fits</button>
+      <button class="presetbtn" data-v="short">Too short</button>
+    </div>
+  </div>
+
+  <section>
+    <h2>Import · which music?</h2>
+    <div class="frames">
+      <div class="frame-wrap"><p class="framelabel">Phone · 412 px</p><div class="frame phone"><div id="appPhone" class="app light"></div></div></div>
+      <div class="frame-wrap"><p class="framelabel">Desktop · 960 px</p><div class="frame desktop"><div id="appDesktop" class="app light"></div></div></div>
+    </div>
+  </section>
+
+  <section class="decided">
+    <h2>What's decided</h2>
+    <ul>
+      <li>A new slideshow always starts on the mood <b>Calm</b> — about 7 s per picture, on the music's phrases — set once, not asked for during import.</li>
+      <li>The music step states this in a single quiet line instead of offering a choice; the mood stays changeable afterwards, in the slideshow's own Details panel.</li>
+      <li>The shrink-to-fit rule is unchanged: pictures sharing a shorter music still fit it by themselves, down to ⅔ of their length, never below 2 s.</li>
+      <li>If even that would leave silence, the note still offers <b>Repeat the music</b> or <b>Add a song</b>, exactly as today.</li>
+    </ul>
+  </section>
+  <footer class="credit">Mockup — generated picture thumbnails only, no real photos.</footer>
+</div>
+<script>
+const HUES = ["#ff9f7f", "#6fcfb4", "#f5c94a", "#b9a6f2", "#f2786b", "#7fb8ff"];
+const XF = 3000;
+const PICS = 12;
+const CLOCK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>';
+
+const SCENARIOS = {
+  none: { musicms: 0 },
+  longer: { musicms: 130000 },
+  fits: { musicms: 60000 },
+  short: { musicms: 40000 },
+};
+
+const S = { theme: "light", before: false, scenario: "longer", secondsPerPicture: 5, ownSeconds: true, repeat: false, addSongBoost: 0 };
+
+const fmt = ms => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+const secs = ms => { const v = ms / 1000; const r = Math.round(v * 10) / 10; return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + " s"; };
+
+function songsFor(M) {
+  if (!M) return [];
+  const total = M + XF;
+  const e1 = Math.round(total * 0.56);
+  const e2 = total - e1;
+  return [
+    { num: 1, name: "Harbour Lights.mp3", hue: HUES[0], excerpt: e1 },
+    { num: 2, name: "Slow Orbit.m4a", hue: HUES[1], excerpt: e2 },
+  ];
+}
+
+function compute(T, fillMode) {
+  const n = PICS, M = SCENARIOS[S.scenario].musicms + (S.scenario === "short" ? S.addSongBoost : 0);
+  const songs = songsFor(M);
+  if (M === 0) return { n, M, T, nT: n * T, songs, mode: "none", perPic: T, showMs: n * T, silenceMs: 0, fittedMs: null, span: n * T };
+  const nT = n * T;
+  let mode, perPic, showMs, silenceMs = 0, fittedMs = null;
+  if (fillMode) {
+    mode = "filled"; perPic = M / n; showMs = M;
+  } else if (nT <= M) {
+    mode = "longer"; perPic = T; showMs = nT;
+  } else if (S.repeat) {
+    mode = "repeating"; perPic = T; showMs = nT;
+  } else {
+    const F = M / n;
+    const threshold = Math.max(2000, (2 / 3) * T);
+    if (F >= threshold) { mode = "fits"; perPic = F; showMs = M; fittedMs = F; }
+    else { mode = "short"; perPic = T; showMs = nT; silenceMs = nT - M; }
+  }
+  const span = Math.max(showMs, M);
+  return { n, M, T, nT, songs, mode, perPic, showMs, silenceMs, fittedMs, span };
+}
+
+function buildBlocks(p) {
+  let t = 0; const songStarts = [];
+  p.songs.forEach((s, i) => { songStarts.push(t); t += s.excerpt - (i < p.songs.length - 1 ? XF : 0); });
+  const loopLen = p.M;
+  const repeating = p.mode === "repeating";
+  const maxT = repeating ? p.showMs : p.M;
+  const blocks = [], xfs = [];
+  let loop = 0, loopStart = 0;
+  while (loopStart < maxT) {
+    p.songs.forEach((s, i) => {
+      const abs = loopStart + songStarts[i];
+      if (abs >= maxT) return;
+      let width = s.excerpt;
+      if (abs + width > maxT) width = maxT - abs;
+      blocks.push({ abs, width, hue: s.hue, num: s.num, loop, unheard: abs >= p.showMs });
+      if (i < p.songs.length - 1) {
+        const xfAbs = loopStart + songStarts[i + 1];
+        if (xfAbs < maxT) xfs.push({ abs: xfAbs, width: Math.min(XF, maxT - xfAbs) });
+      }
+    });
+    if (!repeating) break;
+    loop++;
+    const next = loopStart + (loopLen - XF);
+    if (next < maxT) xfs.push({ abs: next, width: Math.min(XF, maxT - next) });
+    loopStart = next;
+  }
+  return { blocks, xfs };
+}
+
+function miniTimeline(p) {
+  const { blocks, xfs } = buildBlocks(p);
+  const pct = ms => (100 * ms / p.span).toFixed(2) + "%";
+  const blocksHtml = blocks.map(b => `<span class="blk ${b.unheard ? "unheard" : ""} ${b.loop > 0 ? "rep" : ""}" style="left:${pct(b.abs)};width:${pct(b.width)};background:${b.hue}">${b.num}${b.loop > 0 ? `<span class="glyph">↻</span>` : ""}</span>`).join("");
+  const xfHtml = xfs.map(x => `<span class="xf" style="left:${pct(x.abs)};width:${pct(x.width)}"></span>`).join("");
+  const musicEndMark = p.mode === "short" ? `<span class="end" style="left:${pct(p.M)}" title="Music ends"></span>` : "";
+  const silentLemon = p.mode === "short" ? `<span class="silent-lemon" style="left:${pct(p.M)};width:${pct(p.showMs - p.M)}"></span>` : "";
+  return `<div class="tl">${blocksHtml}${xfHtml}${musicEndMark}${silentLemon}</div>`;
+}
+
+function statusText(p) {
+  if (p.mode === "longer") return "The music fades out with the last picture.";
+  if (p.mode === "repeating") return "The music repeats · fades out with the last picture.";
+  if (p.mode === "filled") return "The slideshow ends with the music.";
+  return "";
+}
+
+function noteHTML(p) {
+  if (p.mode === "fits") return `<div class="card note-fit"><b>Pictures about ${secs(p.fittedMs)} each, to end with the music.</b></div>`;
+  if (p.mode === "short") return `<div class="card note-short"><b>The music ends ${fmt(p.silenceMs)} before the pictures</b>
+    <div class="note-actions"><button class="btn" data-fix="repeat">Repeat the music</button><button class="btn secondary" data-fix="addsong">Add a song</button></div></div>`;
+  return "";
+}
+
+function reasonOrNote(p) {
+  if (p.mode === "fits" || p.mode === "short") return noteHTML(p);
+  const playOnce = p.mode === "repeating" ? ` <button class="linkbtn" data-fix="playonce">Play once</button>` : "";
+  const text = statusText(p);
+  return text ? `<p class="reason">${text}${playOnce}</p>` : "";
+}
+
+function thumbs(n) {
+  const show = Math.min(n, 14);
+  let html = "";
+  for (let i = 0; i < show; i++) {
+    const a = HUES[i % HUES.length], b = HUES[(i + 2) % HUES.length];
+    html += `<span class="thumb" style="background:linear-gradient(135deg, ${a}, ${b})"></span>`;
+  }
+  if (n > show) html += `<span class="thumb thumbmore">+${n - show}</span>`;
+  return html;
+}
+
+function songRows(p) {
+  if (p.songs.length === 0) return `<p class="soundtrack-empty">No music yet — add a track or your own songs above.</p>`;
+  return `<div class="songs">${p.songs.map(s => `<div class="song2"><span class="num" style="background:${s.hue}">${s.num}</span><span><span class="name">${s.name}</span><small>${fmt(s.excerpt)}</small></span></div>`).join("")}</div>`;
+}
+
+function moodLine(withMusic) {
+  const text = withMusic
+    ? `<b>Mood Calm</b> · about 7 s per picture, on the music's phrases. Change it in the slideshow.`
+    : `<b>Mood Calm</b> · about 7 s per picture. Change it in the slideshow.`;
+  return `<p class="moodline">${CLOCK}<span>${text}</span></p>`;
+}
+
+function pictureLengthBefore(p) {
+  const v = S.secondsPerPicture;
+  const label = `About ${secs(v * 1000)} each`;
+  return `<div class="sec"><h3>Picture length</h3>
+    <div class="radios" role="radiogroup">
+      <button role="radio" aria-checked="${S.ownSeconds}" data-set="ownSeconds" data-v="true">${label}</button>
+      <button role="radio" aria-checked="${!S.ownSeconds}" data-set="ownSeconds" data-v="false">Fill the music</button>
+    </div>
+    ${S.ownSeconds ? `<div class="stepper" data-stepper="seconds"><button data-step="-0.5" aria-label="Shorter" ${v <= 2 ? "disabled" : ""}>−</button><b>${secs(v * 1000)}</b><button data-step="0.5" aria-label="Longer" ${v >= 15 ? "disabled" : ""}>+</button></div>` : ""}
+    ${S.ownSeconds && p.mode === "fits" ? `<p class="reason muted">Shortened to ${secs(p.fittedMs)} to fit the music.</p>` : ""}
+  </div>`;
+}
+
+function timePerPictureBefore() {
+  const v = S.secondsPerPicture;
+  return `<div class="panelcard">
+    <div class="text"><b>Time per picture</b><span class="meta">Default 5 s, in half seconds, applies to this slideshow</span></div>
+    <div class="stepper" data-stepper="seconds"><button data-step="-0.5" aria-label="Shorter" ${v <= 2 ? "disabled" : ""}>−</button><b>${secs(v * 1000)}</b><button data-step="0.5" aria-label="Longer" ${v >= 15 ? "disabled" : ""}>+</button></div>
+  </div>`;
+}
+
+function timingRow(p) {
+  return `<dl class="timing">
+    <div><dt>Pictures</dt><dd>${p.n}</dd></div>
+    <div><dt>per picture</dt><dd>${secs(p.perPic)}</dd></div>
+    <div><dt>Total</dt><dd>${fmt(p.showMs)}</dd></div>
+  </dl>`;
+}
+
+function importScreen(p) {
+  const hasMusic = p.M > 0;
+  const lead = "One song or several — they play one after another and the pictures change on their beat.";
+  const panel = hasMusic
+    ? (S.before ? pictureLengthBefore(p) : moodLine(true))
+    : (S.before ? timePerPictureBefore() : moodLine(false));
+  const box = hasMusic ? `<div class="box">${miniTimeline(p)}
+      <div class="fitline"><span>${p.n} pictures · ${fmt(p.showMs)}</span><span>Music ${fmt(p.M)}</span></div>
+      ${reasonOrNote(p)}
+    </div>` : "";
+  const createLabel = hasMusic ? "Create slideshow" : "Create without music";
+  return `<div class="hdr">New slideshow <span>›</span> <b>Music</b></div>
+  <div class="screen-import">
+    <h2>Which music?</h2>
+    <p class="lead">${lead}</p>
+    <div class="thumbstrip">${thumbs(p.n)}</div>
+    <div class="sec"><p class="sub">Soundtrack</p>${songRows(p)}</div>
+    ${panel}
+    ${box}
+    ${timingRow(p)}
+  </div>
+  <div class="wizactions">
+    <button class="btn secondary">‹ Pictures</button>
+    <button class="btn">${createLabel}</button>
+  </div>`;
+}
+
+function render() {
+  document.querySelectorAll(".seg").forEach(g => g.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(S[g.dataset.k] === b.dataset.v))));
+  document.querySelectorAll('.presets[data-k="scenario"] button').forEach(b => b.setAttribute("aria-pressed", String(S.scenario === b.dataset.v)));
+  document.getElementById("secval").textContent = secs(S.secondsPerPicture * 1000);
+
+  const T = S.before ? S.secondsPerPicture * 1000 : 7000;
+  const fillMode = S.before && !S.ownSeconds;
+  const p = compute(T, fillMode);
+  const html = importScreen(p);
+
+  document.getElementById("appPhone").className = "app " + S.theme;
+  document.getElementById("appDesktop").className = "app " + S.theme;
+  document.getElementById("appPhone").innerHTML = html;
+  document.getElementById("appDesktop").innerHTML = html;
+}
+
+document.querySelectorAll(".toolbox .seg").forEach(g => g.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const k = g.dataset.k, v = b.dataset.v;
+  S[k] = v === "true" ? true : v === "false" ? false : v;
+  render();
+}));
+
+document.querySelectorAll('.presets[data-k="scenario"] button').forEach(b => b.addEventListener("click", () => {
+  S.scenario = b.dataset.v; S.repeat = false; S.addSongBoost = 0; render();
+}));
+
+document.querySelector('.toolbox [data-stepper="seconds"]').addEventListener("click", e => {
+  const b = e.target.closest("[data-step]"); if (!b) return;
+  S.secondsPerPicture = Math.min(15, Math.max(2, S.secondsPerPicture + Number(b.dataset.step)));
+  render();
+});
+
+document.querySelectorAll(".frame").forEach(frame => frame.addEventListener("click", e => {
+  const stepBtn = e.target.closest('[data-stepper="seconds"] [data-step]');
+  if (stepBtn) {
+    S.secondsPerPicture = Math.min(15, Math.max(2, S.secondsPerPicture + Number(stepBtn.dataset.step)));
+    return render();
+  }
+  const radio = e.target.closest("[data-set]");
+  if (radio) { S[radio.dataset.set] = radio.dataset.v === "true"; return render(); }
+  const fix = e.target.closest("[data-fix]");
+  if (fix) {
+    if (fix.dataset.fix === "repeat") S.repeat = true;
+    else if (fix.dataset.fix === "addsong") S.addSongBoost += 20000;
+    else if (fix.dataset.fix === "playonce") S.repeat = false;
+    return render();
+  }
+}));
+
+render();
+</script>
+</html>
