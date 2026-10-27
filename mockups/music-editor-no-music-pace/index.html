@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glissando: set the pace with no music yet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #fff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #fff;
+  --ui: "Instrument Sans", system-ui, sans-serif; --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+  --peach: #ff9f7f; --mint: #6fcfb4; --lemon: #f5c94a; --coral: #f2786b; --lilac: #b9a6f2; --sky: #7fb8ff;
+}
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark; --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f; --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font: 14px var(--ui); }
+.page { max-width: 1480px; margin: 0 auto; padding: 20px 16px 56px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.page > * { min-width: 0; }
+h1 { font: 700 26px var(--display); margin: 0; }
+h2 { font: 700 19px var(--display); margin: 0; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 76ch; line-height: 1.5; }
+.toolbox { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 12px; }
+.toolboxlbl { font: 700 11px var(--ui); color: var(--page-muted); text-transform: uppercase; letter-spacing: .06em; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+.ctrlgroup { display: grid; gap: 6px; }
+.ctrlgroup > span.lbl { font: 600 11px var(--ui); color: var(--page-muted); text-transform: uppercase; letter-spacing: .04em; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+
+.frames { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; min-width: 0; }
+.frame-wrap { display: grid; gap: 8px; min-width: 0; }
+.frame-wrap.phone { width: min(412px, 100%); }
+.frame-wrap.desktop { width: min(960px, 100%); }
+.framelabel { font: 600 12px var(--mono); color: var(--page-muted); text-transform: uppercase; letter-spacing: .05em; }
+.frame { border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(20,14,40,.16); width: 100%; min-width: 0; }
+
+.app { width: 100%; border: 1px solid var(--line); background: var(--ground); color: var(--ink); font: 14px var(--ui); position: relative; min-height: 360px; }
+.app.light { --ground: #f6f5f8; --surface: #fff; --ink: #221d33; --muted: #6b6580; --line: #e5e2eb; --hover: #efedf3; --accent: #ff9f7f; --accent-ink: #2a1a14; --inverse-bg: #221d33; --inverse-text: #f3f2f6; }
+.app.dark { --ground: #121019; --surface: #1a1723; --ink: #edeaf3; --muted: #9a94ab; --line: #2c2838; --hover: #26222f; --accent: #ffb59a; --accent-ink: #2a1a14; --inverse-bg: #edeaf3; --inverse-text: #1a1723; color-scheme: dark; }
+.hdr { display: flex; align-items: center; gap: 6px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: var(--surface); font-size: 13px; color: var(--muted); }
+.hdr b { color: var(--ink); font-weight: 600; }
+
+.icon { flex: none; width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.edit { padding: 22px; display: grid; gap: 20px; align-content: start; max-width: 560px; margin: 0 auto; }
+.frame-wrap.phone .edit { padding: 16px; }
+
+.empty { display: grid; justify-items: center; gap: 10px; padding: 28px; border: 1px dashed var(--line); border-radius: 16px; color: var(--muted); text-align: center; }
+.empty b { color: var(--ink); font: 700 17px var(--display); }
+.empty p { max-width: 44ch; margin: 0; line-height: 1.5; }
+.disc { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 30%, var(--surface)); color: var(--ink); font-size: 20px; }
+.btn { border: 0; border-radius: 99px; padding: 9px 16px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); font: 600 13px var(--ui); cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border: 0; }
+.btn.ghost { background: transparent; border: 0; color: var(--ink); text-decoration: underline; padding: 6px 2px; font-weight: 600; justify-self: start; }
+.btn.small { font-size: 12.5px; padding: 7px 12px; }
+
+.sec { display: grid; gap: 10px; }
+.sechead { display: flex; align-items: center; gap: 8px; margin: 0; font: 700 14px var(--ui); }
+.sechead .icon { color: var(--ink); }
+.reason { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+.reason b { color: var(--ink); font-weight: 600; }
+
+.stepperlabel { margin: 0; color: var(--ink); font-size: 13px; font-weight: 600; }
+.stepper { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; }
+.stepper button { width: 38px; height: 38px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 16px var(--ui); cursor: pointer; }
+.stepper button:disabled { opacity: .35; cursor: default; }
+.stepper b { min-width: 56px; text-align: center; font: 500 13px var(--mono); }
+
+.toast { position: absolute; left: 18px; right: 18px; bottom: 18px; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border-radius: 14px; background: var(--inverse-bg); color: var(--inverse-text); box-shadow: 0 10px 30px rgba(0,0,0,.25); font-size: 13px; z-index: 5; }
+.toast button { border: 0; background: none; color: var(--accent); font-weight: 700; cursor: pointer; padding: 4px 6px; flex: none; }
+.toast span { flex: 1 1 auto; }
+
+.before-note { margin: 0; color: var(--page-muted); font-size: 12.5px; max-width: 44ch; }
+
+.decided { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 14px; padding: 16px 20px; display: grid; gap: 10px; max-width: 900px; }
+.decided ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; line-height: 1.5; }
+code { font-family: var(--mono); font-size: 12.5px; }
+footer.credit { color: var(--page-muted); font-size: 12px; }
+</style>
+<div class="page">
+  <div class="intro">
+    <h1>Set the pace with no music yet</h1>
+    <p>Today, a slideshow without music opens the music editor to only its empty state — so when
+      the slideshow has no mood's own tempo either, there is nowhere to set how long each picture
+      stays. After this change, the "Picture length" section shows below the empty-state card:
+      under a mood, its line and a way to leave it for the slideshow's own pace; under Custom, the
+      seconds-per-picture stepper, live, with no "Fill the music" choice since there is no music to
+      fill.</p>
+  </div>
+
+  <div class="toolbox">
+    <div class="toolboxlbl">Mockup controls — not part of the app</div>
+    <div class="ctrls">
+      <div class="ctrlgroup"><span class="lbl">Change</span>
+        <div class="seg" data-k="view"><button data-v="before">Before</button><button data-v="after">After</button></div>
+      </div>
+      <div class="ctrlgroup"><span class="lbl">Mood</span>
+        <div class="seg" data-k="mood"><button data-v="calm">Calm</button><button data-v="custom">Custom</button></div>
+      </div>
+      <div class="ctrlgroup"><span class="lbl">Theme</span>
+        <div class="seg" data-k="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Music editor — no music yet</h2>
+    <div class="frames">
+      <div class="frame-wrap phone"><p class="framelabel">Phone · 412 px</p><div class="frame"><div id="appPhone" class="app light"></div></div></div>
+      <div class="frame-wrap desktop"><p class="framelabel">Desktop · 960 px</p><div class="frame"><div id="appDesktop" class="app light"></div></div></div>
+    </div>
+  </section>
+
+  <section class="decided">
+    <h2>What's decided</h2>
+    <ul>
+      <li>The empty state (disc icon, "No music yet", why-text, <b>Add a song</b>) is unchanged.</li>
+      <li>Below it, the main column also shows <b>Picture length</b>: under a mood, its "Picture
+        times are set by the mood …" line without a beat count and a <b>Set them yourself</b> ghost
+        button; under Custom, no radiogroup (there is no music for "Fill the music" to fill), just
+        "About {n} s each" and the live seconds stepper (2–15 s, half-second steps).</li>
+      <li><b>Set them yourself</b> switches the slideshow to Custom at 7 s and shows the toast
+        "Mood is now Custom" with <code>Undo</code>, matching the mood screen's own toast; Undo
+        returns to Calm.</li>
+      <li>On desktop the section sits in the main column, under the empty-state card — the music
+        editor's side panel never appears with no music, so there is nowhere else for it to go.</li>
+    </ul>
+  </section>
+  <footer class="credit">Mockup — generated icons only, no real photos or music.</footer>
+</div>
+<script>
+const ICONS = {
+  music: ['<path d="M9 18V6l11-2v12"/>', '<circle cx="6.5" cy="18" r="2.5"/>', '<circle cx="17.5" cy="16" r="2.5"/>'],
+  clock: ['<circle cx="12" cy="12" r="8.5"/>', '<path d="M12 7.5V12l3 2"/>'],
+  plus: ['<path d="M12 5v14M5 12h14"/>'],
+  minus: ['<path d="M5 12h14"/>'],
+};
+function icon(name) {
+  return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name].join("")}</svg>`;
+}
+
+const MIN_S = 2, MAX_S = 15, STEP_S = 0.5;
+
+const S = { view: "after", mood: "calm", theme: "light", seconds: 5, toast: null };
+
+function fmtSeconds(n) {
+  const rounded = Math.round(n * 10) / 10;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} s`;
+}
+
+function stepSeconds(seconds, dir) {
+  const halves = seconds / STEP_S;
+  const steppedHalves = dir === "longer" ? Math.floor(halves) + 1 : Math.ceil(halves) - 1;
+  const stepped = steppedHalves * STEP_S;
+  return Math.min(MAX_S, Math.max(MIN_S, stepped));
+}
+function canStep(seconds, dir) {
+  const sign = dir === "longer" ? 1 : -1;
+  return sign * (stepSeconds(seconds, dir) - seconds) > 0;
+}
+
+function moodLineHTML() {
+  const value = S.mood === "calm" ? "~7 s" : "";
+  return `<p class="reason">Picture times are set by the mood <b>Calm</b> — ${value}</p>
+    <button type="button" class="btn ghost small" data-action="set-own">Set them yourself</button>`;
+}
+
+function customHTML() {
+  return `<p class="stepperlabel">About ${fmtSeconds(S.seconds)} each</p>
+    <div class="stepper" data-stepper="seconds">
+      <button type="button" aria-label="Shorter" data-step="-1" ${canStep(S.seconds, "shorter") ? "" : "disabled"}>${icon("minus")}</button>
+      <b>${fmtSeconds(S.seconds)}</b>
+      <button type="button" aria-label="Longer" data-step="1" ${canStep(S.seconds, "longer") ? "" : "disabled"}>${icon("plus")}</button>
+    </div>`;
+}
+
+function pictureLengthSectionHTML() {
+  return `<section class="sec">
+    <h3 class="sechead">${icon("clock")} Picture length</h3>
+    ${S.mood === "calm" ? moodLineHTML() : customHTML()}
+  </section>`;
+}
+
+function emptyCardHTML() {
+  return `<div class="empty">
+    <span class="disc">${icon("music")}</span>
+    <b>No music yet</b>
+    <p>Add one song or several; they play one after another and the pictures change on their beat.</p>
+    <button type="button" class="btn primary">Add a song</button>
+  </div>`;
+}
+
+function toastHTML() {
+  if (!S.toast) return "";
+  return `<div class="toast" role="status"><span>${S.toast}</span><button type="button" data-action="undo">Undo</button></div>`;
+}
+
+function screenHTML() {
+  const sections = S.view === "after" ? emptyCardHTML() + pictureLengthSectionHTML() : emptyCardHTML();
+  return `<div class="hdr">Library &rsaquo; <span>Lake trip</span> &rsaquo; <b>Music</b></div>
+    <div class="edit">${sections}</div>
+    ${toastHTML()}`;
+}
+
+function render() {
+  document.querySelectorAll(".seg").forEach((g) =>
+    g.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(S[g.dataset.k] === b.dataset.v))),
+  );
+  const html = screenHTML();
+  const phone = document.getElementById("appPhone");
+  const desktop = document.getElementById("appDesktop");
+  phone.className = "app " + S.theme;
+  desktop.className = "app " + S.theme;
+  phone.innerHTML = html;
+  desktop.innerHTML = html;
+}
+
+document.querySelectorAll(".toolbox .seg").forEach((g) =>
+  g.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    S[g.dataset.k] = b.dataset.v;
+    render();
+  }),
+);
+
+document.querySelectorAll(".frames").forEach((frames) =>
+  frames.addEventListener("click", (e) => {
+    const step = e.target.closest("[data-step]");
+    if (step && !step.disabled) {
+      S.seconds = stepSeconds(S.seconds, step.dataset.step === "1" ? "longer" : "shorter");
+      return render();
+    }
+    const action = e.target.closest("[data-action]");
+    if (!action) return;
+    if (action.dataset.action === "set-own") {
+      S.mood = "custom";
+      S.seconds = 7;
+      S.toast = "Mood is now Custom";
+      return render();
+    }
+    if (action.dataset.action === "undo") {
+      S.mood = "calm";
+      S.toast = null;
+      return render();
+    }
+  }),
+);
+
+render();
+</script>
+</html>
