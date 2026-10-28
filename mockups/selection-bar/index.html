@@ -53,7 +53,7 @@ p { margin: 0 0 12px; }
 
 /* Device */
 .frame { position: relative; overflow: hidden; background: var(--ground); border: 1px solid var(--line); container-type: inline-size; user-select: none; }
-.frame.phone { width: 412px; height: 820px; border-radius: 28px; border-width: 8px; border-color: #0d0b12; }
+.frame.phone { width: min(412px, calc(100vw - 32px)); height: 820px; border-radius: 28px; border-width: 8px; border-color: #0d0b12; }
 .frame.desk { width: 1040px; height: 640px; border-radius: 12px; }
 .scroll { position: absolute; inset: 0; overflow-y: auto; padding-bottom: 110px; }
 .head { position: sticky; top: 0; z-index: 3; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 14px 14px 10px; background: var(--ground); }
@@ -98,14 +98,7 @@ p { margin: 0 0 12px; }
 .count.several { color: var(--inv-text); font-weight: 500; }
 .count.several b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; margin-right: 5px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font: 500 13px var(--mono); }
 .sep { width: 1px; height: 24px; background: var(--inv-line); }
-.menu { position: absolute; right: 6px; bottom: calc(100% + 8px); min-width: 260px; padding: 6px; border-radius: 14px; background: var(--inv-bg); color: var(--inv-text); box-shadow: 0 8px 24px #0004; display: grid; gap: 2px; animation: rise .12s ease-out; }
 @keyframes rise { from { opacity: 0; translate: 0 6px; } }
-.menu button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 6px 12px; border: 0; border-radius: 10px; background: none; color: inherit; font: 500 15px var(--ui); text-align: left; cursor: pointer; }
-.menu button:hover { background: var(--inv-hover); }
-.menu button.danger svg { color: var(--danger); }
-.menu svg { width: 20px; height: 20px; flex: none; }
-.menu .hint { display: block; font-size: 12px; font-weight: 400; color: var(--inv-muted); }
-.menu hr { border: 0; border-top: 1px solid var(--inv-line); margin: 4px 6px; }
 @container (max-width: 720px) {
   .dock { left: 8px; right: 8px; max-width: none; translate: none; }
   .bar { justify-content: space-between; gap: 2px; padding: 4px; }
@@ -114,8 +107,20 @@ p { margin: 0 0 12px; }
   .btn.icon-only .w, .count:not(.several) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .count.several { padding: 0 2px 0 4px; }
   .count.several .word, .sep { display: none; }
-  .menu { right: 0; left: 0; min-width: 0; }
+  }
+/* Label bubbles: the bar shows icons, the words live in a bubble above each one. */
+.btn { position: relative; }
+.tip { position: absolute; bottom: calc(100% + 14px); left: 50%; translate: -50% 4px; z-index: 7; padding: 6px 11px; border-radius: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 6px 18px #0003; font: 500 13px var(--ui); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .14s, translate .14s; }
+.tip::after { content: ""; position: absolute; top: 100%; left: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; background: var(--surface); border: solid var(--line); border-width: 0 1px 1px 0; rotate: 45deg; }
+.btn.first .tip { left: 0; translate: 0 4px; }
+.btn.first .tip::after { left: 18px; }
+.btn.tip-on .tip { opacity: 1; translate: -50% 0; }
+.btn.first.tip-on .tip { translate: 0 0; }
+@media (hover: hover) {
+  .desk .bar.bubbles .btn:hover .tip { opacity: 1; translate: -50% 0; transition-delay: .35s; }
+  .desk .bar.bubbles .btn.first:hover .tip { translate: 0 0; }
 }
+.bubbles .btn.icon-only { padding: 0 10px; }
 .toast { position: absolute; left: 50%; bottom: 84px; z-index: 6; translate: -50% 0; display: flex; gap: 12px; align-items: center; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 14px; font-size: 13px; box-shadow: 0 6px 18px #0002; white-space: nowrap; animation: rise .15s ease-out; }
 .toast button { border: 0; background: none; color: var(--ink); font: 600 13px var(--ui); text-decoration: underline; cursor: pointer; padding: 4px 6px; }
 .toast.plain { padding-right: 14px; }
@@ -140,8 +145,8 @@ p { margin: 0 0 12px; }
 </head>
 <body>
 <main>
-  <h1>Slim selection bar — try it</h1>
-  <p class="lead">One working slideshow. Tap a picture to select it, then use the bar: Earlier and Later really move it, Remove really removes it (with Undo), Insert chapter really adds a chapter, View and Edit open. Switch variants to compare how they feel; your slideshow stays as it is across variants. Generated colour tiles, no photos.</p>
+  <h1>Selection bar — icons with label bubbles</h1>
+  <p class="lead">One working slideshow. Tap a picture to select it, then use the bar: Earlier and Later really move it, Remove really removes it (with Undo), Insert chapter really adds a chapter, View and Edit open. No menu: every action stays one tap away as an icon, and its word lives in a bubble. The variants differ only in when the bubbles show — switch between them to compare; your slideshow stays as it is across variants. Generated colour tiles, no photos.</p>
   <div class="controls">
     <div class="ctl"><span class="cap">Variant</span><div class="seg" id="variant"></div></div>
     <div class="ctl"><span class="cap">Device</span><div class="seg" id="device">
@@ -168,33 +173,35 @@ const ICON = {
 };
 const svg = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
 
-// Each variant lists the single-selection bar between the arrows and Done, and what ⋯ holds.
+// Each variant lists the single-selection bar between the arrows and Done; `bubbles` says when
+// the icons' words show: on hover/hold, as a short tour when the bar appears, or on every tap.
 const VARIANTS = {
-  today: { label: "Today", tileX: true, bar: ["view:icon", "edit", "chapter:icon", "remove"], menu: [],
-    about: "As shipped: seven controls for one picture. On a phone, View, the bookmark and both arrows are bare icons; on a desktop the selected tile has its own ✕ as well." },
-  a: { label: "A · ⋯ for View + Chapter", tileX: false, bar: ["edit", "remove", "more"], menu: ["view", "chapter"],
-    about: "Five controls. ⋯ holds View full screen and Insert chapter before, both named in full. Recommended: the everyday actions stay one tap away, the chapter action finally says what it does." },
-  b: { label: "B · labelled Chapter", tileX: false, bar: ["edit", "chapter:chip", "remove:icon", "more"], menu: ["view"],
-    about: "Six controls. Chapter stays in the bar with a word on it; Remove shrinks to an icon on a phone to make room. Only View hides behind ⋯." },
-  c: { label: "C · Remove behind ⋯ too", tileX: false, bar: ["edit", "more"], menu: ["view", "chapter", "-", "remove"],
-    about: "The slimmest: arrows, Edit, ⋯, Done. Remove becomes two taps on a phone — calmer bar, slower tidying. With several selected Remove stays in the bar." },
+  today: { label: "Today", tileX: true, bar: ["view:icon", "edit", "chapter:icon", "remove"],
+    about: "As shipped: words beside the icons where they fit, bare icons where they don't — on a phone View, the bookmark and both arrows say nothing. On a desktop the selected tile has its own ✕ as well." },
+  hold: { label: "A · Bubble on hold", tileX: false, bubbles: "hold", bar: ["view", "edit", "chapter", "remove"],
+    about: "Every action is an icon; its word sits in a bubble. Desktop: hover for a moment. Phone: press and hold — the bubble shows, letting go does nothing; a quick tap acts at once. Same buttons as today, one even row, no menu." },
+  tour: { label: "B · Bubble tour", tileX: false, bubbles: "tour", bar: ["view", "edit", "chapter", "remove"],
+    about: "Like A, plus a short tour: whenever the bar appears, the bubbles show one after another (about half a second each) and then step aside. Any tap ends the tour. In the app it would run only the first few times." },
+  tap: { label: "C · Bubble on tap", tileX: false, bubbles: "tap", bar: ["view", "edit", "chapter", "remove"],
+    about: "Like A, plus every tap shows its word for a moment while it acts — Earlier, Later and Remove confirm what just happened. Try moving a picture several places." },
 };
 const ACTIONS = {
-  view: { icon: "eye", word: "View", menuWord: "View full screen" },
-  edit: { icon: "pencil", word: "Edit" },
-  chapter: { icon: "chapter", word: "Insert chapter", chipWord: "Chapter", menuWord: "Insert chapter before" },
-  remove: { icon: "trash", word: "Remove", menuWord: "Remove picture", cls: "remove" },
+  view: { icon: "eye", word: "View", tip: "View full screen" },
+  edit: { icon: "pencil", word: "Edit", tip: "Edit picture" },
+  chapter: { icon: "chapter", word: "Insert chapter", tip: "Insert chapter before" },
+  remove: { icon: "trash", word: "Remove", tip: "Remove picture", cls: "remove" },
 };
+const TOUR_STEP_MS = 550, HOLD_MS = 450, TAP_TIP_MS = 1100;
 const COLOURS = Array.from({ length: 14 }, (_, i) => {
   const h = (i * 37 + 200) % 360;
   return `linear-gradient(${135 + i * 20}deg, hsl(${h} 55% 62%), hsl(${(h + 50) % 360} 50% 38%))`;
 });
 const fresh = () => ({
   items: [{ chapter: "Lisbon", sub: "Day 1 · Saturday, 12 July", id: "c0" }, ...COLOURS.map((bg, i) => ({ id: "p" + i, bg }))],
-  selected: new Set(), selecting: false, menu: false, overlay: null, toast: null, undo: null, flash: null, taps: 0,
+  selected: new Set(), selecting: false, overlay: null, toast: null, undo: null, flash: null, taps: 0,
 });
 let S = fresh();
-let variant = "a", device = "phone";
+let variant = "hold", device = "phone";
 const log = [];
 
 const pics = () => S.items.filter((x) => !x.chapter);
@@ -241,7 +248,7 @@ function toast(text, undo = false) { S.toast = { text, undo }; }
 
 function action(name) {
   const sole = selectedInOrder()[0]?.id;
-  S.menu = false; S.toast = null;
+  S.toast = null;
   if (name === "view") { S.overlay = { kind: "view", id: sole }; note("View full screen"); }
   if (name === "edit") { S.overlay = { kind: "edit", id: sole }; note("Edit"); }
   if (name === "chapter") insertChapter(sole);
@@ -252,33 +259,63 @@ function barHtml() {
   const v = VARIANTS[variant];
   const sel = selectedInOrder();
   const n = sel.length, one = !S.selecting || n === 1;
-  const btn = (cls, icon, word, attrs = "") => `<button class="btn ${cls}" ${attrs}>${svg(icon)}<span class="w">${word}</span></button>`;
+  const bubbles = Boolean(v.bubbles);
+  let first = true;
+  const btn = (cls, icon, word, tip, attrs = "") => {
+    const c = `${cls} ${bubbles ? "icon-only" : ""} ${bubbles && first ? "first" : ""}`;
+    first = false;
+    const label = bubbles ? `aria-label="${tip}"` : "";
+    return `<button class="btn ${c}" ${label} ${attrs}>${svg(icon)}${bubbles ? `<span class="tip" aria-hidden="true">${tip}</span>` : `<span class="w">${word}</span>`}</button>`;
+  };
   let h = S.selecting
     ? `<span class="count several"><b>${n}</b><span class="word">selected</span></span>`
     : `<span class="count">Picture ${numberOf(sel[0].id)} of ${pics().length}</span>`;
   h += `<span class="sep"></span>`;
-  h += btn("icon-only", "left", "Earlier", `data-act="earlier" aria-disabled="${!canMove(-1)}"`);
-  h += btn("icon-only", "right", "Later", `data-act="later" aria-disabled="${!canMove(1)}"`);
-  const items = one ? v.bar : ["remove"];
-  for (const spec of items) {
+  h += btn("icon-only", "left", "Earlier", "Earlier", `data-act="earlier" aria-disabled="${!canMove(-1)}"`);
+  h += btn("icon-only", "right", "Later", "Later", `data-act="later" aria-disabled="${!canMove(1)}"`);
+  for (const spec of one ? v.bar : ["remove"]) {
     const [name, style] = spec.split(":");
-    if (name === "more") { h += btn("icon-only", "more", "More", `data-act="menu" aria-expanded="${S.menu}"`); continue; }
     const a = ACTIONS[name];
-    const cls = [a.cls ?? "", style === "icon" ? "icon-only" : "", style === "chip" ? "chip" : ""].join(" ");
-    h += btn(cls, a.icon, style === "chip" ? a.chipWord : a.word, `data-act="${name}"`);
+    const tip = name === "remove" && n > 1 ? `Remove ${n} pictures` : a.tip;
+    h += btn(`${a.cls ?? ""} ${style === "icon" ? "icon-only" : ""}`, a.icon, a.word, tip, `data-act="${name}"`);
   }
   h += `<button class="btn done" data-act="done">Done</button>`;
-  if (S.menu) {
-    const num = numberOf(sel[0].id);
-    h += `<div class="menu" role="menu">${v.menu.map((name) => {
-      if (name === "-") return "<hr>";
-      const a = ACTIONS[name];
-      const hint = name === "chapter" ? `<span class="hint">Starts a new chapter at picture ${num}</span>` : "";
-      return `<button data-act="${name}" class="${name === "remove" ? "danger" : ""}">${svg(a.icon)}<span>${a.menuWord}${hint}</span></button>`;
-    }).join("")}</div>`;
-  }
-  return `<div class="dock"><div class="bar" role="toolbar">${h}</div></div>`;
+  return `<div class="dock"><div class="bar ${bubbles ? "bubbles" : ""}" role="toolbar">${h}</div></div>`;
 }
+
+// Bubbles change classes in place: a re-render would replace the button under the finger.
+let tipTimers = [];
+function clearTips() {
+  tipTimers.forEach(clearTimeout); tipTimers = [];
+  document.querySelectorAll(".btn.tip-on").forEach((b) => b.classList.remove("tip-on"));
+}
+function flashTip(button, ms) {
+  clearTips();
+  button.classList.add("tip-on");
+  tipTimers.push(setTimeout(() => button.classList.remove("tip-on"), ms));
+}
+function runTour() {
+  const buttons = [...document.querySelectorAll(".bar.bubbles .btn:not(.done)")];
+  buttons.forEach((b, i) => {
+    tipTimers.push(setTimeout(() => { clearTipsOnly(); b.classList.add("tip-on"); }, i * TOUR_STEP_MS));
+  });
+  tipTimers.push(setTimeout(clearTipsOnly, buttons.length * TOUR_STEP_MS + 300));
+}
+function clearTipsOnly() { document.querySelectorAll(".btn.tip-on").forEach((b) => b.classList.remove("tip-on")); }
+
+let held = false, holdTimer = null;
+document.addEventListener("pointerdown", (e) => {
+  const b = e.target.closest(".phone .bar.bubbles .btn:not(.done)");
+  held = false;
+  if (!b) return;
+  clearTips();
+  holdTimer = setTimeout(() => { held = true; b.classList.add("tip-on"); }, HOLD_MS);
+});
+document.addEventListener("pointerup", () => {
+  clearTimeout(holdTimer);
+  if (held) tipTimers.push(setTimeout(clearTipsOnly, 900));
+});
+document.addEventListener("contextmenu", (e) => { if (e.target.closest(".bar")) e.preventDefault(); });
 
 function overlayHtml() {
   const o = S.overlay;
@@ -337,7 +374,7 @@ document.addEventListener("input", (e) => {
   if (f && S.overlay?.kind === "chapter") S.items.find((x) => x.id === S.overlay.id)[f] = e.target.value;
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") { S.menu = false; S.overlay = null; render(); }
+  if (e.key === "Escape") { S.overlay = null; render(); }
 });
 document.addEventListener("click", (e) => {
   const seg = e.target.closest(".seg button");
@@ -350,29 +387,35 @@ document.addEventListener("click", (e) => {
     }
     if (id === "device") { seg.parentElement.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === seg)); device = seg.dataset.v; }
     if (id === "variant") variant = seg.dataset.v;
-    S.menu = false; render(); return;
+    render(); startTour(); return;
   }
   if (e.target.closest("input")) return;
+  // A press-and-hold showed a bubble: letting go does nothing.
+  if (held) { held = false; return; }
   const act = e.target.closest("[data-act]");
-  const inStage = e.target.closest("#stage, #side");
-  if (!inStage) { if (S.menu) { S.menu = false; render(); } return; }
+  if (!e.target.closest("#stage, #side")) return;
+  const barWasShown = S.selected.size > 0 || S.selecting;
   if (act && !(act.classList.contains("overlay") && e.target.closest("[data-keep]"))) {
     const a = act.dataset.act;
     if (act.getAttribute("aria-disabled") === "true") return;
-    if (a === "menu") { S.menu = !S.menu; render(); return; }
     if (a === "earlier") move(-1);
     else if (a === "later") move(1);
-    else if (a === "done") { S.selected = new Set(); S.selecting = false; S.menu = false; S.toast = null; }
-    else if (a === "select") { S.selecting = !S.selecting; S.selected = new Set(); S.menu = false; S.toast = null; }
+    else if (a === "done") { S.selected = new Set(); S.selecting = false; S.toast = null; }
+    else if (a === "select") { S.selecting = !S.selecting; S.selected = new Set(); S.toast = null; }
     else if (a === "undo") { S.items = S.undo; S.toast = null; note("Undo"); }
     else if (a === "close") S.overlay = null;
     else if (a === "delete-chapter") { S.items = S.items.filter((x) => x.id !== S.overlay.id); S.overlay = null; note("Chapter deleted"); }
     else if (a === "reset") { S = fresh(); log.length = 0; }
     else action(a);
-    render(); return;
+    render();
+    if (VARIANTS[variant].bubbles === "tap") {
+      const again = document.querySelector(`.bar .btn[data-act="${a}"]`);
+      if (again && !again.classList.contains("done")) flashTip(again, TAP_TIP_MS);
+    }
+    if (a === "select" && S.selecting) startTour();
+    return;
   }
   if (e.target.closest("[data-keep]")) return;
-  S.menu = false;
   const x = e.target.closest("[data-x]");
   if (x) { remove([x.dataset.x]); render(); return; }
   const chap = e.target.closest("[data-chap]");
@@ -385,7 +428,12 @@ document.addEventListener("click", (e) => {
     else S.selected = S.selected.has(id) ? new Set() : new Set([id]);
   }
   render();
+  if (!barWasShown) startTour();
 });
+function startTour() {
+  clearTips();
+  if (VARIANTS[variant].bubbles === "tour" && document.querySelector(".bar.bubbles")) runTour();
+}
 render();
 </script>
 </body>
