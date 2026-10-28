@@ -7,7 +7,7 @@
 <style>
 :root {
   --ground: #F6F5F8; --surface: #FFFFFF; --ink: #221D33; --muted: #6B6580; --line: #E5E2EB;
-  --accent: #FF9F7F; --accent-hover: #FF8C66; --accent-ink: #2A1A14; --coral: #F2786B;
+  --accent: #FF9F7F; --accent-hover: #FF8C66; --accent-ink: #2A1A14; --mint: #6FCFB4;
   --inv-bg: #221D33; --inv-text: #FFFFFF; --danger: #F2786B;
   --ui: "Instrument Sans", system-ui, sans-serif;
   --display: "Bricolage Grotesque", system-ui, sans-serif;
@@ -30,49 +30,65 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.45 var(--ui); }
-main { max-width: 1400px; margin: 0 auto; padding: 24px 16px 64px; }
+main { max-width: 1440px; margin: 0 auto; padding: 24px 16px 64px; }
 h1 { font: 700 26px/1.2 var(--display); margin: 0 0 6px; }
-h2 { font: 700 19px/1.2 var(--display); margin: 40px 0 4px; }
-h2 .tag { font: 600 12px var(--ui); background: var(--accent); color: var(--accent-ink); padding: 2px 8px; border-radius: 999px; vertical-align: middle; margin-left: 6px; }
-p.lead, p.note { color: var(--muted); margin: 0 0 14px; max-width: 78ch; }
-ul.note { color: var(--muted); margin: 0 0 14px; padding-left: 20px; max-width: 78ch; }
-.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 10px 0 4px; }
+h2 { font: 700 18px/1.2 var(--display); margin: 0 0 6px; }
+p { margin: 0 0 12px; }
+.lead, .muted { color: var(--muted); max-width: 78ch; }
+.controls { display: grid; gap: 10px; margin: 14px 0 20px; }
+.ctl { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.cap { font: 500 12px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; min-width: 64px; }
 .seg { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; flex-wrap: wrap; }
 .seg button { border: 0; background: none; color: var(--ink); font: 500 14px var(--ui); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-.row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
-.col { display: grid; gap: 8px; min-width: 0; }
-.cap { font: 500 12px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.layout { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+.side { flex: 1 1 300px; max-width: 460px; }
+.side ul { margin: 0 0 14px; padding-left: 20px; color: var(--muted); }
+.side li { margin: 3px 0; }
+.side .tally { display: inline-block; font: 500 13px var(--mono); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; margin-bottom: 12px; }
+.log { font: 13px var(--mono); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 90px; }
+.log div:first-child { color: var(--ink); }
+.reset { margin-top: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 14px; font: 500 13px var(--ui); cursor: pointer; }
+.stage-wrap { max-width: calc(100vw - 32px); overflow-x: auto; }
 
-/* Device frames */
-.frame { position: relative; overflow: hidden; background: var(--ground); border: 1px solid var(--line); border-radius: 22px; container-type: inline-size; }
-.frame.phone { width: min(412px, calc(100vw - 32px)); height: 520px; }
-.desk-wrap { max-width: calc(100vw - 32px); overflow-x: auto; }
-.frame.desk { width: 900px; height: 420px; border-radius: 12px; }
-.screen-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 8px; font: 700 17px var(--display); }
-.screen-head small { font: 500 12px var(--ui); color: var(--muted); }
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 4px 12px; }
-.desk .grid { grid-template-columns: repeat(6, 1fr); gap: 10px; padding: 4px 16px; }
-.tile { position: relative; aspect-ratio: 4 / 3; border-radius: 10px; outline: 3px solid transparent; outline-offset: 2px; cursor: pointer; }
-.tile .num { position: absolute; left: 5px; bottom: 5px; font: 500 11px var(--mono); color: #fff; background: #0006; border-radius: 6px; padding: 1px 5px; }
+/* Device */
+.frame { position: relative; overflow: hidden; background: var(--ground); border: 1px solid var(--line); container-type: inline-size; user-select: none; }
+.frame.phone { width: 412px; height: 820px; border-radius: 28px; border-width: 8px; border-color: #0d0b12; }
+.frame.desk { width: 1040px; height: 640px; border-radius: 12px; }
+.scroll { position: absolute; inset: 0; overflow-y: auto; padding-bottom: 110px; }
+.head { position: sticky; top: 0; z-index: 3; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 14px 14px 10px; background: var(--ground); }
+.head b { font: 700 18px var(--display); }
+.head small { display: block; font: 500 12px var(--ui); color: var(--muted); }
+.head button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 14px; font: 500 13px var(--ui); cursor: pointer; }
+.head button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 12px; }
+.desk .grid { grid-template-columns: repeat(6, 1fr); gap: 12px; padding: 0 16px; }
+.tile { position: relative; aspect-ratio: 4 / 3; border-radius: 10px; outline: 3px solid transparent; outline-offset: 2px; cursor: pointer; transition: outline-color .12s; }
 .tile.selected { outline-color: var(--accent); }
-.tile.chap { aspect-ratio: auto; display: grid; place-items: center; background: var(--surface); border: 1px dashed var(--line); font: 600 12px var(--ui); color: var(--muted); }
-.tile .x { position: absolute; top: 5px; right: 5px; width: 26px; height: 26px; border-radius: 6px; display: none; place-items: center; background: #0007; color: #fff; }
-.desk .tile:hover .x, .desk .tile.selected.has-x .x { display: grid; }
+.tile .num { position: absolute; left: 5px; bottom: 5px; font: 500 11px var(--mono); color: #fff; background: #0006; border-radius: 6px; padding: 1px 5px; }
+.tile .x { position: absolute; top: 5px; right: 5px; width: 26px; height: 26px; border: 0; padding: 0; border-radius: 6px; display: none; place-items: center; background: #0007; color: #fff; cursor: pointer; }
+.tile .x:hover { background: var(--danger); }
 .tile .x svg { width: 16px; height: 16px; }
+.desk .tile:hover .x, .desk.tile-x .tile.selected .x { display: grid; }
+.desk.no-tile-x .tile.selected .x { display: none; }
+.selecting .tile .x { display: none !important; }
 .tile .check { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; background: #0003; display: none; place-items: center; color: var(--accent-ink); }
-.several .tile .check { display: grid; }
-.several .tile .x { display: none !important; }
-.several .tile.selected .check { background: var(--accent); border-color: var(--accent); }
+.selecting .tile .check { display: grid; }
+.selecting .tile.selected .check { background: var(--accent); border-color: var(--accent); }
 .tile .check svg { width: 14px; height: 14px; }
+.chap { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font: 600 14px var(--display); cursor: pointer; }
+.chap svg { width: 18px; height: 18px; color: var(--accent); }
+.chap small { font: 400 12px var(--ui); color: var(--muted); }
+.flash { animation: flash .6s; }
+@keyframes flash { from { outline-color: var(--mint); outline-width: 5px; } }
 
 /* Selection bar (mirrors SelectionBar.svelte) */
-.dock { position: absolute; left: 50%; bottom: 14px; translate: -50% 0; max-width: calc(100% - 24px); }
+.dock { position: absolute; left: 50%; bottom: 16px; z-index: 5; translate: -50% 0; max-width: calc(100% - 24px); }
 .bar { position: relative; display: flex; align-items: center; height: 52px; gap: 4px; padding: 6px; border-radius: 14px; background: var(--inv-bg); color: var(--inv-text); box-shadow: 0 1px 2px #0002, 0 8px 24px #0003; }
 .btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: inherit; font: 500 14px var(--ui); cursor: pointer; white-space: nowrap; }
-.btn:hover:not(.done, [aria-disabled="true"]) { background: var(--inv-hover); }
+.btn:hover:not(.done, [aria-disabled="true"]), .btn[aria-expanded="true"] { background: var(--inv-hover); }
+.btn:active:not([aria-disabled="true"]) { scale: .96; }
 .btn[aria-disabled="true"] { opacity: .4; cursor: default; }
-.btn[aria-expanded="true"] { background: var(--inv-hover); }
 .btn svg { width: 20px; height: 20px; flex: none; }
 .btn.remove svg { color: var(--danger); }
 .btn.done { background: var(--accent); color: var(--accent-ink); }
@@ -82,44 +98,63 @@ ul.note { color: var(--muted); margin: 0 0 14px; padding-left: 20px; max-width: 
 .count.several { color: var(--inv-text); font-weight: 500; }
 .count.several b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; margin-right: 5px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font: 500 13px var(--mono); }
 .sep { width: 1px; height: 24px; background: var(--inv-line); }
-.menu { position: absolute; right: 6px; bottom: calc(100% + 8px); min-width: 250px; padding: 6px; border-radius: 14px; background: var(--inv-bg); color: var(--inv-text); box-shadow: 0 8px 24px #0004; display: grid; gap: 2px; }
-.menu button { display: flex; align-items: center; gap: 10px; width: 100%; height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: inherit; font: 500 14px var(--ui); text-align: left; cursor: pointer; }
+.menu { position: absolute; right: 6px; bottom: calc(100% + 8px); min-width: 260px; padding: 6px; border-radius: 14px; background: var(--inv-bg); color: var(--inv-text); box-shadow: 0 8px 24px #0004; display: grid; gap: 2px; animation: rise .12s ease-out; }
+@keyframes rise { from { opacity: 0; translate: 0 6px; } }
+.menu button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 6px 12px; border: 0; border-radius: 10px; background: none; color: inherit; font: 500 15px var(--ui); text-align: left; cursor: pointer; }
 .menu button:hover { background: var(--inv-hover); }
+.menu button.danger svg { color: var(--danger); }
 .menu svg { width: 20px; height: 20px; flex: none; }
 .menu .hint { display: block; font-size: 12px; font-weight: 400; color: var(--inv-muted); }
+.menu hr { border: 0; border-top: 1px solid var(--inv-line); margin: 4px 6px; }
 @container (max-width: 720px) {
   .dock { left: 8px; right: 8px; max-width: none; translate: none; }
   .bar { justify-content: space-between; gap: 2px; padding: 4px; }
   .btn { gap: 4px; padding: 0 6px; font-size: 12px; }
-  .btn.icon-only { padding: 0 4px; }
-  .btn .w, .count:not(.several) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .btn.icon-only { padding: 0 6px; }
+  .btn.icon-only .w, .count:not(.several) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .count.several { padding: 0 2px 0 4px; }
   .count.several .word, .sep { display: none; }
-  .menu { left: auto; right: 0; }
+  .menu { right: 0; left: 0; min-width: 0; }
 }
-.toast { position: absolute; left: 50%; bottom: 80px; translate: -50% 0; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 8px 14px; font-size: 13px; box-shadow: 0 6px 18px #0002; white-space: nowrap; }
-.tally { font: 500 12px var(--mono); color: var(--muted); }
+.toast { position: absolute; left: 50%; bottom: 84px; z-index: 6; translate: -50% 0; display: flex; gap: 12px; align-items: center; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 14px; font-size: 13px; box-shadow: 0 6px 18px #0002; white-space: nowrap; animation: rise .15s ease-out; }
+.toast button { border: 0; background: none; color: var(--ink); font: 600 13px var(--ui); text-decoration: underline; cursor: pointer; padding: 4px 6px; }
+.toast.plain { padding-right: 14px; }
+
+/* Overlays */
+.overlay { position: absolute; inset: 0; z-index: 8; display: grid; place-items: center; animation: rise .15s ease-out; }
+.overlay.viewer { background: #000; cursor: zoom-out; }
+.overlay.viewer .pic { width: 92%; aspect-ratio: 4 / 3; border-radius: 4px; }
+.overlay.viewer .lbl { position: absolute; top: 14px; left: 0; right: 0; text-align: center; color: #fff9; font-size: 13px; }
+.overlay.scrim { background: #0006; align-items: end; }
+.desk .overlay.scrim { align-items: center; }
+.sheet { width: 100%; max-width: 480px; background: var(--surface); border-radius: 20px 20px 0 0; padding: 16px 18px 20px; box-shadow: 0 -6px 30px #0003; }
+.desk .sheet { border-radius: 16px; }
+.sheet h3 { margin: 0 0 4px; font: 700 17px var(--display); }
+.sheet label { display: grid; gap: 4px; margin-top: 12px; font: 500 13px var(--ui); color: var(--muted); }
+.sheet input { font: 15px var(--ui); padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground); color: var(--ink); }
+.sheet .actions { display: flex; justify-content: space-between; margin-top: 16px; }
+.sheet .actions button { border: 0; border-radius: 10px; padding: 9px 16px; font: 600 14px var(--ui); cursor: pointer; background: var(--accent); color: var(--accent-ink); }
+.sheet .actions button.ghost { background: none; color: var(--danger); }
+.sheet .pic { aspect-ratio: 4 / 3; border-radius: 10px; margin-top: 10px; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Slim selection bar</h1>
-  <p class="lead">Today a single selected picture shows seven controls, the bookmark for “Insert chapter” says nothing on a phone, and on a desktop the selected tile carries its own ✕ next to the bar’s Remove. Both proposals keep the everyday actions — Earlier, Later, Edit, Remove, Done — in the bar and move the rare ones behind ⋯. Tap a tile to select it, tap ⋯ to open the menu; on the desktop frames hover a tile to see its ✕.</p>
+  <h1>Slim selection bar — try it</h1>
+  <p class="lead">One working slideshow. Tap a picture to select it, then use the bar: Earlier and Later really move it, Remove really removes it (with Undo), Insert chapter really adds a chapter, View and Edit open. Switch variants to compare how they feel; your slideshow stays as it is across variants. Generated colour tiles, no photos.</p>
   <div class="controls">
-    <span class="cap">Selection</span>
-    <div class="seg" id="state">
-      <button aria-pressed="true" data-v="one">One picture</button>
-      <button aria-pressed="false" data-v="several">Several (Select)</button>
-      <button aria-pressed="false" data-v="adding">Adding pictures</button>
-    </div>
-    <span class="cap">Theme</span>
-    <div class="seg" id="theme">
-      <button aria-pressed="true" data-v="">Auto</button>
-      <button aria-pressed="false" data-v="light">Light</button>
-      <button aria-pressed="false" data-v="dark">Dark</button>
-    </div>
+    <div class="ctl"><span class="cap">Variant</span><div class="seg" id="variant"></div></div>
+    <div class="ctl"><span class="cap">Device</span><div class="seg" id="device">
+      <button aria-pressed="true" data-v="phone">Phone · 412 px</button><button aria-pressed="false" data-v="desk">Desktop · 1040 px</button>
+    </div></div>
+    <div class="ctl"><span class="cap">Theme</span><div class="seg" id="theme">
+      <button aria-pressed="true" data-v="">Auto</button><button aria-pressed="false" data-v="light">Light</button><button aria-pressed="false" data-v="dark">Dark</button>
+    </div></div>
   </div>
-  <div id="variants"></div>
+  <div class="layout">
+    <div class="stage-wrap"><div id="stage"></div></div>
+    <aside class="side" id="side"></aside>
+  </div>
 </main>
 <script>
 const ICON = {
@@ -128,119 +163,226 @@ const ICON = {
   pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
   chapter: '<path d="M6 3.5h12v17l-6-4.2-6 4.2z"/>',
   trash: '<path d="M4.5 7h15M9.5 7V4.8h5V7M6.5 7l.9 12.2a1.5 1.5 0 001.5 1.3h6.2a1.5 1.5 0 001.5-1.3L17.5 7M10 11v6M14 11v6"/>',
-  more: '<circle cx="5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="19" cy="12" r="1.2" fill="currentColor"/>',
+  more: '<circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>', check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
 };
 const svg = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
 
-const VARIANTS = [
-  { id: "today", title: "Today", note: "For comparison. Seven controls for one picture; on a phone View, the bookmark and the arrows are bare icons. The selected desktop tile shows a second ✕.", tileX: true },
-  { id: "a", title: "A — View and Insert chapter behind ⋯", tag: "Recommended", note: "Five controls. The ⋯ menu names both rare actions in full, so the chapter action finally says what it does. The selected tile drops its ✕ (other tiles still show it on hover); Remove lives in the bar only.", tileX: false },
-  { id: "b", title: "B — Chapter as a labelled button, View behind ⋯", note: "Six controls. Chapter stays one tap away with a word on it; Remove shrinks to an icon on a phone to make room. Only View hides behind ⋯. The selected tile drops its ✕.", tileX: false },
-];
-const PICS = Array.from({ length: 12 }, (_, i) => {
+// Each variant lists the single-selection bar between the arrows and Done, and what ⋯ holds.
+const VARIANTS = {
+  today: { label: "Today", tileX: true, bar: ["view:icon", "edit", "chapter:icon", "remove"], menu: [],
+    about: "As shipped: seven controls for one picture. On a phone, View, the bookmark and both arrows are bare icons; on a desktop the selected tile has its own ✕ as well." },
+  a: { label: "A · ⋯ for View + Chapter", tileX: false, bar: ["edit", "remove", "more"], menu: ["view", "chapter"],
+    about: "Five controls. ⋯ holds View full screen and Insert chapter before, both named in full. Recommended: the everyday actions stay one tap away, the chapter action finally says what it does." },
+  b: { label: "B · labelled Chapter", tileX: false, bar: ["edit", "chapter:chip", "remove:icon", "more"], menu: ["view"],
+    about: "Six controls. Chapter stays in the bar with a word on it; Remove shrinks to an icon on a phone to make room. Only View hides behind ⋯." },
+  c: { label: "C · Remove behind ⋯ too", tileX: false, bar: ["edit", "more"], menu: ["view", "chapter", "-", "remove"],
+    about: "The slimmest: arrows, Edit, ⋯, Done. Remove becomes two taps on a phone — calmer bar, slower tidying. With several selected Remove stays in the bar." },
+};
+const ACTIONS = {
+  view: { icon: "eye", word: "View", menuWord: "View full screen" },
+  edit: { icon: "pencil", word: "Edit" },
+  chapter: { icon: "chapter", word: "Insert chapter", chipWord: "Chapter", menuWord: "Insert chapter before" },
+  remove: { icon: "trash", word: "Remove", menuWord: "Remove picture", cls: "remove" },
+};
+const COLOURS = Array.from({ length: 14 }, (_, i) => {
   const h = (i * 37 + 200) % 360;
   return `linear-gradient(${135 + i * 20}deg, hsl(${h} 55% 62%), hsl(${(h + 50) % 360} 50% 38%))`;
 });
-const S = { state: "one", selected: new Set([2]), open: null, toast: null };
+const fresh = () => ({
+  items: [{ chapter: "Lisbon", sub: "Day 1 · Saturday, 12 July", id: "c0" }, ...COLOURS.map((bg, i) => ({ id: "p" + i, bg }))],
+  selected: new Set(), selecting: false, menu: false, overlay: null, toast: null, undo: null, flash: null, taps: 0,
+});
+let S = fresh();
+let variant = "a", device = "phone";
+const log = [];
 
-function bar(v, desk) {
-  const several = S.state === "several", adding = S.state === "adding";
-  const n = S.selected.size, total = PICS.length;
-  const sole = [...S.selected][0];
-  const b = (cls, icon, word, attrs = "") => `<button class="btn ${cls}" ${attrs}>${icon ? svg(icon) : ""}${word ? `<span class="${cls.includes("keep") ? "" : "w"}">${word}</span>` : ""}</button>`;
-  let h = several
+const pics = () => S.items.filter((x) => !x.chapter);
+const numberOf = (id) => pics().findIndex((p) => p.id === id) + 1;
+const selectedInOrder = () => S.items.filter((x) => S.selected.has(x.id));
+function note(text) { log.unshift(text); log.length = Math.min(log.length, 6); }
+
+function move(offset) {
+  const sel = selectedInOrder();
+  if (!sel.length) return;
+  const rest = S.items.filter((x) => !S.selected.has(x.id));
+  const first = S.items.indexOf(sel[0]);
+  let at = rest.indexOf(S.items[first - 1]) + 1; // insert point within `rest`
+  at = Math.max(0, Math.min(rest.length, at + offset));
+  const next = [...rest.slice(0, at), ...sel, ...rest.slice(at)];
+  if (next.every((x, i) => x === S.items[i])) return;
+  S.items = next; S.flash = sel.map((x) => x.id);
+  note(`${offset < 0 ? "Earlier" : "Later"} → picture ${numberOf(sel[0].id)}`);
+}
+function canMove(offset) {
+  const sel = selectedInOrder();
+  if (!sel.length) return false;
+  const i = offset < 0 ? S.items.indexOf(sel[0]) : S.items.indexOf(sel.at(-1));
+  return offset < 0 ? i > 0 : i < S.items.length - 1;
+}
+function remove(ids) {
+  if (!ids.length) return;
+  if (pics().length - ids.length < 1) { toast("The last picture stays"); return; }
+  const before = S.items;
+  S.items = S.items.filter((x) => !ids.includes(x.id));
+  S.selected = new Set(); S.selecting = false;
+  S.undo = before;
+  toast(`${ids.length === 1 ? "Picture" : ids.length + " pictures"} removed`, true);
+  note(`Removed ${ids.length}`);
+}
+function insertChapter(id) {
+  const i = S.items.findIndex((x) => x.id === id);
+  const ch = { chapter: "Porto", sub: "Day 2 · Sunday, 13 July", id: "c" + Date.now() };
+  S.items = [...S.items.slice(0, i), ch, ...S.items.slice(i)];
+  S.overlay = { kind: "chapter", id: ch.id };
+  note(`Chapter inserted before picture ${numberOf(id)}`);
+}
+function toast(text, undo = false) { S.toast = { text, undo }; }
+
+function action(name) {
+  const sole = selectedInOrder()[0]?.id;
+  S.menu = false; S.toast = null;
+  if (name === "view") { S.overlay = { kind: "view", id: sole }; note("View full screen"); }
+  if (name === "edit") { S.overlay = { kind: "edit", id: sole }; note("Edit"); }
+  if (name === "chapter") insertChapter(sole);
+  if (name === "remove") remove(selectedInOrder().map((x) => x.id));
+}
+
+function barHtml() {
+  const v = VARIANTS[variant];
+  const sel = selectedInOrder();
+  const n = sel.length, one = !S.selecting || n === 1;
+  const btn = (cls, icon, word, attrs = "") => `<button class="btn ${cls}" ${attrs}>${svg(icon)}<span class="w">${word}</span></button>`;
+  let h = S.selecting
     ? `<span class="count several"><b>${n}</b><span class="word">selected</span></span>`
-    : `<span class="count">Picture ${sole + 1} of ${total}</span>`;
+    : `<span class="count">Picture ${numberOf(sel[0].id)} of ${pics().length}</span>`;
   h += `<span class="sep"></span>`;
-  if (!adding) {
-    h += b("icon-only", "left", "Earlier", sole === 0 && !several ? 'aria-disabled="true"' : "");
-    h += b("icon-only", "right", "Later");
-  }
-  const one = !several || n === 1;
-  const remove = (iconOnlyOnPhone) => b(`remove ${iconOnlyOnPhone ? "icon-only" : "keep"}`, "trash", "Remove", 'data-act="remove"');
-  if (adding) {
-    if (one) h += b("keep", "eye", "View");
-    h += remove(false);
-  } else if (v.id === "today") {
-    if (one) h += b("icon-only", "eye", "View") + b("keep", "pencil", "Edit") + b("icon-only", "chapter", "Insert chapter", 'data-act="chapter"');
-    h += remove(false);
-  } else if (v.id === "a") {
-    if (one) h += b("keep", "pencil", "Edit");
-    h += remove(false);
-    if (one) h += b("icon-only more", "more", "More", `data-act="menu" aria-expanded="${S.open === v.id + desk}"`);
-  } else {
-    if (one) h += b("keep", "pencil", "Edit") + b("keep chip", "chapter", "Chapter", 'data-act="chapter"');
-    h += remove(true);
-    if (one) h += b("icon-only more", "more", "More", `data-act="menu" aria-expanded="${S.open === v.id + desk}"`);
+  h += btn("icon-only", "left", "Earlier", `data-act="earlier" aria-disabled="${!canMove(-1)}"`);
+  h += btn("icon-only", "right", "Later", `data-act="later" aria-disabled="${!canMove(1)}"`);
+  const items = one ? v.bar : ["remove"];
+  for (const spec of items) {
+    const [name, style] = spec.split(":");
+    if (name === "more") { h += btn("icon-only", "more", "More", `data-act="menu" aria-expanded="${S.menu}"`); continue; }
+    const a = ACTIONS[name];
+    const cls = [a.cls ?? "", style === "icon" ? "icon-only" : "", style === "chip" ? "chip" : ""].join(" ");
+    h += btn(cls, a.icon, style === "chip" ? a.chipWord : a.word, `data-act="${name}"`);
   }
   h += `<button class="btn done" data-act="done">Done</button>`;
-  if (S.open === v.id + desk) {
-    h += `<div class="menu" role="menu">
-      <button data-act="view">${svg("eye")}<span>View full screen</span></button>
-      ${v.id === "a" ? `<button data-act="chapter">${svg("chapter")}<span>Insert chapter before<span class="hint">Starts a new chapter at picture ${sole + 1}</span></span></button>` : ""}
-    </div>`;
+  if (S.menu) {
+    const num = numberOf(sel[0].id);
+    h += `<div class="menu" role="menu">${v.menu.map((name) => {
+      if (name === "-") return "<hr>";
+      const a = ACTIONS[name];
+      const hint = name === "chapter" ? `<span class="hint">Starts a new chapter at picture ${num}</span>` : "";
+      return `<button data-act="${name}" class="${name === "remove" ? "danger" : ""}">${svg(a.icon)}<span>${a.menuWord}${hint}</span></button>`;
+    }).join("")}</div>`;
   }
   return `<div class="dock"><div class="bar" role="toolbar">${h}</div></div>`;
 }
 
-function frame(v, desk) {
-  const key = v.id + desk;
-  const tiles = PICS.map((bg, i) => {
-    const sel = S.selected.has(i);
-    return `<div class="tile ${sel ? "selected" : ""} ${v.tileX ? "has-x" : ""}" data-i="${i}" style="background:${bg}">
-      <span class="check">${svg("check")}</span><span class="x">${svg("close")}</span><span class="num">${i + 1}</span></div>`;
-  }).join("");
-  const toast = S.toast && S.toast.key === key ? `<div class="toast">${S.toast.text}</div>` : "";
-  return `<div class="frame ${desk ? "desk" : "phone"} ${S.state === "several" ? "several" : ""}" data-key="${key}">
-    <div class="screen-head">Lisbon & Porto <small>${S.state === "adding" ? "Adding pictures" : "12 pictures"}</small></div>
-    <div class="grid">${tiles}</div>${toast}${bar(v, desk)}</div>`;
+function overlayHtml() {
+  const o = S.overlay;
+  if (!o) return "";
+  if (o.kind === "view") {
+    const p = S.items.find((x) => x.id === o.id);
+    return `<div class="overlay viewer" data-act="close"><span class="lbl">Picture ${numberOf(o.id)} · tap to close</span><div class="pic" style="background:${p.bg}"></div></div>`;
+  }
+  if (o.kind === "edit") {
+    const p = S.items.find((x) => x.id === o.id);
+    return `<div class="overlay scrim" data-act="close"><div class="sheet" data-keep><h3>Picture ${numberOf(o.id)}</h3><span class="muted">The picture editor (unchanged)</span><div class="pic" style="background:${p.bg}"></div><div class="actions"><span></span><button data-act="close">Done</button></div></div></div>`;
+  }
+  const c = S.items.find((x) => x.id === o.id);
+  return `<div class="overlay scrim" data-act="close"><div class="sheet" data-keep><h3>Chapter</h3>
+    <label>Title<input value="${c.chapter}" data-field="chapter"></label>
+    <label>Subtitle<input value="${c.sub}" data-field="sub"></label>
+    <div class="actions"><button class="ghost" data-act="delete-chapter">Delete chapter</button><button data-act="close">Done</button></div></div></div>`;
 }
 
 function render() {
-  document.getElementById("variants").innerHTML = VARIANTS.map((v) => `
-    <section data-v="${v.id}">
-      <h2>${v.title}${v.tag ? `<span class="tag">${v.tag}</span>` : ""}</h2>
-      <p class="note">${v.note}</p>
-      <div class="row">
-        <div class="col"><span class="cap">Phone · Pixel 9 Pro · 412 px</span>${frame(v, "")}</div>
-        <div class="col"><span class="cap">Desktop · 900 px</span><div class="desk-wrap">${frame(v, "d")}</div></div>
-      </div>
-    </section>`).join("") + `
-    <h2>Unchanged</h2>
-    <ul class="note">
-      <li>Several selected: count, Earlier, Later, Remove, Done — nothing rare to hide, so no ⋯ (switch to “Several”).</li>
-      <li>Adding pictures: View, Remove, Done — no chapters or moving while adding (switch to “Adding pictures”).</li>
-      <li>Hovering any other desktop tile still shows its ✕ for a quick remove without selecting.</li>
-    </ul>`;
+  const v = VARIANTS[variant];
+  document.getElementById("variant").innerHTML = Object.entries(VARIANTS).map(([k, x]) =>
+    `<button aria-pressed="${k === variant}" data-v="${k}">${x.label}</button>`).join("");
+  const grid = S.items.map((x) => {
+    if (x.chapter) return `<div class="chap" data-chap="${x.id}">${svg("chapter")}<span>${x.chapter} <small>${x.sub}</small></span></div>`;
+    const n = numberOf(x.id);
+    return `<div class="tile ${S.selected.has(x.id) ? "selected" : ""} ${S.flash?.includes(x.id) ? "flash" : ""}" data-id="${x.id}" style="background:${x.bg}">
+      <span class="check">${svg("check")}</span><button class="x" data-x="${x.id}" title="Remove">${svg("close")}</button><span class="num">${n}</span></div>`;
+  }).join("");
+  const bar = S.selected.size || S.selecting ? barHtml() : "";
+  const t = S.toast ? `<div class="toast ${S.toast.undo ? "" : "plain"}">${S.toast.text}${S.toast.undo ? '<button data-act="undo">Undo</button>' : ""}</div>` : "";
+  document.getElementById("stage").innerHTML = `
+    <div class="frame ${device} ${v.tileX ? "tile-x" : "no-tile-x"} ${S.selecting ? "selecting" : ""}">
+      <div class="scroll"><div class="head"><div><b>Lisbon &amp; Porto</b><small>${pics().length} pictures</small></div>
+        <button data-act="select" aria-pressed="${S.selecting}">${S.selecting ? "Cancel" : "Select"}</button></div>
+        <div class="grid">${grid}</div></div>
+      ${t}${bar}${overlayHtml()}
+    </div>`;
+  document.getElementById("side").innerHTML = `
+    <h2>${v.label}</h2><p class="muted">${v.about}</p>
+    <span class="tally">One picture: ${2 + v.bar.length + 1} controls</span>
+    <ul>
+      <li>Select a picture and move it a few places with ‹ ›.</li>
+      <li>Insert a chapter before it, then View it full screen.</li>
+      <li>Remove it and undo.</li>
+      <li>Tap <b>Select</b> for several: count, ‹ ›, Remove, Done.</li>
+      ${device === "desk" ? "<li>Hover a tile: its ✕ removes without selecting." + (v.tileX ? " Today the selected tile keeps it too." : " The selected tile has none — the bar's Remove covers it.") + "</li>" : ""}
+    </ul>
+    <div class="log">${log.map((l) => `<div>${l}</div>`).join("") || "Your taps show here."}</div>
+    <button class="reset" data-act="reset">Reset slideshow</button>`;
+  S.flash = null;
 }
 
-const ACT = { remove: "Removed — Undo", chapter: "Chapter dialog opens", view: "Picture opens full screen", done: "Selection cleared" };
+document.addEventListener("input", (e) => {
+  const f = e.target.dataset.field;
+  if (f && S.overlay?.kind === "chapter") S.items.find((x) => x.id === S.overlay.id)[f] = e.target.value;
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { S.menu = false; S.overlay = null; render(); }
+});
 document.addEventListener("click", (e) => {
   const seg = e.target.closest(".seg button");
   if (seg) {
-    seg.parentElement.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === seg));
-    if (seg.parentElement.id === "theme") {
-      seg.dataset.v ? document.documentElement.dataset.theme = seg.dataset.v : delete document.documentElement.dataset.theme;
+    const id = seg.parentElement.id;
+    if (id === "theme") {
+      seg.parentElement.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === seg));
+      seg.dataset.v ? (document.documentElement.dataset.theme = seg.dataset.v) : delete document.documentElement.dataset.theme;
       return;
     }
-    S.state = seg.dataset.v;
-    S.selected = new Set(S.state === "several" ? [2, 3, 4] : [2]);
-    S.open = null; S.toast = null; render(); return;
+    if (id === "device") { seg.parentElement.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === seg)); device = seg.dataset.v; }
+    if (id === "variant") variant = seg.dataset.v;
+    S.menu = false; render(); return;
   }
-  const f = e.target.closest(".frame");
-  if (!f) { if (S.open) { S.open = null; render(); } return; }
-  const key = f.dataset.key;
-  const act = e.target.closest("[data-act]")?.dataset.act;
+  if (e.target.closest("input")) return;
+  const act = e.target.closest("[data-act]");
+  const inStage = e.target.closest("#stage, #side");
+  if (!inStage) { if (S.menu) { S.menu = false; render(); } return; }
+  if (act && !(act.classList.contains("overlay") && e.target.closest("[data-keep]"))) {
+    const a = act.dataset.act;
+    if (act.getAttribute("aria-disabled") === "true") return;
+    if (a === "menu") { S.menu = !S.menu; render(); return; }
+    if (a === "earlier") move(-1);
+    else if (a === "later") move(1);
+    else if (a === "done") { S.selected = new Set(); S.selecting = false; S.menu = false; S.toast = null; }
+    else if (a === "select") { S.selecting = !S.selecting; S.selected = new Set(); S.menu = false; S.toast = null; }
+    else if (a === "undo") { S.items = S.undo; S.toast = null; note("Undo"); }
+    else if (a === "close") S.overlay = null;
+    else if (a === "delete-chapter") { S.items = S.items.filter((x) => x.id !== S.overlay.id); S.overlay = null; note("Chapter deleted"); }
+    else if (a === "reset") { S = fresh(); log.length = 0; }
+    else action(a);
+    render(); return;
+  }
+  if (e.target.closest("[data-keep]")) return;
+  S.menu = false;
+  const x = e.target.closest("[data-x]");
+  if (x) { remove([x.dataset.x]); render(); return; }
+  const chap = e.target.closest("[data-chap]");
+  if (chap) { S.overlay = { kind: "chapter", id: chap.dataset.chap }; render(); return; }
   const tile = e.target.closest(".tile");
-  S.toast = null;
-  if (act === "menu") { S.open = S.open === key ? null : key; render(); return; }
-  S.open = null;
-  if (act) { S.toast = { key, text: ACT[act] }; }
-  else if (tile) {
-    const i = +tile.dataset.i;
-    if (S.state === "several") { S.selected.has(i) ? S.selected.delete(i) : S.selected.add(i); }
-    else S.selected = new Set([i]);
+  if (tile) {
+    const id = tile.dataset.id;
+    S.toast = null;
+    if (S.selecting) S.selected.has(id) ? S.selected.delete(id) : S.selected.add(id);
+    else S.selected = S.selected.has(id) ? new Set() : new Set([id]);
   }
   render();
 });
