@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Share button</title>
+<style>
+:root {
+  --ground: #F6F5F8; --surface: #FFFFFF; --ink: #221D33; --muted: #6B6580; --line: #E5E2EB;
+  --accent: #FF9F7F; --accent-hover: #FF8C66; --accent-ink: #2A1A14; --mint: #6FCFB4;
+  --inv-bg: #221D33; --inv-text: #FFFFFF; --danger: #F2786B;
+  --ui: "Instrument Sans", system-ui, sans-serif; --display: "Bricolage Grotesque", system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, monospace;
+  --inv-muted: color-mix(in srgb, var(--inv-text) 68%, var(--inv-bg));
+  --inv-line: color-mix(in srgb, var(--inv-text) 22%, var(--inv-bg));
+  --inv-hover: color-mix(in srgb, var(--inv-text) 14%, var(--inv-bg));
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ground: #121019; --surface: #1A1723; --ink: #EDEAF3; --muted: #9A94AB; --line: #2C2838; --accent: #FFB59A; --inv-bg: #EDEAF3; --inv-text: #1A1723; --danger: #C4473A; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.45 var(--ui); }
+button { font-family: inherit; }
+svg { width: 20px; height: 20px; flex: none; }
+.tb { background: var(--surface); border-bottom: 1px solid var(--line); padding: 10px 16px; display: grid; gap: 8px; z-index: 50; }
+@media (min-width: 900px) { .tb { position: sticky; top: 0; } }
+.row { display: flex; gap: 8px 22px; flex-wrap: wrap; align-items: flex-start; }
+.ctl { display: grid; gap: 3px; }
+.cap { font: 500 11px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--ground); border: 1px solid var(--line); border-radius: 999px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; color: var(--ink); font: 500 13px var(--ui); padding: 5px 11px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.why { font-size: 12px; color: var(--muted); max-width: 290px; line-height: 1.3; }
+.chk { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+#stageWrap { margin: 18px auto 40px; position: relative; }
+#stageWrap > .inner { transform-origin: 0 0; }
+.frame { position: relative; overflow: hidden; background: var(--ground); border: 1px solid var(--line); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.frame.phone { width: 412px; max-width: 100vw; height: 800px; border-radius: 28px; border: 8px solid #0d0b12; margin: 0 auto; }
+.frame.desk { width: 1280px; height: 820px; border-radius: 12px; }
+.scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 0 16px 110px; }
+.top { position: sticky; top: 0; z-index: 4; margin: 0 -16px 14px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top b { font: 600 17px var(--display); flex: 1; }
+.top button, .ghostbtn { border: 0; background: none; color: var(--ink); cursor: pointer; border-radius: 10px; padding: 6px; display: inline-flex; gap: 6px; align-items: center; font: 500 14px var(--ui); }
+.top .outl, .outl { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; margin-bottom: 18px; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.title h1 { margin: 4px 0; font: 700 28px/1.15 var(--display); }
+.meta { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+.play { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 14px; padding: 12px 22px; font: 600 16px var(--ui); display: inline-flex; gap: 8px; align-items: center; justify-content: center; cursor: pointer; }
+.play:hover { background: var(--accent-hover); }
+.play.full { width: 100%; margin: 4px 0 12px; }
+.phone .play.top-r { display: none; }
+.desk .play.full { display: none; }
+.tilesrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.mini { border: 1px solid var(--line); border-radius: 14px; padding: 10px; font-size: 13px; color: var(--muted); }
+.mini b { display: block; color: var(--ink); font: 600 15px var(--ui); }
+.fine { display: flex; justify-content: space-between; color: var(--muted); font-weight: 600; padding: 8px 2px 0; }
+.pic { --h: 10; background: radial-gradient(circle at 50% 46%, hsl(var(--h) 80% 66%) 0 24%, #0000 25%), linear-gradient(#0000 55%, #000a), repeating-linear-gradient(90deg, hsl(var(--h) 45% 55%) 0 7px, #fff 7px 14px); }
+.cover { position: relative; aspect-ratio: 16/9; border-radius: 20px; overflow: hidden; margin-bottom: 18px; }
+.cover.live { cursor: pointer; }
+.round { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 78px; height: 78px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 20px #e8707088; color: #221D33; }
+.round svg { width: 30px; height: 30px; }
+.pill { position: absolute; left: 12px; bottom: 12px; display: inline-flex; gap: 6px; align-items: center; background: var(--accent); color: var(--accent-ink); font: 600 14px var(--ui); border-radius: 999px; padding: 8px 14px; box-shadow: 0 2px 8px #0004; }
+.pill svg { width: 16px; height: 16px; }
+.desk .showgrid { display: grid; grid-template-columns: 520px 1fr; gap: 24px; align-items: start; padding-top: 6px; }
+.desk .scroll { padding: 0 32px 110px; } .desk .top { margin: 0 -32px 14px; padding: 12px 32px; }
+.desk .showgrid .cover { margin-bottom: 0; }
+.head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.head .eyebrow { margin-right: auto; }
+.head .eyebrow i { font-style: normal; margin-left: 8px; font-size: 14px; }
+.head .outl { display: inline-flex; gap: 5px; align-items: center; font: 500 14px var(--ui); color: var(--ink); cursor: pointer; padding: 7px 10px; white-space: nowrap; }
+.head .outl svg { width: 18px; height: 18px; }
+.head .eyebrow { white-space: nowrap; font-size: 11px; }
+.head .outl[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.hint { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.desk .grid { grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.tile { position: relative; aspect-ratio: 4/3; border-radius: 10px; outline: 3px solid transparent; outline-offset: 2px; cursor: default; }
+.selecting .tile.p { cursor: pointer; }
+.tile.sel { outline-color: var(--accent); }
+.tile .num { position: absolute; left: 5px; top: 5px; font: 500 11px var(--mono); color: #fff; background: #0006; border-radius: 6px; padding: 1px 5px; }
+.tile .date { position: absolute; left: 6px; bottom: 5px; font: 500 11px var(--mono); color: #fff; }
+.tile .check { position: absolute; top: 5px; left: 5px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; background: #0003; display: none; place-items: center; color: var(--accent-ink); }
+.selecting .tile.p .check { display: grid; } .selecting .tile.p .num { display: none; }
+.tile.sel .check { background: var(--accent); border-color: var(--accent); }
+.check svg { width: 14px; height: 14px; }
+.tile.slot { background: color-mix(in srgb, var(--muted) 12%, var(--ground)); border: 1px dashed var(--line); display: grid; place-content: center; justify-items: center; gap: 2px; color: var(--muted); font-size: 13px; cursor: pointer; }
+.tile.slot.add { background: none; }
+.flash { animation: flash .9s; }
+@keyframes flash { from { outline-color: var(--mint); outline-width: 6px; } }
+.dock { position: absolute; left: 8px; right: 8px; bottom: 16px; z-index: 6; display: flex; justify-content: center; }
+.bar { position: relative; display: flex; align-items: center; height: 52px; gap: 4px; padding: 6px; border-radius: 14px; background: var(--inv-bg); color: var(--inv-text); box-shadow: 0 1px 2px #0002, 0 8px 24px #0003; }
+.btn { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: inherit; font: 500 14px var(--ui); cursor: pointer; }
+.btn:hover:not([aria-disabled="true"]) { background: var(--inv-hover); }
+.btn[aria-disabled="true"] { opacity: .4; cursor: default; }
+.btn.rm svg { color: var(--danger); }
+.btn.done { background: var(--accent); color: var(--accent-ink); }
+.count { padding: 0 8px 0 6px; font-size: 13px; color: var(--inv-text); display: flex; align-items: center; gap: 6px; }
+.count b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font: 500 13px var(--mono); }
+.phone .count span { display: none; }
+.sep { width: 1px; height: 24px; background: var(--inv-line); }
+.tip { position: absolute; bottom: calc(100% + 14px); left: 50%; translate: -50% 4px; padding: 6px 11px; border-radius: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 6px 18px #0003; font: 500 13px var(--ui); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .14s, translate .14s; }
+.tip::after { content: ""; position: absolute; top: 100%; left: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; background: var(--surface); border: solid var(--line); border-width: 0 1px 1px 0; rotate: 45deg; }
+.btn.tip-on .tip { opacity: 1; translate: -50% 0; }
+@media (hover: hover) { .btn:hover .tip { opacity: 1; translate: -50% 0; transition-delay: .3s; } }
+.toast { position: absolute; left: 50%; bottom: 82px; z-index: 7; translate: -50% 0; display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px 9px 14px; font-size: 14px; box-shadow: 0 6px 18px #0003; white-space: nowrap; }
+.toast.low { bottom: 20px; }
+.toast button { border: 0; background: none; color: var(--ink); font: 600 14px var(--ui); text-decoration: underline; cursor: pointer; }
+.overlay { position: absolute; inset: 0; z-index: 9; display: grid; }
+.overlay.scrim { background: #0006; align-items: end; }
+.desk .overlay.scrim { align-items: center; justify-items: center; }
+.sheet { background: var(--surface); border-radius: 20px 20px 0 0; padding: 16px 18px 20px; display: grid; gap: 8px; }
+.desk .sheet { width: 420px; border-radius: 16px; }
+.sheet h3 { margin: 0 0 4px; font: 700 18px var(--display); }
+.opt { display: flex; gap: 12px; align-items: center; border: 1px solid var(--line); background: var(--ground); color: var(--ink); border-radius: 14px; padding: 13px 14px; font: 500 15px var(--ui); cursor: pointer; text-align: left; }
+.opt small { display: block; color: var(--muted); font-weight: 400; }
+.player { background: #000; place-items: center; }
+.player .pic { width: 100%; aspect-ratio: 16/9; }
+.phone .player .pic { aspect-ratio: 4/5; }
+.player .x { position: absolute; top: 14px; right: 14px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: #fff3; color: #fff; display: grid; place-items: center; cursor: pointer; }
+.player .cnt { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: #fffb; font: 13px var(--mono); }
+.big { font: 700 26px/1.15 var(--display); margin: 14px 0 6px; }
+.lead { color: var(--muted); margin: 0 0 16px; }
+.drop { border: 2px dashed var(--line); border-radius: 18px; padding: 22px 16px; text-align: center; background: var(--surface); margin-bottom: 12px; display: grid; justify-items: center; gap: 6px; }
+.drop b { font: 600 16px var(--display); }
+.drop small { color: var(--muted); }
+.box { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 16px; margin-bottom: 18px; flex-wrap: wrap; }
+.box p { margin: 0; flex: 1 1 180px; } .box small { color: var(--muted); display: block; }
+.steps { display: flex; gap: 10px; align-items: center; font-size: 14px; color: var(--muted); margin: 4px 0; }
+.steps i { font: 500 13px var(--mono); font-style: normal; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); }
+.steps .on { color: var(--ink); font-weight: 600; } .steps .on i { background: var(--ink); color: var(--surface); }
+.foot { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; gap: 12px; padding: 12px 16px; background: var(--surface); border-top: 1px solid var(--line); }
+.foot .play { flex: 1; }
+.summary { padding: 12px 16px; margin-bottom: 16px; border-radius: 16px; }
+.hero { text-align: center; padding: 48px 12px; display: grid; justify-items: center; gap: 10px; }
+.hero .big { margin: 0; }
+.hero .row { justify-content: center; }
+.slidecard { display: flex; gap: 14px; align-items: center; width: 100%; text-align: left; cursor: pointer; color: var(--ink); font: inherit; }
+.slidecard .pic { width: 92px; aspect-ratio: 4/3; border-radius: 10px; flex: none; }
+.slidecard b { font: 600 18px var(--display); display: block; }
+.slidecard span { color: var(--muted); font-size: 14px; }
+.title h1 { flex: 1; min-width: 0; }
+.sharebtn { display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 7px 14px; font: 500 14px var(--ui); cursor: pointer; }
+.sharebtn svg { width: 18px; height: 18px; }
+.pill.share { left: auto; right: 12px; background: #fff; color: #221D33; border: 0; cursor: pointer; }
+.pill.play { border: 0; cursor: pointer; }
+.cover .round { pointer-events: none; }
+.menu { position: absolute; top: 54px; right: 12px; z-index: 9; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 30px #0003; padding: 6px; min-width: 250px; display: grid; }
+.desk .menu { right: 32px; }
+.menu button { display: flex; gap: 10px; align-items: center; border: 0; background: none; color: var(--ink); font: 500 15px var(--ui); padding: 10px 12px; border-radius: 10px; text-align: left; cursor: pointer; }
+.menu button:hover { background: var(--ground); }
+.menu small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+.menu .danger { color: var(--danger); }
+.sheet .shead { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.sheet .shead h3 { flex: 1; margin: 0; }
+.sheet .shead button { border: 0; background: none; color: var(--ink); padding: 6px; border-radius: 10px; cursor: pointer; display: grid; }
+.subject { display: flex; gap: 12px; align-items: center; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+.subject .pic { width: 56px; aspect-ratio: 4/3; border-radius: 8px; flex: none; }
+.subject b { display: block; color: var(--ink); font: 600 15px var(--ui); }
+.grp { font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 8px 2px 0; }
+.opt { width: 100%; }
+.opt > span { flex: 1; }
+.opt .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); flex: none; }
+.opt[aria-disabled="true"] { cursor: default; color: var(--muted); }
+.opt[aria-disabled="true"] .ic { opacity: .5; }
+.opt .badge { font: 500 12px var(--mono); background: var(--mint); color: #10302a; border-radius: 999px; padding: 2px 8px; }
+.opt .go { color: var(--muted); flex: none; display: grid; }
+.bar2 { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar2 i { display: block; height: 100%; background: var(--accent); }
+.radio { display: flex; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; cursor: pointer; font-size: 15px; }
+.radio[aria-checked="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.radio small { color: var(--muted); display: block; font-size: 13px; }
+.radio .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); flex: none; }
+.radio[aria-checked="true"] .dot { border: 5px solid var(--accent); }
+.radio .sz { margin-left: auto; font: 500 13px var(--mono); color: var(--muted); }
+.urlbox { display: flex; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 12px; font: 500 13px var(--mono); }
+.urlbox span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note { color: var(--muted); font-size: 14px; margin: 0; }
+.sheet .play { width: 100%; }
+.sheet .rowb { display: flex; gap: 8px; } .sheet .rowb > * { flex: 1; justify-content: center; }
+.fineopen { display: grid; gap: 6px; padding-top: 10px; }
+.fineopen .opt { padding: 10px 12px; font-size: 14px; }
+.ring { width: 18px; height: 18px; border-radius: 50%; background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--line) 0); }
+</style>
+</head>
+<body>
+<div class="tb" id="tb"></div>
+<div id="stageWrap"><div class="inner" id="stage"></div></div>
+<script>
+const I = {
+  play: '<path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>', check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>', close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>', right: '<path d="M9 6l6 6-6 6"/>', chev: '<path d="M6 9l6 6 6-6"/>',
+  more: '<circle cx="5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="19" cy="12" r="1.2" fill="currentColor"/>',
+  share: '<path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/>',
+  link: '<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>',
+  film: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M7.5 5v14M16.5 5v14M3.5 9.5h4M3.5 14.5h4M16.5 9.5h4M16.5 14.5h4"/>',
+  page: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 8.5h17M7 12.5h10M7 15.5h6"/>',
+  download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/>', upload: '<path d="M12 16V5M7 9.5l5-5 5 5M5 19.5h14"/>',
+  search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+  trash: '<path d="M4.5 7h15M9.5 7V4.8h5V7M6.5 7l.9 12.2a1.5 1.5 0 001.5 1.3h6.2a1.5 1.5 0 001.5-1.3L17.5 7M10 11v6M14 11v6"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/>', tv: '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 20h8"/>',
+  file: '<path d="M6 3.500h8l4 4v13H6zM14 3.500v4h4"/>', copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/>',
+};
+const svg = (n, w) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w || 1.8}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+const HUES = [4, 36, 56, 130, 175, 208, 268, 338];
+const S = { device: "phone", lib: "server", v: { place: "A", sheet: "A", file: "A" },
+  overlay: null, step: "list", preset: "1080", linked: false, job: null, fileJob: null, toast: null, fine: false };
+const VARS = {
+  place: ["Share button", { A: ["Panel head", "An outlined Share button on the title row of the info panel, where the slideshow is named."],
+    B: ["Beside Play", "A white Share pill on the cover, at the opposite corner from the orange Play pill."],
+    C: ["Top bar", "A Share icon in the top bar, left of ⋯ — where phones usually put sharing."] }],
+  sheet: ["Sheet", { A: ["One list", "Four rows, each with a line saying what the other person gets."],
+    B: ["Link vs copy", "Two groups: “Watch by link” (stays live) and “Save a copy” (a file that does not change)."] }],
+  file: ["Glissando file", { A: ["Own step", "Like video and web page: a step that says what is inside and how big, then Save."],
+    B: ["Starts at once", "The row starts the export; its progress shows in the row, the sheet may close."] }],
+};
+const $ = (s) => document.querySelector(s);
+const seg = (grp, opts, cur) => `<div class="seg" data-grp="${grp}">${opts.map(([k, l]) => `<button data-k="${k}" aria-pressed="${k === cur}">${l}</button>`).join("")}</div>`;
+
+function toolbar() {
+  let h = `<div class="row"><div class="ctl"><span class="cap">Device</span>${seg("device", [["phone", "Phone"], ["desk", "Desktop"]], S.device)}</div>
+  <div class="ctl"><span class="cap">Library</span>${seg("lib", [["server", "On the server"], ["device", "On this device"], ["none", "No server"]], S.lib)}
+  <span class="why">Only a slideshow on a Glissando server can get a link.</span></div></div><div class="row">`;
+  for (const [g, [name, o]] of Object.entries(VARS))
+    h += `<div class="ctl"><span class="cap">${name}</span>${seg("v-" + g, Object.entries(o).map(([k, [l]]) => [k, `${k} · ${l}`]), S.v[g])}<span class="why">${o[S.v[g]][1]}</span></div>`;
+  $("#tb").innerHTML = h + "</div>";
+}
+
+function showScreen() {
+  const d = S.device === "desk", p = S.v.place;
+  const shareBtn = `<button class="sharebtn" data-a="share">${svg("share")}Share</button>`;
+  const fineRows = `<div class="fineopen">
+    <button class="opt" data-a="noop"><span class="ic">${svg("tv")}</span><span>Play on the TV<small>Glissando on the TV, this phone as remote</small></span></button></div>`;
+  const panel = `<div class="card"><div class="eyebrow">Slideshow</div>
+    <div class="title"><h1>October 2026</h1>${svg("pencil")}${p === "A" ? shareBtn : ""}</div>
+    <p class="meta">29/10/2026 · 8 pictures · 0:56</p>
+    <div class="tilesrow"><div class="mini">Music<b>Sunday</b>0:56</div><div class="mini">Mood<b>Calm</b>~7 s · gentle motion</div><div class="mini">Look<b>None</b>default</div></div>
+    <div class="fine" data-a="fine" style="cursor:pointer">Fine settings ${svg("chev")}</div>${S.fine ? fineRows : ""}</div>`;
+  const cover = `<div class="cover pic" style="--h:4"><button class="pill play" data-a="play">${svg("play")}Play · 0:56</button>${p === "B" ? `<button class="pill share" data-a="share">${svg("share")}Share</button>` : ""}</div>`;
+  const tiles = `<div class="head"><span class="eyebrow">Pictures<i>8</i></span></div><div class="grid">${HUES.map((h, i) => `<div class="tile pic" style="--h:${h}"><span class="num">${i + 1}</span></div>`).join("")}</div>`;
+  return `<div class="top"><button data-a="noop" aria-label="Back">${svg("back")}</button><b>October 2026</b>
+    ${p === "C" ? `<button data-a="share" aria-label="Share">${svg("share")}${d ? "Share" : ""}</button>` : ""}<button data-a="menu" aria-label="More">${svg("more")}</button></div>
+    ${d ? `<div class="showgrid">${panel}${cover}</div>` : cover + panel}${tiles}`;
+}
+
+function menu() {
+  const store = S.lib === "server" ? `<button data-a="noop">${svg("download")}<span>Keep a copy on this device</span></button>`
+    : S.lib === "device" ? `<button data-a="noop">${svg("upload")}<span>Save on the server<small>A copy for every device at home</small></span></button>` : "";
+  return `<div class="overlay" data-a="close"></div><div class="menu">
+    <button data-a="noop">${svg("search")}<span>Faces and subjects …</span></button>${store ? "<hr>" + store : ""}<hr>
+    <button class="danger" data-a="noop">${svg("trash")}<span>Delete slideshow …</span></button></div>`;
+}
+
+const sizeOf = { "1080": "≈ 48 MB", "4k": "≈ 160 MB" };
+function linkRow() {
+  if (S.lib === "none") return "";
+  if (S.lib === "device") return `<div class="opt" aria-disabled="true"><span class="ic">${svg("link")}</span><span>Share link<small>Save it on your Glissando server to share it by link.</small></span></div>`;
+  return `<button class="opt" data-a="s-link"><span class="ic">${svg("link")}</span><span>Share link<small>${S.linked ? "Anyone with the link can watch" : "Others watch it in their browser, with music"}</small></span>${S.linked ? '<span class="badge">On</span>' : ""}<span class="go">${svg("right")}</span></button>`;
+}
+function fileRow() {
+  const j = S.fileJob;
+  const sub = j && j < 100 ? `Exporting … ${j} %` : j === 100 ? "Saved to Downloads" : "To open in Glissando and edit on, ≈ 62 MB";
+  const end = S.v.file === "A" ? `<span class="go">${svg("right")}</span>` : j && j < 100 ? `<span class="ring" style="--p:${j}"></span>` : j === 100 ? svg("check") : svg("download");
+  return `<button class="opt" data-a="s-file" ${S.v.file === "B" && j && j < 100 ? 'aria-disabled="true"' : ""}><span class="ic">${svg("file")}</span><span>Glissando file<small>${sub}</small></span>${end}</button>`;
+}
+function listStep() {
+  const video = `<button class="opt" data-a="s-video"><span class="ic">${svg("film")}</span><span>Video<small>An MP4 for any player or a messenger</small></span><span class="go">${svg("right")}</span></button>`;
+  const page = `<button class="opt" data-a="s-page"><span class="ic">${svg("page")}</span><span>Web page<small>One file that plays in any browser, offline</small></span><span class="go">${svg("right")}</span></button>`;
+  const subject = `<div class="subject"><div class="pic" style="--h:4"></div><div><b>October 2026</b>8 pictures · 0:56 · with music</div></div>`;
+  const body = S.v.sheet === "A" ? linkRow() + video + page + fileRow()
+    : (S.lib === "none" ? "" : `<div class="grp">Watch by link · stays up to date</div>${linkRow()}`) + `<div class="grp">Save a copy · as it is now</div>${video}${page}${fileRow()}`;
+  return head("Share", false) + subject + body;
+}
+function head(t, back) {
+  return `<div class="shead">${back ? `<button data-a="s-list" aria-label="Back">${svg("back")}</button>` : ""}<h3>${t}</h3><button data-a="close" aria-label="Close">${svg("close")}</button></div>`;
+}
+function radios() {
+  const r = (k, l, s) => `<div class="radio" data-a="preset-${k}" aria-checked="${S.preset === k}"><span class="dot"></span><span>${l}<small>${s}</small></span><span class="sz">${sizeOf[k]}</span></div>`;
+  return r("1080", "Full HD", "For phones and messengers") + r("4k", "4K", "For a big TV");
+}
+function jobBody(name) {
+  const j = S.job;
+  if (!j) return null;
+  if (j.p < 100) return `<p class="note">Saving ${name} … ${j.p} %</p><div class="bar2"><i style="width:${j.p}%"></i></div><button class="ghostbtn" data-a="close" style="justify-content:center">Keep working — it carries on</button>`;
+  return `<p class="note">${svg("check")} Saved to Downloads.</p><div class="rowb"><button class="outl" data-a="noop">${svg("share")}Send …</button><button class="play" data-a="close">Done</button></div>`;
+}
+function sheet() {
+  const s = S.step;
+  let h;
+  if (s === "list") h = listStep();
+  else if (s === "video") h = head("Video", true) + (jobBody("the video") ?? radios() + `<button class="play" data-a="run-video">Save video</button>`);
+  else if (s === "page") h = head("Web page", true) + (jobBody("the web page") ?? `<p class="note">One .html file with the pictures and the music inside. It opens in any browser, even without internet.</p><div class="radio" aria-checked="true"><span class="dot"></span><span>Pictures sized for screens<small>Sharp up to Full HD</small></span><span class="sz">≈ 34 MB</span></div><button class="play" data-a="run-page">Save web page</button>`);
+  else if (s === "file") h = head("Glissando file", true) + (jobBody("the Glissando file") ?? `<p class="note">The whole slideshow — pictures, music, every setting — in one .glissando file. Open it in Glissando on another device to watch or edit on.</p><div class="radio" aria-checked="true"><span class="dot"></span><span>October 2026.glissando<small>8 pictures · music · settings</small></span><span class="sz">≈ 62 MB</span></div><button class="play" data-a="run-file">Save file</button>`);
+  else if (s === "link") h = head("Share link", true) + (S.linked
+    ? `<div class="urlbox"><span>glissando.home/w/7fq2-k9xd</span><button class="outl" data-a="copy">${svg("copy")}Copy</button></div>
+       <div class="rowb"><button class="outl" data-a="noop">${svg("share")}Send …</button><button class="outl" data-a="noop">QR code</button></div>
+       <p class="note">Your edits show up in the link. It works until you turn it off.</p><button class="ghostbtn" data-a="unlink" style="justify-content:center;color:var(--danger)">Turn off link</button>`
+    : `<p class="note">Anyone with the link sees this slideshow with its music. Nothing else: not your Immich, your other slideshows, file names or places.</p><button class="play" data-a="mklink">${svg("link")}Create link</button>`);
+  return `<div class="overlay scrim" data-a="close"><div class="sheet" data-keep>${h}</div></div>`;
+}
+
+function render() {
+  toolbar();
+  const o = S.overlay;
+  const ov = o === "share" ? sheet() : o === "menu" ? menu() : o === "play" ? `<div class="overlay player"><div class="pic" style="--h:4"></div><button class="x" data-a="close" aria-label="Close">${svg("close")}</button></div>` : "";
+  const t = S.toast ? `<div class="toast low">${S.toast}</div>` : "";
+  $("#stage").innerHTML = `<div class="frame ${S.device}"><div class="scroll">${showScreen()}</div>${t}${ov}</div>`;
+  fit();
+}
+function fit() {
+  const w = $("#stageWrap"), inner = $("#stage"), desk = S.device === "desk";
+  const k = desk ? Math.min(1, (innerWidth - 32) / 1280) : 1;
+  inner.style.transform = desk ? `scale(${k})` : "none";
+  w.style.width = desk ? 1280 * k + "px" : "min(412px, 100%)";
+  w.style.height = (desk ? 820 * k : 800) + "px";
+}
+addEventListener("resize", fit);
+let toastTimer;
+function toast(text) { S.toast = text; clearTimeout(toastTimer); toastTimer = setTimeout(() => { S.toast = null; render(); }, 3000); render(); }
+function run(kind) {
+  S.job = { kind, p: 0 };
+  const t = setInterval(() => { if (!S.job) return clearInterval(t); S.job.p = Math.min(100, S.job.p + 10); if (S.job.p === 100) clearInterval(t); render(); }, 200);
+}
+function runFile() {
+  S.fileJob = 1;
+  const t = setInterval(() => { S.fileJob = Math.min(100, S.fileJob + 9); if (S.fileJob >= 100) { S.fileJob = 100; clearInterval(t); if (S.overlay !== "share") toast("Glissando file saved to Downloads"); } render(); }, 220);
+}
+function act(a) {
+  if (a === "share") { S.overlay = "share"; S.step = "list"; S.job = null; if (S.fileJob === 100) S.fileJob = null; }
+  else if (a === "close") { S.overlay = null; S.job = null; }
+  else if (a === "menu") S.overlay = "menu";
+  else if (a === "play") S.overlay = "play";
+  else if (a === "fine") S.fine = !S.fine;
+  else if (a === "s-list") { S.step = "list"; S.job = null; }
+  else if (a === "s-link") S.step = "link";
+  else if (a === "s-video") S.step = "video";
+  else if (a === "s-page") S.step = "page";
+  else if (a === "s-file") { if (S.v.file === "A") S.step = "file"; else if (!S.fileJob || S.fileJob === 100) runFile(); }
+  else if (a.startsWith("preset-")) S.preset = a.slice(7);
+  else if (a === "run-video") run("video"); else if (a === "run-page") run("page"); else if (a === "run-file") run("file");
+  else if (a === "mklink") S.linked = true;
+  else if (a === "unlink") { S.linked = false; return toast("Link turned off"); }
+  else if (a === "copy") return toast("Link copied");
+  else if (a === "noop") return toast("Not part of this mockup");
+  else return;
+  render();
+}
+document.addEventListener("click", (e) => {
+  const sb = e.target.closest(".seg button");
+  if (sb) {
+    const g = sb.parentElement.dataset.grp, k = sb.dataset.k;
+    if (g === "device") S.device = k; else if (g === "lib") { S.lib = k; S.linked = false; } else S.v[g.slice(2)] = k;
+    render(); return;
+  }
+  if (!e.target.closest("#stage")) return;
+  const el = e.target.closest("[data-a]");
+  if (!el || el.getAttribute("aria-disabled") === "true") return;
+  if (el.classList.contains("overlay") && e.target.closest("[data-keep]")) return;
+  act(el.dataset.a);
+});
+render();
+</script>
+</body>
+</html>
