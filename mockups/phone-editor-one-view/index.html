@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phone picture editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=Geist+Mono&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33;
+  --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-mint: #6fcfb4;
+  --gl-shadow: 0 1px 3px rgb(34 29 51 / .14);
+  --gl-well: #17141f; --gl-on-photo: #fff; --gl-veil: rgb(0 0 0 / .45);
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif;
+  --gl-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-size-caption: 11px; --gl-size-small: 12px; --gl-size-meta: 12.5px; --gl-size-label: 13px;
+  --gl-size-body: 14px; --gl-size-name: 17px;
+  --gl-radius-small: 7px; --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-pill: 999px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font-family: var(--gl-font-ui); font-size: var(--gl-size-body); }
+button { font: inherit; color: inherit; }
+.mono { font-family: var(--gl-font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--gl-muted); }
+
+/* ---------- mockup chrome ---------- */
+.chrome { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
+  padding: 10px 16px; background: var(--gl-surface); border-bottom: 1px solid var(--gl-line); }
+.chrome b { font-family: var(--gl-font-display); }
+.seg { display: inline-flex; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-pill); overflow: hidden; }
+.seg button { border: 0; background: none; padding: 6px 11px; cursor: pointer; font-size: var(--gl-size-small); }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.note { width: 100%; margin: 0; color: var(--gl-muted); font-size: var(--gl-size-small); line-height: 1.45; }
+.stage-wrap { display: flex; justify-content: center; padding: 20px 16px 60px; }
+.device { border: 1px solid var(--gl-line); background: var(--gl-ground); overflow: hidden; container-type: inline-size; }
+.device.phone { width: 412px; max-width: 100%; height: 915px; max-height: calc(100vh - 140px); min-height: 560px; border-radius: 26px; }
+.device.desktop { width: 1100px; max-width: 100%; height: 680px; border-radius: 12px; }
+.scroller { height: 100%; overflow: auto; display: flex; flex-direction: column; }
+
+/* ---------- app ---------- */
+header.bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--gl-surface);
+  border-bottom: 1px solid var(--gl-line); flex: none; }
+.icon-btn { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: var(--gl-radius-small);
+  background: transparent; cursor: pointer; }
+.icon-btn:hover { background: var(--gl-hover); }
+.icon-btn:disabled { opacity: .35; cursor: default; }
+.crumbs { flex: 1; min-width: 0; font-size: var(--gl-size-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs span { color: var(--gl-muted); }
+.count { font-size: var(--gl-size-small); color: var(--gl-muted); }
+svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.edit { flex: 1 1 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; min-height: 0; }
+.well-column { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; min-height: 0; padding: 18px; background: var(--gl-well); }
+.panel { display: grid; align-content: start; gap: 18px; min-height: 0; padding: 20px; overflow: auto;
+  border-left: 1px solid var(--gl-line); background: var(--gl-surface); }
+.preview-block { position: sticky; top: -20px; z-index: 2; display: grid; gap: 8px; margin: -20px -20px 0;
+  padding: 20px 20px 12px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+
+/* The well: the whole picture with its two frames. */
+.well { position: relative; display: grid; place-items: center; min-height: 0; padding: 24px; background: var(--gl-well); overflow: hidden; touch-action: none; }
+.pic { position: relative; max-width: 100%; max-height: 100%; aspect-ratio: 4 / 3; height: 100%; }
+.pic img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
+.frame { position: absolute; border: 1.5px dashed rgb(255 255 255 / .8); border-radius: 2px; cursor: pointer; }
+.frame.active { border: 2px solid var(--gl-on-photo); box-shadow: 0 0 0 9999px var(--gl-veil); cursor: move; z-index: 1; }
+.frame .chip { position: absolute; padding: 2px 7px; border-radius: var(--gl-radius-pill); background: rgb(0 0 0 / .6);
+  color: var(--gl-on-photo); font-size: var(--gl-size-caption); font-weight: 600; white-space: nowrap; }
+.frame[data-key="from"] .chip { top: 4px; left: 4px; }
+.frame[data-key="to"] .chip { bottom: 4px; right: 4px; }
+.frame .h { position: absolute; width: 16px; height: 16px; border-radius: 3px; background: var(--gl-on-photo); display: none; }
+.frame.active .h { display: block; }
+.h.nw { left: -8px; top: -8px; } .h.ne { right: -8px; top: -8px; } .h.sw { left: -8px; bottom: -8px; } .h.se { right: -8px; bottom: -8px; }
+.playhead { position: absolute; border: 2px solid var(--gl-accent); border-radius: 2px; pointer-events: none; z-index: 2; }
+
+/* The preview screen: a 16:9 player. */
+.screen { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--gl-radius-small); background: #000; }
+.screen .layer { position: absolute; inset: 0; overflow: hidden; }
+.screen .layer img { position: absolute; display: block; max-width: none; }
+.screen .cap { position: absolute; left: 0; right: 0; bottom: 8%; text-align: center; color: #fff; font-weight: 600;
+  font-size: 4.2cqw; text-shadow: 0 1px 6px rgb(0 0 0 / .6); }
+.controls { display: flex; align-items: center; gap: 10px; }
+.play { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border: 0; border-radius: 50%;
+  background: var(--gl-accent); color: var(--gl-accent-ink); cursor: pointer; }
+.track { position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--gl-hover); overflow: hidden; }
+.track .tr { position: absolute; top: 0; bottom: 0; right: 0;
+  background: repeating-linear-gradient(-45deg, var(--gl-accent) 0 3px, transparent 3px 6px); opacity: .55; }
+.track .fill { position: absolute; inset: 0 auto 0 0; background: var(--gl-ink); }
+.time { font-size: var(--gl-size-small); color: var(--gl-muted); white-space: nowrap; }
+.line { margin: 0; font-size: var(--gl-size-small); color: var(--gl-muted); }
+
+/* Panel content. */
+.who { display: grid; gap: 3px; }
+.who b { font-family: var(--gl-font-display); font-size: var(--gl-size-name); }
+.who span { font-size: var(--gl-size-meta); }
+section.part { display: grid; gap: 12px; }
+.head { display: flex; justify-content: space-between; align-items: baseline; }
+.head h3 { margin: 0; font-size: var(--gl-size-label); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--gl-muted); }
+.head .state { font-size: var(--gl-size-small); color: var(--gl-muted); }
+.head .state.own { color: var(--gl-ink); font-weight: 600; }
+.keys { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: var(--gl-radius); background: var(--gl-hover); }
+.keys button { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 10px; border: 0;
+  border-radius: var(--gl-radius-small); background: transparent; font-size: var(--gl-size-label); font-weight: 600; cursor: pointer; }
+.keys.left button { justify-content: flex-start; }
+.keys button[aria-pressed="true"] { background: var(--gl-surface); box-shadow: var(--gl-shadow); }
+.keys button .z { margin-left: auto; font-weight: 400; color: var(--gl-muted); font-size: var(--gl-size-small); }
+.swatch { width: 12px; height: 8px; border: 1.5px dashed var(--gl-muted); border-radius: 2px; }
+[aria-pressed="true"] .swatch { border-style: solid; border-color: var(--gl-ink); }
+.hint { margin: 0; font-size: var(--gl-size-meta); color: var(--gl-muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--gl-line);
+  border-radius: var(--gl-radius); background: var(--gl-surface); font-size: var(--gl-size-label); cursor: pointer; }
+.btn:hover { background: var(--gl-hover); }
+.field { width: 100%; padding: 9px 11px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius);
+  background: var(--gl-raised); color: var(--gl-ink); font: inherit; }
+.stepper { display: flex; align-items: center; gap: 10px; }
+.stepper b { min-width: 60px; text-align: center; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tile { padding: 10px 6px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); background: var(--gl-raised);
+  font-size: var(--gl-size-small); cursor: pointer; }
+.tile[aria-pressed="true"] { border-color: var(--gl-ink); box-shadow: inset 0 0 0 1px var(--gl-ink); font-weight: 600; }
+.switch-row { display: flex; justify-content: space-between; align-items: center; font-size: var(--gl-size-label); }
+
+/* ---------- phone: one view ---------- */
+.mode { display: flex; justify-content: center; }
+.mode .keys { width: 100%; }
+@container (max-width: 720px) {
+  .edit { flex: none; grid-template-columns: 1fr; }
+  .well-column { display: none; }
+  .panel { padding: 16px; overflow: visible; border-left: 0; }
+  .view-block { position: sticky; top: 0; z-index: 3; display: grid; gap: 10px; margin: -16px -16px 0;
+    padding: 0 0 12px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+  .view-block > .pad { padding: 0 16px; display: grid; gap: 8px; }
+  .view-block .well { height: var(--well-h); padding: 24px; }
+  .view-block .screen { border-radius: 0; }
+  .view-block .screen-wrap { background: var(--gl-well); }
+  .on-pic-play { position: absolute; right: 12px; bottom: 12px; z-index: 4; display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px 8px 10px; border: 0; border-radius: var(--gl-radius-pill); background: var(--gl-accent);
+    color: var(--gl-accent-ink); font-weight: 600; font-size: var(--gl-size-label); cursor: pointer; box-shadow: 0 4px 16px rgb(0 0 0 / .35); }
+  .on-screen-edit { position: absolute; left: 10px; top: 10px; z-index: 4; display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px 6px 9px; border: 0; border-radius: var(--gl-radius-pill); background: rgb(0 0 0 / .6);
+    color: var(--gl-on-photo); font-size: var(--gl-size-small); font-weight: 600; cursor: pointer; }
+}
+</style>
+</head>
+<body>
+<div class="chrome">
+  <b>Phone picture editor — one view</b>
+  <span class="seg" data-group="variant">
+    <button data-v="A" aria-pressed="true">A · Frame | Play</button>
+    <button data-v="B">B · Start | End | Play</button>
+    <button data-v="C">C · Play on the picture</button>
+  </span>
+  <span class="seg" data-group="width">
+    <button data-v="phone" aria-pressed="true">Phone 412</button>
+    <button data-v="desktop">Desktop</button>
+  </span>
+  <span class="seg" data-group="theme">
+    <button data-v="light" aria-pressed="true">Light</button>
+    <button data-v="dark">Dark</button>
+  </span>
+  <p class="note" id="note"></p>
+</div>
+<div class="stage-wrap"><div class="device phone" id="device"><div class="scroller" id="app"></div></div></div>
+
+<script>
+const NOTES = {
+  A: "A — a Frame | Play switch under the one view. Frame shows the whole picture with its two frames; Play shows the 16:9 preview. Start | End stay in the Ken Burns section. Picking a transition or a duration, Swap and Back to automatic switch to Play; picking Start or End switches to Frame. The view stays at the top while the page scrolls.",
+  B: "B — one Start | End | Play control in the view itself. Start or End shows the picture with that frame active; Play shows the preview. The Ken Burns section keeps only the hint and its actions. Picking a transition or a duration, Swap and Back to automatic switch to Play.",
+  C: "C — no switch: the picture with its frames is the view, with a Play button on it. Play turns the view into the preview in place; \"Edit frames\" on the preview, tapping Start or End, or pausing at the end brings the frames back. Picking a transition or a duration switches to Play.",
+};
+const DESKTOP_NOTE = "Desktop is unchanged (picture left, panel with the preview right) except that the \"Zoom 1.00×\" readout under Start | End is gone there too.";
+
+function scene(sky1, sky2, sun, hill1, hill2, water) {
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200">
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky1}"/><stop offset="1" stop-color="${sky2}"/></linearGradient></defs>
+<rect width="1600" height="1200" fill="url(#s)"/><circle cx="1120" cy="380" r="120" fill="${sun}"/>
+<path d="M0 760 L260 520 L470 690 L720 430 L980 700 L1200 560 L1600 780 L1600 1200 L0 1200Z" fill="${hill1}"/>
+<path d="M0 900 Q400 780 800 880 T1600 860 L1600 1200 L0 1200Z" fill="${hill2}"/>
+<rect y="1040" width="1600" height="160" fill="${water}" opacity=".85"/>
+<g fill="#fff" opacity=".9"><circle cx="340" cy="210" r="46"/><circle cx="400" cy="200" r="60"/><circle cx="465" cy="215" r="42"/></g></svg>`);
+}
+const PIC = scene("#7fb7e8", "#ffd9b8", "#fff2b3", "#6c7fa8", "#3f6b55", "#5a8fc4");
+const NEXT = scene("#2b2350", "#d97b6c", "#ffcf7a", "#4a3b6e", "#2d2a3e", "#6a5a9a");
+const PIC_ASPECT = 4 / 3, SCREEN_ASPECT = 16 / 9;
+const TRANSITIONS = ["Crossfade", "Push", "Wipe", "Circle", "Zoom", "Cut"];
+
+const state = {
+  variant: "A", width: "phone",
+  mode: "frame",           // phone only: "frame" | "play"
+  active: "from",
+  own: false,
+  motion: { from: { x: 0.05, y: 0.08, w: 0.9 }, to: { x: 0.45, y: 0.12, w: 0.5 } },
+  durationMs: 5000, transition: "Crossfade", caption: "", alone: false,
+  playing: false, elapsed: 0,
+};
+const AUTOMATIC = structuredClone(state.motion);
+const TRANSITION_MS = 1000, TAIL_MS = 900;
+const frameH = (w) => w * PIC_ASPECT / SCREEN_ASPECT;
+const ease = (p) => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+const isPhone = () => state.width === "phone";
+
+const ICON = {
+  back: '<path d="M15 5l-7 7 7 7"/>', prev: '<path d="M15 6l-6 6 6 6"/>', next: '<path d="M9 6l6 6-6 6"/>',
+  play: '<path d="M8 5l11 7-11 7z" fill="currentColor" stroke="none"/>',
+  pause: '<path d="M8 5v14M16 5v14" stroke-width="3"/>',
+  swap: '<path d="M7 7h11l-3-3M17 17H6l3 3"/>', reset: '<path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4"/>',
+  frame: '<rect x="3" y="5" width="18" height="14" rx="2"/><rect x="8" y="9" width="9" height="6" rx="1" stroke-dasharray="2 2"/>',
+};
+const icon = (n) => `<svg class="i" viewBox="0 0 24 24">${ICON[n]}</svg>`;
+
+/* ---------- playback clock ---------- */
+let last = null;
+function tick(now) {
+  if (state.playing) {
+    if (last !== null) {
+      state.elapsed += now - last;
+      const total = state.durationMs + TAIL_MS;
+      if (state.elapsed >= total) state.elapsed %= total;
+    }
+    last = now;
+    paintPlayback();
+  } else last = null;
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+function play(fromMs) { if (fromMs !== undefined) state.elapsed = fromMs; state.playing = true; render(); }
+function pause() { state.playing = false; render(); }
+
+function rectAt(progress) {
+  const p = ease(Math.min(1, Math.max(0, progress))), a = state.motion.from, b = state.motion.to;
+  return { x: a.x + (b.x - a.x) * p, y: a.y + (b.y - a.y) * p, w: a.w + (b.w - a.w) * p };
+}
+function placeImg(img, r) {
+  img.style.width = 100 / r.w + "%";
+  img.style.height = 100 / frameH(r.w) + "%";
+  img.style.left = -r.x / r.w * 100 + "%";
+  img.style.top = -r.y / frameH(r.w) * 100 + "%";
+}
+function paintPlayback() {
+  const e = state.elapsed, d = state.durationMs, trStart = d - TRANSITION_MS;
+  const cut = state.transition === "Cut";
+  document.querySelectorAll("[data-screen]").forEach((scr) => {
+    const cur = scr.querySelector(".cur"), nxt = scr.querySelector(".nxt");
+    placeImg(cur.querySelector("img"), rectAt(e / d));
+    placeImg(nxt.querySelector("img"), { x: 0.06, y: 0.06 + 0.02 * Math.max(0, (e - trStart) / 2000), w: 0.88 - 0.04 * Math.max(0, (e - trStart) / 2000) });
+    const t = cut ? (e >= d ? 1 : 0) : Math.min(1, Math.max(0, (e - trStart) / TRANSITION_MS));
+    nxt.style.opacity = 1; nxt.style.clipPath = "none"; nxt.style.transform = "none"; cur.style.transform = "none";
+    if (state.transition === "Crossfade" || cut) nxt.style.opacity = t;
+    else if (state.transition === "Push") { nxt.style.transform = `translateX(${(1 - t) * 100}%)`; cur.style.transform = `translateX(${-t * 100}%)`; }
+    else if (state.transition === "Wipe") nxt.style.clipPath = `inset(0 ${(1 - t) * 100}% 0 0)`;
+    else if (state.transition === "Circle") nxt.style.clipPath = `circle(${t * 75}% at 50% 50%)`;
+    else if (state.transition === "Zoom") { nxt.style.opacity = t; nxt.style.transform = `scale(${0.6 + 0.4 * t})`; }
+  });
+  const shown = Math.min(e, d);
+  document.querySelectorAll("[data-fill]").forEach((f) => (f.style.width = (shown / d) * 100 + "%"));
+  document.querySelectorAll("[data-time]").forEach((t) => (t.textContent = `${fmt(shown)} / ${fmt(d)}`));
+  const ph = document.querySelector("[data-playhead]");
+  if (ph) {
+    const r = rectAt(e / d), show = state.playing && (!isPhone() || state.mode === "frame");
+    ph.style.display = show ? "block" : "none";
+    Object.assign(ph.style, { left: r.x * 100 + "%", top: r.y * 100 + "%", width: r.w * 100 + "%", height: frameH(r.w) * 100 + "%" });
+  }
+}
+const fmt = (ms) => `${Math.floor(ms / 60000)}:${(ms / 1000 % 60).toFixed(1).padStart(4, "0")}`;
+
+/* ---------- edits ---------- */
+function showFrame(key) {
+  state.active = key; state.playing = false;
+  state.elapsed = key === "from" ? 0 : state.durationMs - TRANSITION_MS - 1;
+  if (isPhone()) state.mode = "frame";
+  render();
+}
+function toPlay(fromMs) { if (isPhone()) state.mode = "play"; play(fromMs); }
+function swap() { const m = state.motion; state.motion = { from: m.to, to: m.from }; state.own = true; toPlay(0); }
+function resetMotion() { state.motion = structuredClone(AUTOMATIC); state.own = false; toPlay(0); }
+
+/* ---------- render ---------- */
+function wellHtml() {
+  const f = (key, label) => {
+    const r = state.motion[key];
+    return `<div class="frame ${state.active === key ? "active" : ""}" data-key="${key}"
+      style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${frameH(r.w) * 100}%">
+      <span class="chip">${label}</span><i class="h nw"></i><i class="h ne"></i><i class="h sw"></i><i class="h se"></i></div>`;
+  };
+  const playBtn = isPhone() && state.variant === "C" ? `<button class="on-pic-play" data-act="play-view">${icon("play")}Play</button>` : "";
+  return `<div class="well" data-well><div class="pic"><img src="${PIC}" alt="Picture 3" draggable="false">
+    ${state.active === "from" ? f("to", "End") + f("from", "Start") : f("from", "Start") + f("to", "End")}
+    <i class="playhead" data-playhead></i></div>${playBtn}</div>`;
+}
+function screenHtml() {
+  const edit = isPhone() && state.variant === "C" ? `<button class="on-screen-edit" data-act="edit-frames">${icon("frame")}Edit frames</button>` : "";
+  return `<div class="screen-wrap" style="position:relative"><div class="screen" data-screen>
+    <div class="layer nxt"><img src="${NEXT}" alt=""></div><div class="layer cur"><img src="${PIC}" alt=""></div>
+    ${state.caption ? `<div class="cap">${escapeHtml(state.caption)}</div>` : ""}</div>${edit}</div>`;
+}
+function controlsHtml() {
+  const trW = (TRANSITION_MS / state.durationMs) * 100;
+  const into = state.transition === "Cut" ? "then a cut to picture 4" : `with ${state.transition} 1.0 s into picture 4`;
+  return `<div class="controls"><button class="play" data-act="toggle" aria-label="${state.playing ? "Pause" : "Play"}">${icon(state.playing ? "pause" : "play")}</button>
+    <div class="track"><i class="tr" style="width:${trW}%"></i><i class="fill" data-fill></i></div>
+    <span class="time mono" data-time></span></div>
+    <p class="line">Picture 3 · ${(state.durationMs / 1000).toFixed(1)} s, ${into}</p>`;
+}
+function keysHtml(withZoom) {
+  const b = (key, label) => `<button aria-pressed="${state.mode !== "play" || !isPhone() ? state.active === key : false}" data-frame="${key}">
+    <i class="swatch"></i>${label}${withZoom ? ` <span class="z">Zoom <span class="mono">${(1 / state.motion[key].w).toFixed(2)}×</span></span>` : ""}</button>`;
+  return `<div class="keys left" role="group" aria-label="Frames">${b("from", "Start")}${b("to", "End")}</div>`;
+}
+function modeSwitchHtml() {
+  if (state.variant === "A") return `<div class="keys" role="group" aria-label="View">
+      <button aria-pressed="${state.mode === "frame"}" data-mode="frame">${icon("frame")}Frame</button>
+      <button aria-pressed="${state.mode === "play"}" data-mode="play">${icon("play")}Play</button></div>`;
+  if (state.variant === "B") return `<div class="keys" role="group" aria-label="View">
+      <button aria-pressed="${state.mode === "frame" && state.active === "from"}" data-frame="from"><i class="swatch"></i>Start</button>
+      <button aria-pressed="${state.mode === "frame" && state.active === "to"}" data-frame="to"><i class="swatch"></i>End</button>
+      <button aria-pressed="${state.mode === "play"}" data-mode="play">${icon("play")}Play</button></div>`;
+  return "";
+}
+function viewBlockHtml() {
+  const isPlay = state.mode === "play";
+  const below = isPlay ? controlsHtml() : "";
+  const sw = modeSwitchHtml();
+  return `<div class="view-block">${isPlay ? screenHtml() : wellHtml()}
+    ${sw || below ? `<div class="pad">${state.variant === "C" ? below : sw + below}</div>` : ""}</div>`;
+}
+function panelBody() {
+  const phone = isPhone();
+  const keys = phone ? (state.variant === "B" ? "" : keysHtml(false)) : keysHtml(false);
+  return `
+  <div class="who"><b>Picture 3 of 8</b><span class="muted">generated-landscape.svg · <span class="mono">14 Jul 2026</span></span></div>
+  <section class="part" aria-label="Ken Burns">
+    <div class="head"><h3>Ken Burns</h3><span class="state ${state.own ? "own" : ""}">${state.own ? "Own motion" : "Automatic"}</span></div>
+    ${keys}
+    ${phone ? `<p class="hint">Drag anywhere to move the frame; corners or two fingers zoom.</p>` : ""}
+    <div class="actions"><button class="btn" data-act="swap">${icon("swap")}Swap start and end</button>
+      <button class="btn" data-act="reset" ${state.own ? "" : "disabled"}>${icon("reset")}Back to automatic</button></div>
+  </section>
+  <section class="part"><div class="head"><h3>Caption</h3></div>
+    <input class="field" data-caption placeholder="A line on the picture" value="${escapeHtml(state.caption)}"></section>
+  <section class="part"><div class="head"><h3>Duration</h3><span class="state">${state.durationMs === 5000 ? "Automatic" : "Own"}</span></div>
+    <div class="stepper"><button class="btn" data-act="shorter">−</button><b class="mono">${(state.durationMs / 1000).toFixed(1)} s</b><button class="btn" data-act="longer">+</button></div></section>
+  <section class="part"><div class="head"><h3>Transition</h3><span class="state">${state.transition === "Crossfade" ? "Automatic" : "Own"}</span></div>
+    <div class="tiles">${TRANSITIONS.map((t) => `<button class="tile" aria-pressed="${t === state.transition}" data-tr="${t}">${t}</button>`).join("")}</div></section>
+  <section class="part"><div class="switch-row"><span>Always alone</span><input type="checkbox" data-alone ${state.alone ? "checked" : ""}></div>
+    <p class="hint">Never paired with another portrait picture.</p></section>`;
+}
+function render() {
+  const app = document.getElementById("app"), scrollTop = app.scrollTop, phone = isPhone();
+  const focused = document.activeElement?.matches?.("[data-caption]");
+  document.getElementById("note").textContent = phone ? NOTES[state.variant] : DESKTOP_NOTE;
+  app.innerHTML = `
+  <header class="bar"><button class="icon-btn" aria-label="Back">${icon("back")}</button>
+    <div class="crumbs"><span>Library /</span> <span>Summer at the lake /</span> Picture 3</div>
+    <button class="icon-btn" aria-label="Previous picture">${icon("prev")}</button>
+    ${phone ? "" : `<span class="count mono">3 / 8</span>`}
+    <button class="icon-btn" aria-label="Next picture">${icon("next")}</button></header>
+  <main class="edit">
+    ${phone ? "" : `<div class="well-column">${wellHtml()}<p class="hint" style="text-align:center">Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow keys, + and −</p></div>`}
+    <aside class="panel">
+      ${phone ? viewBlockHtml() : `<div class="preview-block">${screenHtml()}${controlsHtml()}</div>`}
+      ${panelBody()}
+    </aside>
+  </main>`;
+  const well = app.querySelector("[data-well]");
+  if (well) {
+    // As high as the picture at the full width, at most 440 px.
+    const w = app.clientWidth;
+    app.style.setProperty("--well-h", Math.min(440, (w - 48) / PIC_ASPECT + 48) + "px");
+    bindWell(well);
+  }
+  app.scrollTop = scrollTop;
+  if (focused) { const c = app.querySelector("[data-caption]"); c.focus(); c.setSelectionRange(c.value.length, c.value.length); }
+  paintPlayback();
+}
+const escapeHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+/* ---------- dragging a frame ---------- */
+function bindWell(well) {
+  const pic = well.querySelector(".pic");
+  well.addEventListener("pointerdown", (ev) => {
+    if (ev.target.closest("button")) return;
+    const frameEl = ev.target.closest(".frame");
+    if (frameEl && frameEl.dataset.key !== state.active) { showFrame(frameEl.dataset.key); return; }
+    const handle = ev.target.closest(".h");
+    const box = pic.getBoundingClientRect(), start = { ...state.motion[state.active] };
+    const x0 = ev.clientX, y0 = ev.clientY;
+    state.playing = false;
+    const move = (e) => {
+      const dx = (e.clientX - x0) / box.width, dy = (e.clientY - y0) / box.height;
+      let r = { ...start };
+      if (handle) {
+        const sign = handle.classList.contains("nw") || handle.classList.contains("sw") ? -1 : 1;
+        r.w = Math.min(1, Math.max(0.25, start.w + sign * dx));
+        if (sign < 0) r.x = start.x + start.w - r.w;
+        if (handle.classList.contains("nw") || handle.classList.contains("ne")) r.y = start.y + frameH(start.w) - frameH(r.w);
+      } else { r.x = start.x + dx; r.y = start.y + dy; }
+      r.x = Math.min(1 - r.w, Math.max(0, r.x)); r.y = Math.min(1 - frameH(r.w), Math.max(0, r.y));
+      state.motion = { ...state.motion, [state.active]: r }; state.own = true;
+      const el = pic.querySelector(`.frame[data-key="${state.active}"]`);
+      Object.assign(el.style, { left: r.x * 100 + "%", top: r.y * 100 + "%", width: r.w * 100 + "%", height: frameH(r.w) * 100 + "%" });
+    };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); render(); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+  });
+}
+
+/* ---------- events ---------- */
+document.getElementById("app").addEventListener("click", (ev) => {
+  const el = ev.target.closest("button, input[type=checkbox]");
+  if (!el) return;
+  if (el.dataset.frame) return showFrame(el.dataset.frame);
+  if (el.dataset.mode) return el.dataset.mode === "play" ? toPlay(0) : showFrame(state.active);
+  if (el.dataset.tr) { state.transition = el.dataset.tr; return toPlay(Math.max(0, state.durationMs - TRANSITION_MS - 1200)); }
+  if (el.matches("[data-alone]")) { state.alone = el.checked; return; }
+  const act = el.dataset.act;
+  if (act === "toggle") return state.playing ? pause() : play();
+  if (act === "play-view") return toPlay(0);
+  if (act === "edit-frames") return showFrame(state.active);
+  if (act === "swap") return swap();
+  if (act === "reset") return resetMotion();
+  if (act === "shorter" || act === "longer") {
+    state.durationMs = Math.min(15000, Math.max(2000, state.durationMs + (act === "longer" ? 500 : -500)));
+    return toPlay(0);
+  }
+});
+document.getElementById("app").addEventListener("input", (ev) => {
+  if (ev.target.matches("[data-caption]")) { state.caption = ev.target.value; paintCaption(); }
+});
+function paintCaption() {
+  document.querySelectorAll("[data-screen]").forEach((s) => {
+    let c = s.querySelector(".cap");
+    if (!state.caption) { c?.remove(); return; }
+    if (!c) { c = document.createElement("div"); c.className = "cap"; s.append(c); }
+    c.textContent = state.caption;
+  });
+}
+document.querySelectorAll(".chrome .seg").forEach((seg) => seg.addEventListener("click", (ev) => {
+  const b = ev.target.closest("button"); if (!b) return;
+  seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  const g = seg.dataset.group;
+  if (g === "theme") { document.documentElement.dataset.theme = b.dataset.v; return; }
+  state[g] = b.dataset.v;
+  if (g === "width") document.getElementById("device").className = "device " + b.dataset.v;
+  state.mode = "frame"; state.playing = false; state.elapsed = 0;
+  render();
+}));
+window.addEventListener("resize", render);
+render();
+</script>
+</body>
+</html>
