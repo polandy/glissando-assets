@@ -220,7 +220,7 @@ function showScreen() {
     <p class="meta">29/10/2026 · ${c.pics.length} pictures · 0:56</p>${!pA ? playBtn("full") : ""}
     <div class="tilesrow"><div class="mini">Music<b>None</b>Add music</div><div class="mini">Mood<b>Calm</b>~7 s · gentle motion</div><div class="mini">Look<b>None</b>default</div></div>
     <div class="fine">Fine settings ${svg("chev")}</div></div>`;
-  const cover = `<div class="cover pic ${pA ? "live" : ""}" style="--h:4" ${pA ? 'data-a="play"' : ""}>${pA ? `<span class="round">${svg("play")}</span><span class="pill">${svg("play")}Play · 0:56</span>` : ""}</div>`;
+  const cover = `<div class="cover pic ${pA ? "live" : ""}" style="--h:4" ${pA ? 'data-a="play"' : ""}>${pA ? `<span class="pill">${svg("play")}Play · 0:56</span>` : ""}</div>`;
   const body = `${head(c)}${tiles(c, true)}`;
   return `<div class="top"><button data-a="back" aria-label="Back">${svg("back")}</button><b>October 2026</b><button aria-label="More">${svg("close").replace(/<path.*<\/svg>/, '<circle cx="5" cy="12" r="1.400" fill="currentColor"/><circle cx="12" cy="12" r="1.400" fill="currentColor"/><circle cx="19" cy="12" r="1.400" fill="currentColor"/></svg>')}</button></div>
     ${d ? `<div class="showgrid">${panel}${cover}</div>` : panel + cover}${body}`;
