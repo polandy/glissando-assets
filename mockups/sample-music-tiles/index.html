@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sample-music tiles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600&family=Geist+Mono&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-ground: #f6f4f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33;
+  --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14;
+  --gl-on-photo: #fff; --gl-photo-badge: rgb(0 0 0 / .45); --gl-photo-fade: rgb(0 0 0 / .55);
+  --gl-photo-play-bg: rgb(255 255 255 / .92); --gl-photo-play-ink: #221d33;
+  --gl-photo-play-shadow: 0 6px 24px rgb(0 0 0 / .25);
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif;
+  --gl-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-size-caption: 11px; --gl-size-small: 12px; --gl-size-label: 13px; --gl-size-body: 14px;
+  --gl-radius-tile: 8px; --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-pill: 999px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font-family: var(--gl-font-ui); font-size: var(--gl-size-body); }
+button { font: inherit; color: inherit; }
+
+/* ---------- mockup chrome ---------- */
+.chrome { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+  padding: 10px 16px; background: var(--gl-surface); border-bottom: 1px solid var(--gl-line); }
+.chrome b { font-family: var(--gl-font-display); }
+.seg { display: inline-flex; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-pill); overflow: hidden; }
+.seg button { border: 0; background: none; padding: 6px 12px; cursor: pointer; font-size: var(--gl-size-small); }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.note { width: 100%; margin: 0; color: var(--gl-muted); font-size: var(--gl-size-small); }
+.stage { display: flex; justify-content: center; padding: 20px 16px 60px; }
+.device { width: 412px; max-width: 100%; background: var(--gl-ground); }
+.device.desktop { width: 640px; }
+.device.phone { border: 1px solid var(--gl-line); border-radius: 28px; padding: 18px 14px; background: var(--gl-surface); }
+.device.desktop { border: 1px solid var(--gl-line); border-radius: 12px; padding: 24px; background: var(--gl-surface); }
+.step h1 { margin: 0 0 4px; font-family: var(--gl-font-display); font-size: 23px; }
+.step > p { margin: 0 0 16px; color: var(--gl-muted); }
+
+/* ---------- block (as in the app) ---------- */
+.block { container-type: inline-size; display: grid; gap: 14px; padding: 14px; border: 1px solid var(--gl-line);
+  border-radius: var(--gl-radius-large); background: var(--gl-surface); }
+.header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.block-title { margin: 0; font-family: var(--gl-font-display); font-size: var(--gl-size-label); font-weight: 600; }
+.block-subtitle, .footer { margin: 0; color: var(--gl-muted); font-size: var(--gl-size-small); }
+.footer { color: var(--gl-faint); }
+.grid { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.toggle { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 9px 14px;
+  border: 1px solid var(--gl-line); border-radius: var(--gl-radius); background: var(--gl-surface);
+  font-size: var(--gl-size-small); font-weight: 600; cursor: pointer; }
+.more { display: grid; grid-template-rows: 0fr; overflow: hidden; transition: grid-template-rows .25s ease; }
+.more.open { grid-template-rows: 1fr; }
+.more-inner { display: grid; gap: 14px; min-height: 0; }
+.chev { transition: transform .2s; display: inline-block; }
+.chev.open { transform: rotate(180deg); }
+
+/* shared bits */
+.cover { display: block; width: 100%; height: 100%; object-fit: cover; }
+.play { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%;
+  background: var(--gl-photo-play-bg); color: var(--gl-photo-play-ink); box-shadow: var(--gl-photo-play-shadow); cursor: pointer; padding: 0; }
+.plus { display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: none; padding: 0; cursor: pointer; }
+.dot { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--gl-photo-badge); color: var(--gl-on-photo); }
+.added .dot { background: var(--gl-accent); color: var(--gl-accent-ink); }
+.ring { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; }
+.ring > span { display: grid; place-items: center; width: calc(100% - 6px); height: calc(100% - 6px); border-radius: 50%;
+  background: var(--gl-photo-badge); color: var(--gl-on-photo); font-size: 10px; }
+.progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--gl-photo-badge); }
+.progress > span { display: block; height: 100%; background: var(--gl-accent); }
+.title { margin: 0; font-size: var(--gl-size-small); font-weight: 600; line-height: 1.25; }
+.mood { margin: 2px 0 0; font-size: var(--gl-size-small); line-height: 1.3; color: var(--gl-muted); }
+.length { font-family: var(--gl-font-mono); font-size: var(--gl-size-caption); color: var(--gl-muted); }
+.bars { display: inline-flex; align-items: center; gap: 1.5px; height: 10px; margin-right: 4px; vertical-align: middle; }
+.bars i { width: 2.5px; height: 100%; background: var(--gl-accent); animation: bar 0.9s ease-in-out infinite; }
+.bars i:nth-child(2) { animation-delay: .2s } .bars i:nth-child(3) { animation-delay: .4s }
+@keyframes bar { 0%,100% { transform: scaleY(.3) } 50% { transform: scaleY(1) } }
+svg { width: 18px; height: 18px; }
+.status { margin: 2px 0 0; font-size: var(--gl-size-caption); color: var(--gl-faint); }
+.status.inline { margin: 0; }
+
+/* ---------- Variant A: cover with buttons, caption below ---------- */
+.vA .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 16px; }
+.vA .card { min-width: 0; }
+.vA .art { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: var(--gl-radius); background: var(--gl-raised); }
+.vA .play { position: absolute; left: 6px; bottom: 6px; }
+.vA .plus { position: absolute; top: 0; right: 0; }
+.vA .ring { position: absolute; top: 6px; right: 6px; }
+.vA .progress { top: auto; }
+.vA .caption { padding: 7px 2px 0; }
+.vA .meta { display: flex; justify-content: space-between; gap: 6px; }
+
+/* ---------- Variant B: list rows ---------- */
+.vB .grid { grid-template-columns: 1fr; gap: 4px; }
+@container (min-width: 520px) { .vB .grid { grid-template-columns: 1fr 1fr; column-gap: 12px; } }
+.vB .card { display: grid; grid-template-columns: 64px minmax(0, 1fr) 44px; align-items: center; gap: 12px; padding: 6px;
+  border-radius: var(--gl-radius); }
+.vB .card.on { background: var(--gl-hover); }
+.vB .art { position: relative; width: 64px; height: 64px; overflow: hidden; border-radius: var(--gl-radius-tile); }
+.vB .play { position: absolute; inset: 0; margin: auto; width: 32px; height: 32px; }
+.vB .dot { background: var(--gl-hover); color: var(--gl-ink); border: 1px solid var(--gl-line); }
+.vB .added .dot { border-color: transparent; }
+.vB .ring > span { background: var(--gl-surface); color: var(--gl-ink); }
+.vB .title { font-size: var(--gl-size-body); }
+.vB .meta { margin-top: 2px; }
+
+/* ---------- Variant C: two-column cards with an action row ---------- */
+.vC .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@container (min-width: 520px) { .vC .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.vC .card { display: flex; flex-direction: column; min-width: 0; overflow: hidden; border: 1px solid var(--gl-line);
+  border-radius: var(--gl-radius); background: var(--gl-raised); }
+.vC .card.isAdded { border-color: var(--gl-accent); }
+.vC .art { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+.vC .caption { flex: 1; padding: 8px 10px 0; }
+.vC .actions { display: flex; align-items: center; gap: 6px; padding: 4px 4px 4px 10px; }
+.vC .actions .length { flex: 1; }
+.vC .play { width: 36px; height: 36px; box-shadow: none; background: var(--gl-hover); color: var(--gl-ink); }
+.vC .dot { background: var(--gl-hover); color: var(--gl-ink); }
+.vC .ring > span { background: var(--gl-surface); color: var(--gl-ink); }
+</style>
+</head>
+<body>
+<div class="chrome">
+  <b>Sample-music tiles</b>
+  <span class="seg" data-group="variant">
+    <button data-v="A" aria-pressed="true">A · Caption below</button>
+    <button data-v="B">B · List rows</button>
+    <button data-v="C">C · Two columns</button>
+  </span>
+  <span class="seg" data-group="width">
+    <button data-v="phone" aria-pressed="true">Phone 412</button>
+    <button data-v="desktop">Desktop</button>
+  </span>
+  <span class="seg" data-group="lang">
+    <button data-v="en" aria-pressed="true">English copy</button>
+    <button data-v="de">German copy</button>
+  </span>
+  <span class="seg" data-group="theme">
+    <button data-v="light" aria-pressed="true">Light</button>
+    <button data-v="dark">Dark</button>
+  </span>
+  <p class="note" id="note"></p>
+</div>
+<div class="stage"><div class="device phone" id="device">
+  <div class="step">
+    <h1>Which music?</h1>
+    <p>Pick one or more songs — your slideshow is timed to them.</p>
+    <div class="block" id="block"></div>
+  </div>
+</div></div>
+
+<script>
+const COVERS = "../../music/covers/";
+const TRACKS = [
+  ["hold-the-frame", "Hold the Frame", 175, "Very calm · minimal · portraits", "Sehr ruhig · minimal · Porträts", true],
+  ["through-the-rain-slicked-glass", "Through the Rain-Slicked Glass", 167, "Warm · harmonious · melancholic", "Warm · harmonisch · melancholisch", false],
+  ["before-the-world-awakens", "Before the World Awakens", 175, "Warm · harmonious · everyday", "Warm · harmonisch · alltäglich", false],
+  ["seven-floors-above", "Seven Floors Above", 171, "Urban · modern · floating", "Urban · modern · schwebend", false],
+  ["morning-latitude", "Morning Latitude", 176, "Cheerful · bright · upbeat", "Fröhlich · hell · beschwingt", false],
+  ["top-down-cruising", "Top Down Cruising", 166, "Sunny · upbeat · road trip", "Sonnig · beschwingt · Roadtrip", false],
+  ["arrival-at-dawn", "Arrival at Dawn", 169, "Festive · cinematic · open", "Festlich · filmisch · offen", false],
+  ["where-the-mountains-meet", "Where the Mountains Meet", 180, "Festive · cinematic · wide", "Festlich · filmisch · weit", false],
+  ["the-view-from-the-summit", "The View from the Summit", 178, "Epic · anthemic", "Episch · hymnisch", false],
+].map(([id, title, secs, en, de, onDevice]) => ({ id, title, secs, en, de, onDevice }));
+
+const NOTES = {
+  A: "A — the cover keeps its 3-column grid; Play sits bottom-left and + top-right on the cover, and nothing else does. Title and mood sit under the cover as normal text, so the mood wraps instead of being cut.",
+  B: "B — one row per track: a small cover with Play on it, then title, mood and length in full, then + at the row's end. Desktop shows two columns of rows.",
+  C: "C — two cards per row on a phone (three on desktop): a wide cover, the full title and mood, and an action row underneath with the length, Play and +.",
+};
+const ICON = {
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+};
+
+const state = { variant: "A", width: "phone", lang: "en", expanded: false,
+  playing: null, progress: {}, added: new Set(), downloading: {} };
+
+const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+function playBtn(t) {
+  const on = state.playing === t.id;
+  return `<button class="play" data-act="play" data-id="${t.id}" aria-label="${on ? "Pause" : "Play"} ${t.title}">${on ? ICON.pause : ICON.play}</button>`;
+}
+function addBtn(t) {
+  if (t.id in state.downloading) {
+    const p = state.downloading[t.id];
+    return `<span class="ring" style="background:conic-gradient(var(--gl-accent) ${p * 3.6}deg, var(--gl-photo-badge) 0deg)"><span>${p}</span></span>`;
+  }
+  const on = state.added.has(t.id);
+  return `<button class="plus ${on ? "added" : ""}" data-act="add" data-id="${t.id}" aria-pressed="${on}" aria-label="${on ? "Remove" : "Add"} ${t.title}"><span class="dot">${on ? ICON.check : ICON.plus}</span></button>`;
+}
+function progress(t) {
+  return t.id in state.progress ? `<span class="progress"><span style="width:${state.progress[t.id]}%"></span></span>` : "";
+}
+function titleHtml(t) {
+  const bars = state.playing === t.id ? '<span class="bars"><i></i><i></i><i></i></span>' : "";
+  return `<p class="title">${bars}${t.title}</p>`;
+}
+function status(t) {
+  if (t.id in state.downloading) return `Downloading · ${state.downloading[t.id]} %`;
+  return t.onDevice ? "On this device" : "";
+}
+function card(t) {
+  const mood = t[state.lang];
+  const st = status(t);
+  const meta = `<span class="length">${fmt(t.secs)}</span>`;
+  const statusLine = st ? `<p class="status">${st}</p>` : "";
+  const cls = `card ${state.playing === t.id ? "on" : ""} ${state.added.has(t.id) ? "isAdded" : ""}`;
+  const img = `<img class="cover" src="${COVERS}${t.id}.svg" alt="">`;
+  if (state.variant === "A") return `<li class="${cls}"><div class="art">${img}${playBtn(t)}${addBtn(t)}${progress(t)}</div>
+    <div class="caption">${titleHtml(t)}<p class="mood">${mood}</p><div class="meta">${meta}</div>${statusLine}</div></li>`;
+  if (state.variant === "B") return `<li class="${cls}"><div class="art">${img}${playBtn(t)}${progress(t)}</div>
+    <div>${titleHtml(t)}<p class="mood">${mood}</p><div class="meta"><span class="length">${fmt(t.secs)}</span>${st ? ` <span class="status inline">· ${st}</span>` : ""}</div></div>${addBtn(t)}</li>`;
+  return `<li class="${cls}"><div class="art">${img}${progress(t)}</div>
+    <div class="caption">${titleHtml(t)}<p class="mood">${mood}</p>${statusLine}</div>
+    <div class="actions"><span class="length">${fmt(t.secs)}</span>${playBtn(t)}${addBtn(t)}</div></li>`;
+}
+function render() {
+  const twoColumns = (state.variant === "C" && state.width === "phone") || (state.variant === "B" && state.width === "desktop");
+  const top = twoColumns ? 4 : 3;
+  const block = document.getElementById("block");
+  block.className = `block v${state.variant}`;
+  block.innerHTML = `<div class="header"><h2 class="block-title">Glissando music</h2><p class="block-subtitle">9 tracks · come with Glissando</p></div>
+    <ul class="grid">${TRACKS.slice(0, top).map(card).join("")}</ul>
+    <div class="more ${state.expanded ? "open" : ""}"><div class="more-inner"><ul class="grid">${TRACKS.slice(top).map(card).join("")}</ul>
+    <p class="footer">Music: Glissando, CC BY-NC 4.0 · free for non-commercial use</p></div></div>
+    <button class="toggle" data-act="more" aria-expanded="${state.expanded}">${state.expanded ? "Show fewer" : "Show all 9"} <span class="chev ${state.expanded ? "open" : ""}">⌄</span></button>`;
+  document.getElementById("note").textContent = NOTES[state.variant];
+  document.getElementById("device").className = `device ${state.width}`;
+}
+
+let timer = null;
+function tick() {
+  const id = state.playing;
+  if (id) state.progress[id] = Math.min(100, (state.progress[id] ?? 0) + 1);
+  for (const k of Object.keys(state.downloading)) {
+    state.downloading[k] += 5;
+    if (state.downloading[k] >= 100) { delete state.downloading[k]; state.added.add(k); TRACKS.find((t) => t.id === k).onDevice = true; }
+  }
+  if (id && state.progress[id] >= 100) { state.playing = null; delete state.progress[id]; }
+  render();
+}
+function ensureTimer() { if (!timer) timer = setInterval(tick, 150); }
+
+document.addEventListener("click", (e) => {
+  const seg = e.target.closest(".seg button");
+  if (seg) {
+    const group = seg.parentElement.dataset.group;
+    for (const b of seg.parentElement.children) b.setAttribute("aria-pressed", b === seg);
+    if (group === "theme") document.documentElement.dataset.theme = seg.dataset.v;
+    else state[group] = seg.dataset.v;
+    render(); return;
+  }
+  const btn = e.target.closest("[data-act]");
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (btn.dataset.act === "more") state.expanded = !state.expanded;
+  if (btn.dataset.act === "play") {
+    if (state.playing === id) state.playing = null;
+    else { for (const k in state.progress) if (k !== id) delete state.progress[k]; state.playing = id; state.progress[id] ??= 0; }
+    ensureTimer();
+  }
+  if (btn.dataset.act === "add") {
+    const t = TRACKS.find((x) => x.id === id);
+    if (state.added.has(id)) state.added.delete(id);
+    else if (t.onDevice) state.added.add(id);
+    else { state.downloading[id] = 0; ensureTimer(); }
+  }
+  render();
+});
+render();
+</script>
+</body>
+</html>
