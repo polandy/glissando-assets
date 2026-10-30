@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search in the header</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=Geist+Mono&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33;
+  --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-mint: #6fcfb4; --gl-mint-soft: #c4eadf;
+  --gl-lilac: #b9a6f2; --gl-coral: #f2786b;
+  --gl-shadow: 0 1px 3px rgb(34 29 51 / .14); --gl-pop: 0 8px 28px rgb(34 29 51 / .18);
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif;
+  --gl-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-size-caption: 11px; --gl-size-small: 12px; --gl-size-label: 13px; --gl-size-body: 14px;
+  --gl-radius-small: 7px; --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-pill: 999px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-mint-soft: #24463e; --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); --gl-pop: 0 8px 28px rgb(0 0 0 / .6); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-mint-soft: #24463e; --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); --gl-pop: 0 8px 28px rgb(0 0 0 / .6); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font-family: var(--gl-font-ui); font-size: var(--gl-size-body); }
+button { font: inherit; color: inherit; }
+.mono { font-family: var(--gl-font-mono); font-variant-numeric: tabular-nums; }
+
+/* mockup chrome */
+.chrome { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+.chrome > b { font: 700 17px var(--gl-font-display); }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 6px 11px; border-radius: 7px; cursor: pointer; font-size: var(--gl-size-label); }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.sim { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.sim button { border: 1px solid var(--gl-line); background: var(--gl-raised); padding: 6px 11px; border-radius: 8px; cursor: pointer; font-size: var(--gl-size-label); }
+.note { flex-basis: 100%; margin: 0; color: var(--gl-muted); font-size: var(--gl-size-label); line-height: 1.45; max-width: 860px; }
+
+.stage { display: flex; justify-content: center; padding: 20px 16px 40px; }
+.device { width: 100%; background: var(--gl-ground); border: 1px solid var(--gl-line); border-radius: 18px; overflow: hidden; box-shadow: var(--gl-shadow); container-type: inline-size; display: flex; flex-direction: column; }
+.device.phone { max-width: 412px; height: 860px; }
+.device.desktop { max-width: 1180px; height: 700px; }
+
+/* app header */
+.bar { position: relative; flex: none; display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 18px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+@container (max-width: 720px) { .bar { padding: 0 12px; gap: 8px; } }
+.back { border: 0; background: transparent; width: 36px; height: 36px; border-radius: 9px; cursor: pointer; font-size: 20px; flex: none; }
+.crumbs { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; }
+.crumbs .earlier { color: var(--gl-muted); }
+.crumbs .here { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+@container (max-width: 720px) { .crumbs .earlier { display: none; } }
+.brand { display: flex; align-items: center; gap: 8px; font: 700 18px var(--gl-font-display); }
+.brand i { width: 22px; height: 22px; border-radius: 7px; background: linear-gradient(135deg, var(--gl-accent), var(--gl-lilac)); }
+.actions { display: flex; gap: 8px; flex: none; }
+.btn { border: 1px solid var(--gl-line); background: var(--gl-raised); border-radius: var(--gl-radius); padding: 8px 12px; cursor: pointer; font-weight: 500; white-space: nowrap; }
+.btn.primary { background: var(--gl-accent); border-color: var(--gl-accent); color: var(--gl-accent-ink); }
+@container (max-width: 720px) { .btn .long { display: none; } }
+
+/* indicators */
+.ind { flex: none; display: flex; align-items: center; gap: 8px; color: var(--gl-muted); font-size: var(--gl-size-label); font-weight: 500; white-space: nowrap; border: 0; background: transparent; padding: 6px 6px; border-radius: 9px; }
+button.ind { cursor: pointer; }
+button.ind:hover { background: var(--gl-hover); }
+@container (max-width: 720px) { .ind .label { display: none; } }
+.ring { flex: none; width: 18px; height: 18px; transform: rotate(-90deg); fill: none; stroke-width: 3; }
+.ring .track { stroke: var(--gl-line); }
+.ring .done { stroke: var(--gl-mint); }
+.ring.lilac .done { stroke: var(--gl-lilac); }
+.eye { flex: none; width: 18px; height: 18px; color: var(--gl-lilac); }
+.eye.scan { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .45; } }
+.badge { font-size: var(--gl-size-caption); background: var(--gl-hover); color: var(--gl-ink); border-radius: var(--gl-radius-pill); padding: 1px 6px; }
+.chip { flex: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--gl-line); background: var(--gl-raised); color: var(--gl-muted); border-radius: var(--gl-radius-pill); padding: 4px 10px 4px 7px; font-size: var(--gl-size-small); cursor: pointer; white-space: nowrap; }
+.line { position: absolute; left: 0; bottom: -1px; height: 3px; background: var(--gl-mint); transition: width .3s; }
+.line.thin { height: 2px; background: var(--gl-lilac); }
+.line.under { bottom: 2px; }
+
+/* popover */
+.pop { position: absolute; top: 52px; right: 12px; z-index: 5; width: min(340px, calc(100% - 24px)); background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); box-shadow: var(--gl-pop); padding: 6px; }
+.pop h4 { margin: 8px 10px 4px; font-size: var(--gl-size-small); color: var(--gl-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.row { padding: 8px 10px; border-radius: var(--gl-radius); }
+.row .top { display: flex; justify-content: space-between; gap: 10px; }
+.row .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .num { color: var(--gl-muted); font-size: var(--gl-size-small); }
+.hair { display: block; height: 3px; border-radius: 2px; background: var(--gl-line); margin-top: 6px; overflow: hidden; }
+.hair i { display: block; height: 100%; background: var(--gl-mint); }
+.hair.lilac i { background: var(--gl-lilac); }
+.row .sub { color: var(--gl-faint); font-size: var(--gl-size-small); margin-top: 3px; }
+
+/* screens */
+main { flex: 1; overflow: auto; padding: 20px; }
+@container (max-width: 720px) { main { padding: 14px 12px; } }
+h2 { font: 700 22px var(--gl-font-display); margin: 0 0 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.card { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); overflow: hidden; cursor: pointer; }
+.card .thumb { aspect-ratio: 16/10; }
+.card .body { padding: 10px 12px 12px; }
+.card b { display: block; }
+.card .meta { color: var(--gl-muted); font-size: var(--gl-size-small); margin-top: 2px; }
+.card .search { margin-top: 8px; color: var(--gl-muted); font-size: var(--gl-size-small); }
+.card .search .hair { height: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+@container (max-width: 720px) { .tiles { grid-template-columns: repeat(3, 1fr); gap: 4px; } }
+.tile { aspect-ratio: 1; border-radius: var(--gl-radius-small); position: relative; }
+.tile.pending::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: rgb(255 255 255 / .35); }
+.empty { color: var(--gl-muted); font-size: var(--gl-size-label); margin: 0 0 12px; }
+</style>
+</head>
+<body>
+<div class="chrome">
+  <b>Search in the header</b>
+  <span class="seg" id="variant">
+    <button data-v="twin" aria-pressed="true">A · Second indicator</button>
+    <button data-v="tray">B · One indicator + list</button>
+    <button data-v="chip">C · Quiet chip</button>
+  </span>
+  <span class="seg" id="size">
+    <button data-s="phone" aria-pressed="true">Phone</button>
+    <button data-s="desktop">Desktop</button>
+  </span>
+  <span class="sim">
+    <button id="addPics">Add 18 pictures (search runs)</button>
+    <button id="export">Export “Summer by the sea”</button>
+    <button id="reset">Reset</button>
+  </span>
+  <p class="note" id="note"></p>
+</div>
+<div class="stage"><div class="device phone" id="device"></div></div>
+
+<script>
+const SLIDESHOWS = [
+  { id: "summer", title: "Summer by the sea", pictures: 40, hue: 18 },
+  { id: "grandma", title: "Grandma's 80th", pictures: 25, hue: 260 },
+  { id: "hike", title: "Alps hike", pictures: 32, hue: 150 },
+];
+const NOTES = {
+  twin: "A — the search gets its own indicator in the export's form: a lilac ring with “Looking for subjects · 12 of 40”, summed over every slideshow. Both can stand side by side; the export keeps the mint line along the bar, the search gets a thin lilac line just above it. Phone: rings only. No tap.",
+  tray: "B — one place for background work: the header shows the most important running job (export first, otherwise the search) and “+1” when the other runs too. A tap opens a list: the export with its percentage, then the search per slideshow. Phone: ring + badge.",
+  chip: "C — the search stays quiet: a small pill with a pulsing eye and “12/40” beside the export, no ring, no line, so it never competes with the export. A tap opens the per-slideshow list. Phone: the pill stays (eye + count).",
+};
+let state = fresh();
+let variant = "twin", size = "phone", screen = "start", open = false;
+
+function fresh() {
+  return {
+    exportFraction: null,
+    search: Object.fromEntries(SLIDESHOWS.map(s => [s.id, { done: s.pictures, total: s.pictures }])),
+  };
+}
+function searchTotals() {
+  const running = SLIDESHOWS.filter(s => state.search[s.id].done < state.search[s.id].total);
+  const done = running.reduce((n, s) => n + state.search[s.id].done, 0);
+  const total = running.reduce((n, s) => n + state.search[s.id].total, 0);
+  return running.length ? { done, total, running } : null;
+}
+function ring(fraction, cls = "") {
+  return `<svg class="ring ${cls}" viewBox="0 0 20 20" aria-hidden="true"><circle class="track" cx="10" cy="10" r="7.5" pathLength="100"/><circle class="done" cx="10" cy="10" r="7.5" pathLength="100" stroke-dasharray="${fraction * 100} 100"/></svg>`;
+}
+const EYE = `<svg class="eye scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const pct = f => Math.round(f * 100);
+
+function exportInd() {
+  return `<div class="ind" role="status">${ring(state.exportFraction)}<span class="label">Exporting “Summer by the sea” … ${pct(state.exportFraction)} %</span></div>`;
+}
+function searchLabel(t) { return `Looking for subjects · ${t.done} of ${t.total}`; }
+
+function indicators() {
+  const exp = state.exportFraction !== null, t = searchTotals();
+  const lines = [];
+  if (exp) lines.push(`<span class="line" style="width:${state.exportFraction * 100}%"></span>`);
+  let html = "";
+  if (variant === "twin") {
+    if (exp) html += exportInd();
+    if (t) {
+      html += `<div class="ind" role="status">${ring(t.done / t.total, "lilac")}<span class="label">${searchLabel(t)}</span></div>`;
+      lines.push(`<span class="line thin ${exp ? "under" : ""}" style="width:${t.done / t.total * 100}%"></span>`);
+    }
+  } else if (variant === "tray") {
+    if (exp || t) {
+      const main = exp
+        ? `${ring(state.exportFraction)}<span class="label">Exporting “Summer by the sea” … ${pct(state.exportFraction)} %</span>`
+        : `${ring(t.done / t.total, "lilac")}<span class="label">${searchLabel(t)}</span>`;
+      html += `<button class="ind" id="opener" aria-expanded="${open}">${main}${exp && t ? `<span class="badge">+1</span>` : ""}</button>`;
+    }
+  } else {
+    if (exp) html += exportInd();
+    if (t) html += `<button class="chip" id="opener" aria-expanded="${open}">${EYE}<span class="mono">${t.done}/${t.total}</span></button>`;
+  }
+  return { html, lines: lines.join("") };
+}
+
+function popover() {
+  if (!open || variant === "twin") return "";
+  const t = searchTotals(), exp = state.exportFraction !== null;
+  if (!t && !exp) { open = false; return ""; }
+  let html = `<div class="pop" role="dialog" aria-label="Running in the background">`;
+  if (exp && variant === "tray") html += `<h4>Export</h4><div class="row"><div class="top"><span class="name">Summer by the sea</span><span class="num mono">${pct(state.exportFraction)} %</span></div><span class="hair"><i style="width:${state.exportFraction * 100}%"></i></span></div>`;
+  if (t) {
+    html += `<h4>Looking for subjects</h4>`;
+    for (const s of t.running) {
+      const r = state.search[s.id];
+      html += `<div class="row"><div class="top"><span class="name">${s.title}</span><span class="num mono">${r.done} of ${r.total}</span></div><span class="hair lilac"><i style="width:${r.done / r.total * 100}%"></i></span></div>`;
+    }
+    html += `<div class="row sub">Finds faces and subjects so zoom and crops keep them in view. The app stays usable meanwhile.</div>`;
+  }
+  return html + `</div>`;
+}
+
+function header() {
+  const { html, lines } = indicators();
+  const left = screen === "start"
+    ? `<nav class="crumbs"><span class="brand"><i></i>Glissando</span></nav>`
+    : `<button class="back" id="back" aria-label="Back">‹</button><nav class="crumbs"><span class="earlier">Library</span><span class="earlier">/</span><span class="here">Summer by the sea</span></nav>`;
+  const actions = screen === "start"
+    ? `<button class="btn primary">+ <span class="long">New slideshow</span></button>`
+    : `<button class="btn">▶ <span class="long">Play</span></button><button class="btn primary">Share</button>`;
+  return `<header class="bar">${left}${html}<div class="actions">${actions}</div>${lines}${popover()}</header>`;
+}
+
+function grad(h, i) { return `linear-gradient(${120 + i * 37}deg, hsl(${(h + i * 23) % 360} 70% 72%), hsl(${(h + 40 + i * 11) % 360} 55% 48%))`; }
+
+function startScreen() {
+  return `<main><h2>Your slideshows</h2><div class="cards">${SLIDESHOWS.map(s => {
+    const r = state.search[s.id], searching = r.done < r.total;
+    return `<div class="card" data-open="${s.id}"><div class="thumb" style="background:${grad(s.hue, 1)}"></div><div class="body"><b>${s.title}</b><div class="meta">${r.total} pictures · with music</div>${searching ? `<div class="search">Looking for subjects · ${r.done} of ${r.total}<span class="hair"><i style="width:${r.done / r.total * 100}%;background:var(--gl-mint)"></i></span></div>` : ""}</div></div>`;
+  }).join("")}</div></main>`;
+}
+function editorScreen() {
+  const r = state.search.summer;
+  const tiles = Array.from({ length: r.total }, (_, i) => `<div class="tile ${i >= r.done ? "pending" : ""}" style="background:${grad(18, i)}"></div>`).join("");
+  return `<main><p class="empty">Today the editor shows nothing about the search. With the change, the header tells you it is still running.</p><div class="tiles">${tiles}</div></main>`;
+}
+
+function render() {
+  const d = document.getElementById("device");
+  d.className = `device ${size}`;
+  d.innerHTML = header() + (screen === "start" ? startScreen() : editorScreen());
+  document.getElementById("note").textContent = NOTES[variant];
+  d.querySelectorAll("[data-open]").forEach(c => c.onclick = () => { screen = "editor"; render(); });
+  const back = d.querySelector("#back"); if (back) back.onclick = () => { screen = "start"; render(); };
+  const opener = d.querySelector("#opener"); if (opener) opener.onclick = e => { e.stopPropagation(); open = !open; render(); };
+}
+document.addEventListener("click", e => { if (open && !e.target.closest(".pop")) { open = false; render(); } });
+
+function bindSeg(id, attr, set) {
+  document.querySelectorAll(`#${id} button`).forEach(b => b.onclick = () => {
+    document.querySelectorAll(`#${id} button`).forEach(x => x.setAttribute("aria-pressed", x === b));
+    set(b.dataset[attr]); open = false; render();
+  });
+}
+bindSeg("variant", "v", v => variant = v);
+bindSeg("size", "s", s => size = s);
+document.getElementById("addPics").onclick = () => {
+  state.search.summer.total += 18;
+  render();
+};
+document.getElementById("export").onclick = () => { if (state.exportFraction === null) state.exportFraction = 0; render(); };
+document.getElementById("reset").onclick = () => { state = fresh(); open = false; screen = "start"; render(); };
+
+// One picture at a time across all slideshows, like the real pass; the export runs beside it.
+setInterval(() => {
+  const next = SLIDESHOWS.find(s => state.search[s.id].done < state.search[s.id].total);
+  if (next) state.search[next.id].done++;
+  if (state.exportFraction !== null) {
+    state.exportFraction = Math.min(1, state.exportFraction + 0.02);
+    if (state.exportFraction >= 1) state.exportFraction = null;
+  }
+  render();
+}, 700);
+
+// Start with a search running, so the change is visible at once.
+state.search.summer.done = 12; state.search.grandma.done = 0;
+// A link can preselect a state, e.g. #tray,desktop,export,open
+for (const part of location.hash.slice(1).split(",")) {
+  if (NOTES[part]) variant = part;
+  if (part === "phone" || part === "desktop") size = part;
+  if (part === "export") state.exportFraction = 0.42;
+  if (part === "editor") screen = "editor";
+  if (part === "open") open = true;
+}
+document.querySelectorAll("#variant button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === variant));
+document.querySelectorAll("#size button").forEach(b => b.setAttribute("aria-pressed", b.dataset.s === size));
+render();
+</script>
+</body>
+</html>
