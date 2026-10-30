@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simple music editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=Geist+Mono&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33;
+  --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-mint: #6fcfb4; --gl-mint-soft: #c4eadf;
+  --gl-coral: #f2786b; --gl-lemon: #f5c94a; --gl-bar: #4b4560;
+  --gl-song-1: #ff9f7f; --gl-song-2: #6fcfb4; --gl-song-3: #b9a6f2; --gl-song-4: #7fb8ff; --gl-song-5: #f5c94a; --gl-song-6: #f2786b;
+  --gl-shadow: 0 1px 3px rgb(34 29 51 / .14);
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif;
+  --gl-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-size-caption: 11px; --gl-size-small: 12px; --gl-size-label: 13px; --gl-size-body: 14px;
+  --gl-radius-small: 7px; --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-pill: 999px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-mint-soft: #24463e; --gl-bar: #b5afc6; --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2c2838; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-mint-soft: #24463e; --gl-bar: #b5afc6; --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font-family: var(--gl-font-ui); font-size: var(--gl-size-body); }
+button { font: inherit; color: inherit; }
+.mono { font-family: var(--gl-font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--gl-muted); }
+
+/* mockup chrome */
+.chrome { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+.chrome > b { font: 700 17px var(--gl-font-display); }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 6px 11px; border-radius: 7px; cursor: pointer; font-size: var(--gl-size-label); }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.note { flex-basis: 100%; margin: 0; color: var(--gl-muted); line-height: 1.5; max-width: 90ch; }
+.stage-wrap { padding: 20px 16px 60px; display: flex; justify-content: center; }
+.device { border: 1px solid var(--gl-line); border-radius: 22px; overflow: hidden; box-shadow: 0 20px 60px rgb(20 14 40 / .16); background: var(--gl-ground); max-width: 100%; }
+.device.phone { width: 412px; }
+.device.desktop { width: 1200px; }
+.scroller { height: 860px; overflow: auto; position: relative; }
+
+/* app */
+.hdr { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); font-size: var(--gl-size-label); color: var(--gl-muted); }
+.hdr b { color: var(--gl-ink); }
+.hdr .crumbs { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.edit { display: grid; grid-template-columns: minmax(0, 1fr) 340px; }
+.phone .edit { grid-template-columns: minmax(0, 1fr); }
+.main { padding: 20px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.phone .main { padding: 16px; }
+.panel { border-left: 1px solid var(--gl-line); padding: 20px; display: grid; gap: 16px; align-content: start; background: var(--gl-ground); }
+.phone .panel { border-left: 0; border-top: 1px solid var(--gl-line); padding: 16px; }
+
+.switchrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.switchrow .lbl b { display: block; font-size: var(--gl-size-label); }
+.switchrow .lbl small { color: var(--gl-muted); font-size: var(--gl-size-small); }
+.switch { position: relative; width: 40px; height: 23px; border-radius: 99px; border: 1px solid var(--gl-line); background: var(--gl-hover); cursor: pointer; padding: 0; flex: 0 0 auto; }
+.switch::after { content: ""; position: absolute; top: 1px; left: 1px; width: 19px; height: 19px; border-radius: 50%; background: #fff; box-shadow: var(--gl-shadow); transition: left .16s; }
+.switch[aria-checked="true"] { background: var(--gl-accent); border-color: var(--gl-accent); }
+.switch[aria-checked="true"]::after { left: 19px; }
+.hdr .switchrow { gap: 8px; color: var(--gl-ink); font-weight: 500; }
+
+.songs { display: grid; gap: 8px; }
+.row { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); cursor: pointer; }
+.row.sel { border-color: var(--gl-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gl-accent) 22%, transparent); }
+.row.target { outline: 2px dashed var(--gl-accent); outline-offset: 2px; }
+.row.dragging { opacity: .5; }
+.rowtop { display: grid; grid-template-columns: 26px 26px minmax(0, 1fr) auto 30px; gap: 10px; align-items: center; padding: 10px 10px 10px 8px; }
+.grip { border: 0; background: none; cursor: grab; color: var(--gl-faint); touch-action: none; height: 32px; padding: 0; }
+.num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font: 600 12px var(--gl-font-mono); color: #221d33; }
+.name b { display: block; font-size: var(--gl-size-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.name small { color: var(--gl-muted); font-size: var(--gl-size-small); }
+.from { color: var(--gl-muted); font-size: var(--gl-size-small); white-space: nowrap; }
+.x { border: 0; background: none; cursor: pointer; color: var(--gl-muted); font-size: 18px; }
+.rowtrim { padding: 0 12px 12px; display: grid; gap: 8px; cursor: default; }
+.add { border: 1px dashed var(--gl-line); background: transparent; border-radius: var(--gl-radius-large); padding: 12px; cursor: pointer; color: var(--gl-ink); }
+
+.lanehead { display: flex; justify-content: space-between; gap: 8px; font-size: var(--gl-size-small); color: var(--gl-muted); align-items: center; }
+.lane { position: relative; height: 26px; border-radius: 6px; background: var(--gl-hover); overflow: hidden; }
+.blk { position: absolute; top: 0; bottom: 0; font: 600 11px var(--gl-font-mono); color: #221d33; padding: 6px 6px; overflow: hidden; }
+.blk.split { box-shadow: inset 2px 0 0 var(--gl-surface); }
+.hatch { position: absolute; z-index: 1; top: 0; bottom: 0; background: repeating-linear-gradient(90deg, transparent 0 3px, rgb(34 29 51 / .55) 3px 4px); }
+.ssend { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--gl-coral); }
+.slane { position: relative; height: 22px; border-radius: 6px; background: var(--gl-mint-soft); overflow: hidden; }
+.tick { position: absolute; top: 4px; bottom: 4px; width: 1px; background: color-mix(in srgb, var(--gl-ink) 45%, transparent); }
+.scale { display: flex; justify-content: space-between; font-size: var(--gl-size-caption); color: var(--gl-muted); }
+.chip { border: 1px solid var(--gl-line); background: var(--gl-surface); border-radius: var(--gl-radius-pill); padding: 3px 10px; font-size: var(--gl-size-small); cursor: pointer; color: var(--gl-muted); }
+.chip[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); border-color: var(--gl-ink); }
+
+.card { background: var(--gl-surface); border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); padding: 14px; display: grid; gap: 10px; }
+.cardhead { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.cardhead b { font-size: 15px; }
+.wave { position: relative; touch-action: none; cursor: ew-resize; user-select: none; }
+.wave svg { display: block; width: 100%; }
+.handle { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--gl-accent); pointer-events: none; }
+.handle::after { content: ""; position: absolute; top: 50%; left: -5px; width: 12px; height: 26px; margin-top: -13px; border-radius: 5px; background: var(--gl-accent); }
+.hlabel { position: absolute; top: 4px; background: var(--gl-accent); color: var(--gl-accent-ink); border-radius: 6px; padding: 2px 7px; font-size: var(--gl-size-caption); white-space: nowrap; pointer-events: none; }
+.times { display: flex; justify-content: space-between; gap: 8px; font-size: var(--gl-size-small); color: var(--gl-muted); }
+.listen { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lbtn { display: grid; grid-template-columns: 30px 1fr; gap: 0 10px; align-items: center; text-align: left; border: 1px solid var(--gl-line); background: var(--gl-surface); border-radius: var(--gl-radius-large); padding: 10px; cursor: pointer; }
+.lbtn .round { grid-row: span 2; width: 30px; height: 30px; border-radius: 50%; background: var(--gl-ink); color: var(--gl-surface); display: grid; place-items: center; font-size: 11px; }
+.lbtn b { font-size: var(--gl-size-label); }
+.lbtn small { color: var(--gl-muted); font-size: var(--gl-size-small); }
+.lbtn[aria-pressed="true"] { border-color: var(--gl-accent); }
+.hint { margin: 0; font-size: var(--gl-size-small); color: var(--gl-muted); }
+.disclose { justify-self: start; border: 0; background: none; padding: 6px 0; cursor: pointer; color: var(--gl-ink); font-weight: 600; font-size: var(--gl-size-label); display: flex; gap: 6px; align-items: center; }
+.disclose small { color: var(--gl-muted); font-weight: 400; }
+.detailsbox { display: grid; gap: 14px; border-top: 1px solid var(--gl-line); padding-top: 14px; }
+
+.grp { font: 600 var(--gl-size-caption) var(--gl-font-ui); text-transform: uppercase; letter-spacing: .06em; color: var(--gl-muted); }
+.sec { display: grid; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid var(--gl-line); }
+.sec:last-child { border-bottom: 0; }
+.sechead { display: flex; justify-content: space-between; align-items: center; font: 600 var(--gl-size-caption) var(--gl-font-ui); text-transform: uppercase; letter-spacing: .05em; color: var(--gl-muted); }
+.state { border: 1px solid var(--gl-line); border-radius: var(--gl-radius-pill); padding: 2px 9px; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.radios { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--gl-hover); border-radius: var(--gl-radius); padding: 3px; gap: 3px; }
+.radios button { border: 0; background: transparent; border-radius: var(--gl-radius-small); padding: 8px 4px; cursor: pointer; font-weight: 500; font-size: var(--gl-size-label); }
+.radios button[aria-checked="true"] { background: var(--gl-surface); box-shadow: var(--gl-shadow); }
+.sec p { margin: 0; color: var(--gl-muted); font-size: var(--gl-size-small); line-height: 1.45; }
+.toast { position: sticky; bottom: 16px; margin: 0 auto; width: fit-content; background: var(--gl-ink); color: var(--gl-surface); border-radius: var(--gl-radius-pill); padding: 10px 16px; display: flex; gap: 14px; z-index: 6; font-size: var(--gl-size-label); }
+.toast button { border: 0; background: none; color: var(--gl-accent); font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="chrome">
+  <b>Music editor — simple first</b>
+  <span class="seg" data-group="variant">
+    <button data-v="A" aria-pressed="true">A · One "Details" switch</button>
+    <button data-v="B">B · Start and end in the row</button>
+    <button data-v="C">C · A toggle at each place</button>
+  </span>
+  <span class="seg" data-group="width">
+    <button data-v="phone" aria-pressed="true">Phone 412</button>
+    <button data-v="desktop">Desktop</button>
+  </span>
+  <span class="seg" data-group="theme">
+    <button data-v="light" aria-pressed="true">Light</button>
+    <button data-v="dark">Dark</button>
+  </span>
+  <p class="note" id="note"></p>
+</div>
+<div class="stage-wrap"><div class="device phone" id="device"><div class="scroller" id="app"></div></div></div>
+
+<script>
+const NOTES = {
+  A: "A: one \"Details\" switch in the bar, off by default and remembered on this device. Off shows the song list (drag to reorder), the playlist as plain blocks and the selected song's waveform with Start and End. On adds what the editor shows today: the volume line with its fades, beat ticks, the pictures under the waveform and hatched crossfades. The \"Loudness of the songs\" card is gone in every variant, and the panel is unchanged.",
+  B: "B: start and end move into the selected song's row, as a small waveform with two handles, so order, start and end form one list. A disclosure under the playlist, \"Loudness and crossfades\", opens the large waveform with the volume line, beats and pictures, and hatches the crossfades. Closed by default.",
+  C: "C: no global switch. Each extra layer has its own chip where it is drawn: \"Crossfades\" on the playlist, \"Volume\" and \"Beats & pictures\" on the waveform. All are off by default and each is remembered on this device.",
+};
+const SONG_COLOURS = ["var(--gl-song-1)", "var(--gl-song-2)", "var(--gl-song-3)", "var(--gl-song-4)", "var(--gl-song-5)", "var(--gl-song-6)"];
+const CROSSFADE = 3, SLIDESHOW = 160, PICTURES = 20, MIN_EXCERPT = 5, BARS = 160, BPM = 120;
+
+function peaks(seed) {
+  let x = seed; const out = [];
+  for (let i = 0; i < BARS; i++) { x = (x * 9301 + 49297) % 233280; out.push(.35 + .6 * (x / 233280) * (.6 + .4 * Math.sin(i / 9 + seed))); }
+  return out;
+}
+let nextId = 3;
+const state = {
+  variant: "A", width: "phone", theme: "light",
+  songs: [
+    { id: 1, name: "Sunny Day.wav", dur: 75, start: 0, end: 75, peaks: peaks(1) },
+    { id: 2, name: "Evening Calm.wav", dur: 90, start: 0, end: 90, peaks: peaks(7) },
+  ],
+  sel: 1, details: false, open: false, crossfades: false, volume: false, beats: false,
+  listening: null, crossfade: true, removed: null, drag: null,
+};
+
+const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+const fmtT = (s) => `${fmt(s)}.${Math.round((s % 1) * 10) % 10}`;
+const selected = () => state.songs.find((s) => s.id === state.sel) ?? state.songs[0];
+const colourOf = (song) => SONG_COLOURS[state.songs.indexOf(song) % SONG_COLOURS.length];
+const isPhone = () => state.width === "phone";
+
+/* What each variant shows of the extra layers. */
+function show() {
+  const v = state.variant;
+  if (v === "A") return { hatch: state.details, volume: state.details, beats: state.details, bigWave: true };
+  if (v === "B") return { hatch: state.open, volume: state.open, beats: state.open, bigWave: state.open };
+  return { hatch: state.crossfades, volume: state.volume, beats: state.beats, bigWave: true };
+}
+
+function playlist() {
+  const overlap = state.crossfade ? CROSSFADE : 0;
+  let at = 0;
+  return state.songs.map((song, i) => {
+    const len = song.end - song.start, block = { song, at, len, i };
+    at += len - (i < state.songs.length - 1 ? overlap : 0);
+    return block;
+  });
+}
+const total = () => { const p = playlist(), last = p[p.length - 1]; return last ? last.at + last.len : 0; };
+
+function header() {
+  const sw = state.variant === "A"
+    ? `<label class="switchrow"><span>Details</span><button class="switch" role="switch" aria-checked="${state.details}" data-act="details"></button></label>` : "";
+  return `<div class="hdr"><span>‹</span><span class="crumbs">${isPhone() ? "" : "Library / October 2026 / "}<b>Music</b></span>${sw}</div>`;
+}
+
+function songRow(song, i, blocks) {
+  const sel = song.id === state.sel, trimmed = song.end - song.start < song.dur;
+  const trim = state.variant === "B" && sel ? `<div class="rowtrim">${wave(song, { small: true })}</div>` : "";
+  return `<div class="row${sel ? " sel" : ""}${state.drag?.target === i && state.drag.from !== i ? " target" : ""}${state.drag?.from === i ? " dragging" : ""}" data-row="${i}" data-act="select" data-id="${song.id}">
+    <div class="rowtop">
+      <button class="grip" data-grip="${i}" aria-label="Move ${song.name}">⋮⋮</button>
+      <span class="num" style="background:${colourOf(song)}">${i + 1}</span>
+      <span class="name"><b>${song.name}</b><small>${fmt(song.dur)}${trimmed ? ` · trimmed to ${fmt(song.end - song.start)}` : ""}</small></span>
+      <span class="from">from ${fmt(blocks[i].at)}</span>
+      <button class="x" data-act="remove" data-id="${song.id}" aria-label="Remove">×</button>
+    </div>${trim}</div>`;
+}
+
+function lane() {
+  const s = show(), blocks = playlist(), len = Math.max(total(), SLIDESHOW), pct = (t) => `${(t / len) * 100}%`;
+  const html = blocks.map((b, i) => {
+    const next = blocks[i + 1];
+    // Plain blocks meet where the crossfade's middle lies; hatched ones overlap.
+    const startAt = s.hatch || i === 0 ? b.at : b.at + (state.crossfade ? CROSSFADE / 2 : 0);
+    const endAt = next && !s.hatch ? next.at + (state.crossfade ? CROSSFADE / 2 : 0) : b.at + b.len;
+    let out = `<div class="blk${!s.hatch && i > 0 ? " split" : ""}" style="left:${pct(startAt)};width:${pct(endAt - startAt)};background:${colourOf(b.song)}">${i + 1}</div>`;
+    if (s.hatch && next && state.crossfade) out += `<div class="hatch" style="left:${pct(next.at)};width:${pct(CROSSFADE)}"></div>`;
+    return out;
+  }).join("");
+  const ticks = Array.from({ length: PICTURES - 1 }, (_, k) => `<i class="tick" style="left:${pct(((k + 1) * SLIDESHOW) / PICTURES)}"></i>`).join("");
+  const chip = state.variant === "C" && blocks.length > 1
+    ? `<button class="chip" data-act="crossfades" aria-pressed="${state.crossfades}">Crossfades</button>` : "";
+  const right = s.hatch && state.variant !== "C" ? (state.crossfade ? "Crossfades hatched" : "One after another") : "";
+  return `<div style="display:grid;gap:6px">
+    <div class="lanehead"><span>Playlist, ${blocks.length} song${blocks.length === 1 ? "" : "s"} · ${fmt(total())}</span><span>${right}${chip}</span></div>
+    <div class="lane">${html}${SLIDESHOW < total() ? `<i class="ssend" style="left:${pct(SLIDESHOW)}"></i>` : ""}</div>
+    <div class="lanehead"><span>Slideshow, ${PICTURES} pictures · ${fmt(SLIDESHOW)}</span><span>Music fades out with the last picture</span></div>
+    <div class="slane" style="width:${pct(SLIDESHOW)}">${ticks.replaceAll(/left:([\d.]+)%/g, (_, p) => `left:${(p * len) / SLIDESHOW}%`)}</div>
+    <div class="scale mono"><span>0:00</span><span>${fmt(len)}</span></div></div>`;
+}
+
+/* The waveform with Start and End; the volume line and beats only where shown. */
+function wave(song, { small }) {
+  const s = show(), h = small ? 44 : 120, w = 1000, bw = w / BARS;
+  const fadeIn = song.start > 0 ? 2 : 0, fadeOut = song === state.songs[state.songs.length - 1] ? 5 : (state.crossfade ? CROSSFADE : 2);
+  const gain = (t) => {
+    if (t < song.start || t > song.end) return 1;
+    if (fadeIn && t < song.start + fadeIn) return (t - song.start) / fadeIn;
+    if (t > song.end - fadeOut) return (song.end - t) / fadeOut;
+    return 1;
+  };
+  const vol = s.volume && !small;
+  const bars = song.peaks.map((p, i) => {
+    const t = ((i + .5) / BARS) * song.dur, inside = t >= song.start && t <= song.end;
+    const ph = p * (h - 8) * (vol ? Math.max(.06, gain(t)) : 1);
+    return `<rect x="${i * bw + bw * .2}" y="${(h - ph) / 2}" width="${bw * .6}" height="${ph}" rx="1" fill="var(--gl-bar)" opacity="${inside ? .9 : .22}"/>`;
+  }).join("");
+  const x = (t) => (t / song.dur) * w;
+  let line = "";
+  if (vol) {
+    const pts = [[0, 4], [x(song.start), 4], [x(song.start + fadeIn), 4], [x(song.end - fadeOut), 4], [x(song.end), h - 2], [w, h - 2]];
+    if (fadeIn) pts.splice(1, 2, [x(song.start), h - 2], [x(song.start + fadeIn), 4]);
+    line = `<polyline points="${pts.map((p) => p.join(",")).join(" ")}" fill="none" stroke="var(--gl-accent)" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`;
+  }
+  let beats = "";
+  if (s.beats && !small) {
+    const step = 60 / BPM;
+    for (let t = 0, k = 0; t < song.dur; t += step * 2, k++) beats += `<rect x="${x(t)}" y="${h - (k % 2 ? 6 : 12)}" width="2" height="${k % 2 ? 6 : 12}" fill="var(--gl-faint)"/>`;
+  }
+  const lp = (t) => `${(t / song.dur) * 100}%`;
+  const labels = small ? "" : `<span class="hlabel" style="left:${lp(song.start)}">Start <b class="mono">${fmtT(song.start)}</b></span><span class="hlabel" style="right:${100 - (song.end / song.dur) * 100}%">End <b class="mono">${fmtT(song.end)}</b></span>`;
+  const top = small ? `<div class="times"><span>Start <b class="mono">${fmtT(song.start)}</b></span><span>End <b class="mono">${fmtT(song.end)}</b></span></div>` : "";
+  return `${top}<div class="wave" data-wave="${song.id}" style="${small ? "" : "padding-top:26px"}">
+    ${labels}<div style="position:relative"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" height="${h}">${bars}${line}${beats}</svg>
+    <i class="handle" style="left:${lp(song.start)}"></i><i class="handle" style="left:calc(${lp(song.end)} - 2px)"></i></div></div>
+    ${small ? "" : `<div class="scale mono"><span>0:00</span><span>${fmt(song.dur / 2)}</span><span>${fmt(song.dur)}</span></div>`}`;
+}
+
+function picturesUnder(song) {
+  const blocks = playlist(), b = blocks[state.songs.indexOf(song)], from = b.at - song.start;
+  let ticks = "";
+  for (let k = 1; k < PICTURES; k++) { const t = (k * SLIDESHOW) / PICTURES - from; if (t > song.start && t < song.end) ticks += `<i class="tick" style="left:${(t / song.dur) * 100}%"></i>`; }
+  const until = Math.min(song.end, SLIDESHOW - from);
+  return `<div class="lanehead"><span>Slideshow, ${PICTURES} pictures</span><span class="mono">${fmt(SLIDESHOW)}</span></div>
+    <div class="slane" style="margin-left:${(song.start / song.dur) * 100}%;width:${(Math.max(0, until - song.start) / song.dur) * 100}%">${ticks.replaceAll(/left:([\d.]+)%/g, (_, p) => `left:${((p / 100 * song.dur - song.start) / (until - song.start)) * 100}%`)}</div>`;
+}
+
+function songCard(song) {
+  const s = show(), n = state.songs.indexOf(song) + 1;
+  const chips = state.variant === "C" ? `<span style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="chip" data-act="volume" aria-pressed="${state.volume}">Volume</button>
+    <button class="chip" data-act="beats" aria-pressed="${state.beats}">Beats &amp; pictures</button></span>` : "";
+  const trimmed = song.end - song.start < song.dur;
+  return `<div class="card">
+    <div class="cardhead"><b>Song ${n} · ${song.name}</b><span class="muted">${trimmed ? `${fmt(song.dur)} · trimmed to ${fmt(song.end - song.start)}` : fmt(song.dur)}</span>${chips}</div>
+    ${wave(song, { small: false })}
+    ${s.beats ? picturesUnder(song) : ""}
+  </div>`;
+}
+
+function listen(song) {
+  const btn = (kind, label, at) => `<button class="lbtn" data-act="listen" data-kind="${kind}" aria-pressed="${state.listening === kind}"><span class="round">${state.listening === kind ? "❚❚" : "▶"}</span><b>${label}</b><small>${at}</small></button>`;
+  return `<div class="listen">${btn("start", "Listen to the start", `from ${fmtT(song.start)}`)}${btn("end", "Listen to the end", `until ${fmtT(song.end)}`)}</div>`;
+}
+
+function hint() {
+  const s = show();
+  return `<p class="hint">Drag the handles or move them with the arrow keys (Shift: 1 s).${s.volume ? " The orange line shows the volume with its fades." : ""}</p>`;
+}
+
+function main() {
+  const blocks = playlist(), song = selected();
+  const rows = `<div class="songs">${state.songs.map((sg, i) => songRow(sg, i, blocks)).join("")}</div>`;
+  const add = `<button class="add" data-act="add">+ Add a song</button>`;
+  if (!song) return `<div class="main">${rows}${add}</div>`;
+  if (state.variant === "B") {
+    const more = state.open
+      ? `<div class="detailsbox">${songCard(song)}${listen(song)}${hint()}</div>` : "";
+    return `<div class="main">${rows}${add}${lane()}${state.open ? "" : listen(song)}
+      <button class="disclose" data-act="open" aria-expanded="${state.open}">${state.open ? "▾" : "▸"} Loudness and crossfades <small>volume line, beats, pictures</small></button>${more}</div>`;
+  }
+  return `<div class="main">${rows}${add}${lane()}${songCard(song)}${listen(song)}${hint()}</div>`;
+}
+
+function radios(name, options, value) {
+  return `<div class="radios" role="radiogroup">${options.map((o) => `<button role="radio" aria-checked="${o === value}" data-act="radio" data-name="${name}" data-v="${o}">${o}</button>`).join("")}</div>`;
+}
+function panel() {
+  const song = selected(), n = song ? state.songs.indexOf(song) + 1 : 0;
+  const between = state.songs.length > 1 ? `<div class="sec"><div class="sechead">Between songs</div>${radios("between", ["Crossfade", "One after another"], state.crossfade ? "Crossfade" : "One after another")}
+    <p>${state.crossfade ? "The next song starts while the previous one fades out." : "The next song starts once the previous one has faded out."}</p></div>` : "";
+  const songPart = song ? `<div class="grp">Song ${n}</div>
+    <div class="sec"><div class="sechead">Excerpt <span class="state">${song.end - song.start < song.dur ? "Trimmed" : "Whole track"}</span></div>
+      <p>${song.end - song.start < song.dur ? `Start ${fmtT(song.start)} · End ${fmtT(song.end)}` : `The slideshow uses the whole track, ${fmt(song.dur)}.`}</p></div>
+    <div class="sec"><div class="sechead">Volume <span class="state">Levelled</span></div><p>Same loudness as the other songs.</p></div>
+    <div class="sec"><div class="sechead">Picture changes <span class="state">120 BPM</span></div>${radios("changes", ["On the beat", "Evenly"], "On the beat")}</div>
+    <div class="sec"><div class="sechead">Fade in <span class="state">Automatic</span></div>${radios("in", ["Off", "Short", "Long"], song.start > 0 ? "Short" : "Off")}</div>
+    <div class="sec"><div class="sechead">Fade out <span class="state">Automatic</span></div>${radios("out", ["Off", "Short", "Long"], "Long")}</div>` : "";
+  return `<div class="panel"><div class="grp">Slideshow</div>
+    <div class="sec"><div class="sechead">Picture length</div><p>Picture times are set by the mood Calm — ~8 s · 16 beats</p></div>
+    ${between}
+    <div class="sec"><div class="switchrow"><span class="lbl"><b>Repeat the music</b><small>Off: a shorter music is fitted or offers a fix instead.</small></span><button class="switch" role="switch" aria-checked="false"></button></div></div>
+    ${songPart}</div>`;
+}
+
+function render() {
+  const app = document.getElementById("app"), top = app.scrollTop;
+  document.getElementById("device").className = `device ${state.width}`;
+  document.getElementById("note").textContent = NOTES[state.variant];
+  const toast = state.removed ? `<div class="toast">Song removed <button data-act="undo">Undo</button></div>` : "";
+  app.innerHTML = `${header()}<div class="edit">${main()}${panel()}</div>${toast}`;
+  app.scrollTop = top;
+}
+
+document.querySelector(".chrome").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-v]"); if (!b) return;
+  const group = b.parentElement.dataset.group;
+  b.parentElement.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  state[group] = b.dataset.v;
+  if (group === "theme") document.documentElement.dataset.theme = b.dataset.v;
+  state.listening = null; render();
+});
+
+const app = document.getElementById("app");
+app.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-act]"); if (!el || state.drag?.moved) return;
+  const act = el.dataset.act;
+  if (act === "select") state.sel = Number(el.dataset.id);
+  else if (act === "details") state.details = !state.details;
+  else if (act === "open") state.open = !state.open;
+  else if (["crossfades", "volume", "beats"].includes(act)) state[act] = !state[act];
+  else if (act === "listen") state.listening = state.listening === el.dataset.kind ? null : el.dataset.kind;
+  else if (act === "radio" && el.dataset.name === "between") state.crossfade = el.dataset.v === "Crossfade";
+  else if (act === "remove") {
+    e.stopPropagation();
+    const i = state.songs.findIndex((s) => s.id === Number(el.dataset.id));
+    state.removed = { song: state.songs[i], i }; state.songs.splice(i, 1);
+    if (state.sel === state.removed.song.id) state.sel = state.songs[0]?.id;
+  } else if (act === "undo") { state.songs.splice(state.removed.i, 0, state.removed.song); state.removed = null; }
+  else if (act === "add") { const id = nextId++; state.songs.push({ id, name: `Song ${id}.wav`, dur: 60 + id * 7, start: 0, end: 60 + id * 7, peaks: peaks(id * 5) }); }
+  render();
+});
+
+/* Drag: the grip reorders rows, the waveform moves the nearer handle. */
+app.addEventListener("pointerdown", (e) => {
+  const grip = e.target.closest("[data-grip]");
+  if (grip) {
+    e.preventDefault();
+    state.drag = { kind: "row", from: Number(grip.dataset.grip), target: Number(grip.dataset.grip), moved: false };
+    app.setPointerCapture(e.pointerId); render(); return;
+  }
+  const w = e.target.closest("[data-wave]"); if (!w) return;
+  const song = state.songs.find((s) => s.id === Number(w.dataset.wave)), r = w.getBoundingClientRect();
+  const t = ((e.clientX - r.left) / r.width) * song.dur;
+  const which = Math.abs(t - song.start) <= Math.abs(t - song.end) ? "start" : "end";
+  state.drag = { kind: "handle", song, which, offset: song[which] - t, wave: w.dataset.wave, moved: false };
+  state.listening = null;
+  app.setPointerCapture(e.pointerId);
+});
+app.addEventListener("pointermove", (e) => {
+  const d = state.drag; if (!d) return;
+  d.moved = true;
+  if (d.kind === "row") {
+    const rows = [...app.querySelectorAll("[data-row]")];
+    const hit = rows.findIndex((r) => { const b = r.getBoundingClientRect(); return e.clientY >= b.top && e.clientY <= b.bottom; });
+    if (hit >= 0 && hit !== d.target) { d.target = hit; render(); }
+    return;
+  }
+  const w = app.querySelector(`[data-wave="${d.wave}"]`), r = w.getBoundingClientRect(), s = d.song;
+  let t = Math.round((((e.clientX - r.left) / r.width) * s.dur + d.offset) * 10) / 10;
+  if (d.which === "start") s.start = Math.max(0, Math.min(t, s.end - MIN_EXCERPT));
+  else s.end = Math.min(s.dur, Math.max(t, s.start + MIN_EXCERPT));
+  render();
+});
+app.addEventListener("pointerup", () => {
+  const d = state.drag; if (!d) return;
+  if (d.kind === "row" && d.target !== d.from) { const [s] = state.songs.splice(d.from, 1); state.songs.splice(d.target, 0, s); }
+  setTimeout(() => { state.drag = null; render(); });
+  if (d.kind === "row") { state.drag = { ...d, from: -1, target: -1 }; render(); }
+});
+render();
+</script>
+</body>
+</html>
