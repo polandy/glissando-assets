@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P4 Exports and settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=Geist+Mono&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33;
+  --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-mint: #6fcfb4; --gl-lemon: #f5c94a; --gl-warn-icon: #b8890f; --gl-coral: #f2786b;
+  --gl-shadow: 0 1px 3px rgb(34 29 51 / .14); --gl-sheet: 0 24px 60px rgb(10 8 18 / .3); --gl-scrim: rgb(10 8 18 / .38);
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif;
+  --gl-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-radius-small: 6px; --gl-radius: 10px; --gl-radius-large: 14px; --gl-radius-pill: 999px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2e293b; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); --gl-sheet: 0 24px 60px rgb(0 0 0 / .6); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2e293b; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); --gl-sheet: 0 24px 60px rgb(0 0 0 / .6); color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font-family: var(--gl-font-ui); font-size: 14px; }
+button { font: inherit; color: inherit; }
+.mono { font-family: var(--gl-font-mono); font-variant-numeric: tabular-nums; }
+svg.i { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+svg.i.s { width: 16px; height: 16px; }
+:focus-visible { outline: 2px solid var(--gl-accent); outline-offset: 2px; }
+
+.chrome { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+.chrome > b { font: 700 17px var(--gl-font-display); }
+.grp { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.grp > span { font-size: 12px; color: var(--gl-muted); }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 6px 11px; border-radius: 7px; cursor: pointer; font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.ctx { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.keybtn { border: 1px solid var(--gl-line); border-bottom-width: 2px; background: var(--gl-raised); border-radius: 7px; padding: 5px 10px; font: 500 12px var(--gl-font-mono); cursor: pointer; }
+.note { flex-basis: 100%; margin: 0; color: var(--gl-muted); font-size: 13px; line-height: 1.45; max-width: 860px; }
+.stage { display: flex; justify-content: center; padding: 20px 16px 40px; }
+.device { width: 100%; position: relative; background: var(--gl-ground); border: 1px solid var(--gl-line); border-radius: 18px; overflow: hidden; box-shadow: var(--gl-shadow); container-type: inline-size; display: flex; flex-direction: column; }
+.device.phone { max-width: 412px; height: 860px; }
+.device.desktop { max-width: 1180px; height: 700px; }
+
+/* stand-in slideshow screen */
+.bar { flex: none; display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 18px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+.brand { font: 700 19px var(--gl-font-display); flex: 1; }
+main { flex: 1; overflow: hidden; padding: 20px; }
+main h1 { font: 700 26px var(--gl-font-display); margin: 0 0 14px; }
+.tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.tile { aspect-ratio: 4/3; border-radius: 8px; background: var(--gl-hover); }
+@container (max-width: 720px) { .bar { padding: 0 12px; } main { padding: 14px 12px; } .tiles { grid-template-columns: repeat(3, 1fr); } }
+
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer; flex: none; color: var(--gl-ink); }
+.iconbtn:hover { background: var(--gl-hover); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--gl-radius); border: 1px solid var(--gl-line); background: var(--gl-surface); font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--gl-hover); }
+.btn.primary { background: var(--gl-accent); border-color: var(--gl-accent); color: var(--gl-accent-ink); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover { background: var(--gl-hover); }
+.btn.small { height: 32px; padding: 0 11px; font-size: 13px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--gl-muted); margin: 0 0 8px; }
+.hint { margin: 0; color: var(--gl-muted); font-size: 12.5px; line-height: 1.45; }
+.hint.ic { display: flex; gap: 8px; align-items: flex-start; }
+.hint.ic svg { margin-top: 1px; }
+.foot { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.foot .btn { flex: none; }
+.foot .tt { margin-right: auto; flex: 1 1 0; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border-radius: 999px; padding: 3px 10px; background: var(--gl-hover); color: var(--gl-muted); font-size: 12px; }
+
+/* sheets */
+.scrim { position: absolute; inset: 0; z-index: 10; background: var(--gl-scrim); display: grid; place-items: center; }
+.sheet { width: calc(100% - 40px); max-width: 520px; max-height: 92%; overflow: auto; background: var(--gl-surface); border-radius: var(--gl-radius-large); box-shadow: var(--gl-sheet); padding: 20px; display: grid; gap: 16px; align-content: start; outline: 0; }
+.sheet > header { display: flex; align-items: flex-start; gap: 8px; }
+.sheet > header .t { flex: 1; min-width: 0; }
+.sheet h2 { font: 700 22px var(--gl-font-display); margin: 0; }
+.sheet header p { margin: 2px 0 0; color: var(--gl-muted); font-size: 12.5px; }
+.sheet header .iconbtn { margin-top: -2px; }
+.pop { position: absolute; top: 72px; right: 24px; width: 380px; z-index: 11; max-height: calc(100% - 96px); }
+.scrim.clear { background: transparent; display: block; }
+@container (max-width: 720px) {
+  .scrim, .scrim.clear { display: grid; place-items: end stretch; background: var(--gl-scrim); }
+  .sheet { width: 100%; max-width: none; border-radius: 14px 14px 0 0; padding: 18px 16px 22px; }
+  .pop { position: static; width: 100%; max-height: 92%; }
+  .foot { flex-wrap: wrap; }
+  .foot .btn { flex: 1; }
+  .foot .tt { flex-basis: 100%; margin-right: 0; }
+}
+.opt { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; border: 1px solid var(--gl-line); background: var(--gl-raised); border-radius: var(--gl-radius); padding: 12px 14px; cursor: pointer; margin-bottom: 8px; }
+.opt:hover { background: var(--gl-hover); }
+.opt b { display: block; font-weight: 600; }
+.opt span { color: var(--gl-muted); font-size: 12.5px; }
+.rows { display: grid; gap: 8px; }
+.rad { display: grid; grid-template-columns: auto auto 1fr auto; gap: 1px 12px; align-items: center; text-align: left; width: 100%; border: 1px solid var(--gl-line); background: var(--gl-raised); border-radius: var(--gl-radius); padding: 11px 14px; cursor: pointer; }
+.rad:hover { background: var(--gl-hover); }
+.rad[aria-checked="true"] { border-color: var(--gl-accent); box-shadow: inset 0 0 0 1px var(--gl-accent); }
+.rad .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--gl-faint); grid-row: span 2; }
+.rad .ico { grid-row: span 2; color: var(--gl-muted); }
+.rad:not(.hasico) .ico { display: none; }
+.rad:not(.hasico) { grid-template-columns: auto 1fr auto; }
+.rad[aria-checked="true"] .dot { border: 5px solid var(--gl-accent); }
+.rad .l1 { font-weight: 600; font-size: 14px; }
+.rad .l1 em { font-style: normal; font-weight: 400; color: var(--gl-muted); font-size: 13px; margin-left: 6px; }
+.rad .l2 { grid-column: -3 / -2; color: var(--gl-muted); font-size: 12px; }
+.rad:not(.hasico) .l2 { grid-column: 2; }
+.rad .est { grid-column: -2; grid-row: 1 / span 2; font: 500 13px var(--gl-font-mono); color: var(--gl-muted); text-align: right; }
+.rad .l1 { grid-column: -3 / -2; } .rad:not(.hasico) .l1 { grid-column: 2; }
+.rad.hasico .dot { order: 0; }
+.notice { border-radius: var(--gl-radius); padding: 12px 14px; font-size: 13px; line-height: 1.45; background: var(--gl-hover); }
+.notice b { font-weight: 600; }
+.notice.warn { background: color-mix(in srgb, var(--gl-lemon) 22%, var(--gl-surface)); }
+.notice.error { background: color-mix(in srgb, var(--gl-coral) 20%, var(--gl-surface)); }
+.notice.ok { background: color-mix(in srgb, var(--gl-mint) 24%, var(--gl-surface)); }
+.notice small { display: block; margin-top: 6px; font-size: 12px; color: var(--gl-muted); word-break: break-word; }
+.link { border: 0; background: none; padding: 0; color: var(--gl-ink); text-decoration: underline; cursor: pointer; font-size: 12.5px; display: inline-flex; align-items: center; gap: 4px; }
+.det { display: block; margin-top: 8px; font: 12px/1.45 var(--gl-font-mono); color: var(--gl-muted); }
+.bars { display: grid; gap: 6px; }
+.barrow { display: grid; grid-template-columns: 96px 1fr 56px; gap: 8px; align-items: center; font-size: 12px; color: var(--gl-muted); }
+.barrow i { display: block; height: 8px; border-radius: 99px; background: var(--gl-mint); }
+.barrow i.f { background: var(--gl-faint); }
+.barrow .m { text-align: right; font: 500 12px var(--gl-font-mono); }
+.meter { height: 8px; border-radius: 99px; background: var(--gl-hover); overflow: hidden; cursor: pointer; }
+.meter i { display: block; height: 100%; width: 10%; background: var(--gl-mint); }
+.runrow { display: flex; justify-content: space-between; font-size: 13px; color: var(--gl-muted); }
+.sum { display: flex; justify-content: space-between; gap: 10px; align-items: center; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); background: var(--gl-raised); padding: 11px 14px; font-weight: 600; }
+.sum .mono { color: var(--gl-muted); font-weight: 500; font-size: 13px; }
+.facts { color: var(--gl-muted); font: 500 13px var(--gl-font-mono); margin: 0; }
+.notes { display: grid; gap: 6px; }
+.set { display: grid; gap: 8px; }
+.immich { display: flex; gap: 12px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); padding: 12px 14px; align-items: flex-start; font-size: 13px; line-height: 1.45; }
+.immich b { display: block; font-weight: 600; }
+.immich p { margin: 2px 0 8px; color: var(--gl-muted); }
+.immich .sub { color: var(--gl-muted); }
+.links { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.links a { color: var(--gl-ink); }
+.fn { margin: 0; color: var(--gl-muted); font-size: 12px; }
+.swrow { display: flex; align-items: center; gap: 12px; border: 1px solid var(--gl-line); background: var(--gl-raised); border-radius: var(--gl-radius); padding: 11px 14px; width: 100%; text-align: left; cursor: pointer; }
+.swrow > div { flex: 1; } .swrow small { display: block; color: var(--gl-muted); font-size: 12px; }
+.sw { width: 36px; height: 20px; border-radius: 99px; background: var(--gl-line); position: relative; flex: none; }
+.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--gl-surface); transition: left .15s; }
+[aria-checked="true"] > .sw { background: var(--gl-accent); } [aria-checked="true"] > .sw::after { left: 18px; }
+.cap { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 30; background: var(--gl-ink); color: var(--gl-surface); border-radius: 99px; padding: 6px 14px; font-size: 12.5px; pointer-events: none; white-space: nowrap; }
+
+/* file page */
+.fp { flex: 1; background: #07060a; color: #fff; display: grid; place-items: center; padding: 20px; }
+.fp .card { max-width: 440px; display: grid; gap: 14px; justify-items: start; }
+.fp .eyebrow { color: rgb(255 255 255 / .6); margin: 0; }
+.fp h1 { font: 700 26px var(--gl-font-display); margin: 0; }
+.fp p { font-size: 13px; opacity: .82; max-width: 34em; margin: 0; }
+.fp .fbtn { display: inline-flex; gap: 8px; align-items: center; border: 1px solid rgb(255 255 255 / .4); background: transparent; color: #fff; border-radius: 10px; height: 38px; padding: 0 14px; cursor: pointer; }
+.fp .err { color: #ff8f82; font-size: 13px; margin: 0; opacity: 1; }
+.fp .link { color: #fff; opacity: .85; }
+.fp .det { color: #fff; opacity: .7; }
+</style>
+</head>
+<body>
+<div class="chrome">
+  <b>P4 · Exports and settings</b>
+  <div id="main" class="grp"></div>
+  <div id="ctx" class="ctx"></div>
+  <p class="note" id="note"></p>
+</div>
+<div class="stage"><div class="device phone" id="device"></div></div>
+<script>
+const $ = (s) => document.querySelector(s);
+const SEGS = {
+  ver: ["Version", [["before", "Before"], ["after", "After"]]],
+  var: ["Variant", [["a", "A"], ["b", "B"]]],
+  w: ["Width", [["phone", "Phone 412"], ["desktop", "Desktop"]]],
+  th: ["Theme", [["light", "Light"], ["dark", "Dark"]]],
+  scr: ["Screen", [["share", "Share"], ["settings", "Settings"], ["file", "File page"]]],
+  snd: ["Sound", [["opus", "Opus (Chrome on Linux)"], ["aac", "AAC (Safari / Chrome on Windows)"]]],
+  clips: ["Clips", [["clips0", "none"], ["clips2", "2 clips"]]],
+  out: ["Outcome", [["ok", "Succeeds"], ["full", "Storage full"], ["clip", "Clip unsupported"], ["nobr", "Browser unsupported"], ["err", "Unknown error"]]],
+  srv: ["Server", [["none", "none (local install)"], ["srv", "Glissando server configured"]]],
+  prob: ["Problem", [["damaged", "Damaged glissando.json"], ["nojson", "No glissando.json"]]],
+};
+const CTX = { share: ["snd", "clips", "out"], settings: ["srv"], file: ["prob"] };
+const ORDER = ["ver", "var", "w", "th", "scr", "snd", "clips", "out", "srv", "prob"];
+const S = { ver: "after", var: "a", w: "phone", th: "light", scr: "share", snd: "opus", clips: "clips0", out: "ok", srv: "none", prob: "damaged" };
+// runtime (not in the hash)
+const R = { sheet: null, phase: "choose", size: { video: "std", web: "std" }, webOpen: false, det: false, appear: "system", lang: "browser", qual: "auto", frame: false, cap: "", timer: 0 };
+
+(function readHash() {
+  for (const t of location.hash.slice(1).split(",")) for (const k of ORDER) if (SEGS[k][1].some((o) => o[0] === t)) S[k] = t;
+})();
+
+const P = {
+  back: "M19 12H5M11 6l-6 6 6 6", x: "M6 6l12 12M18 6L6 18", gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1",
+  video: "M4 6h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM17 10l4-2.5v9L17 14",
+  web: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c3.5 3.5 3.5 14.5 0 18M12 3c-3.5 3.5-3.5 14.5 0 18",
+  file: "M6 3h8l4 4v14H6zM14 3v4h4", film: "M4 4h16v16H4zM8 4v16M16 4v16M4 9h4M4 15h4M16 9h4M16 15h4",
+  monitor: "M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM8 20h8M12 16v4",
+  sun: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2",
+  moon: "M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z",
+  info: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v5M12 8h.01", clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
+  chev: "M6 9l6 6 6-6", chevr: "M9 6l6 6-6 6", folder: "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+  immich: "M12 4a3 3 0 0 1 0 6 3 3 0 0 1 0-6zM12 14a3 3 0 0 1 0 6 3 3 0 0 1 0-6zM4 12a3 3 0 0 1 6 0 3 3 0 0 1-6 0zM14 12a3 3 0 0 1 6 0 3 3 0 0 1-6 0z",
+};
+const ic = (n, c = "") => `<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
+const after = () => S.ver === "after";
+const SUB = "Summer in the mountains · 4:32 · with music";
+const RAW = "NotAllowedError: The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission.";
+
+const radio = (group, items, sel, ico) => `<div class="rows" role="radiogroup" aria-label="${group}">${items.map((it) => `
+  <button class="rad ${ico ? "hasico" : ""}" role="radio" aria-checked="${it.id === sel}" tabindex="${it.id === sel ? 0 : -1}" data-f="${group}-${it.id}" data-radio="${it.id}">
+    <span class="dot"></span>${ico ? `<span class="ico">${ic(it.ic)}</span>` : ""}
+    <span class="l1">${it.t}${it.r ? `<em>${it.r}</em>` : ""}</span>
+    ${it.u ? `<span class="l2">${it.u}</span>` : ""}${it.e ? `<span class="est">${it.e}</span>` : ""}</button>`).join("")}</div>`;
+
+const head = (title, sub, back) => `<header>${back ? `<button class="iconbtn" data-a="back" aria-label="Back">${ic("back")}</button>` : ""}
+  <div class="t"><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div><button class="iconbtn" data-a="close" aria-label="Close">${ic("x")}</button></header>`;
+const sheet = (inner, label) => `<div class="scrim" data-a="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="${label}" tabindex="-1">${inner}</div></div>`;
+const foot = (...b) => `<div class="foot">${b.join("")}</div>`;
+const btn = (a, t, cls = "") => `<button class="btn ${cls}" data-a="${a}">${t}</button>`;
+const notice = (cls, title, text, extra = "") => `<div class="notice ${cls}" role="${cls === "error" ? "alert" : "status"}"><b>${title}</b> ${text}${extra}</div>`;
+const disclose = () => `<div style="margin-top:8px"><button class="link" data-a="det" aria-expanded="${R.det}">Show details ${ic("chev", "s")}</button>${R.det ? `<span class="det">${RAW}</span>` : ""}</div>`;
+
+/* ---- share ---- */
+function chooser() {
+  const o = (a, i, t, s) => `<button class="opt" data-a="${a}">${ic(i)}<div><b>${t}</b><span>${s}</span></div></button>`;
+  return sheet(`${head("Share", "Summer in the mountains · 48 pictures · 4:32 · with music")}<div><p class="eyebrow">Save a copy · as it is now</p>
+    ${o("go-video", "video", "Video", "An MP4 for any player or a messenger")}${o("go-web", "web", "Web page", "One file that plays in any browser, offline")}${o("go-file", "file", "Glissando file", "To open in Glissando and edit on, about 212 MB")}</div>`, "Share");
+}
+function fileSheet() {
+  return sheet(`${head("Glissando file", "", true)}<p class="hint">Saves a .glissando file with the pictures, the music and the settings.</p>${foot(btn("close", "Cancel", "ghost"), btn("close", "Save file", "primary"))}`, "Glissando file");
+}
+function running(kind) {
+  const v = kind === "video";
+  return sheet(`${head(v ? "Creating the video" : "Creating the web page", SUB)}<div class="meter" data-a="skip" role="progressbar" aria-label="Progress, tap to skip ahead"><i></i></div>
+    <div class="runrow"><span class="mono">${v ? "Frame 812 of 8160" : "Picture 31 of 48"}</span><span>${v ? "about 3 min left" : "about 1 min left"}</span></div>
+    <p class="hint">Mockup: tap the bar or wait 1.5 s to see the outcome.</p>${foot(btn("again", "Cancel", "ghost"))}`, "Creating");
+}
+function outcome(kind) {
+  const v = kind === "video", what = v ? "video" : "web page", A = after();
+  if (S.out === "ok") return sheet(`${head(v ? "The video is ready" : "The web page is ready", "", false)}<p class="facts">${v ? "410 MB · 4:32 · 1920 × 1080" : "96 MB · 48 pictures"}</p>${notice("ok", "Saved", "where you chose when starting.")}${foot(btn("close", "Done", "primary"))}`, "Done");
+  let n, f;
+  if (S.out === "full") {
+    n = A ? notice("error", "Not enough space on this device.", `About 310 MB is missing. Choose Small, or free up space and try again.`)
+      : notice("error", "The device's storage is full.", `${v ? "At frame 4120 of 8160" : "At picture 31 of 48"} there was no space left. The unfinished file is deleted. About 310 MB is missing; “Small”, or tidying up the device, will do.`);
+    f = foot(btn("close", "Close", "ghost"), btn("another", "Choose another size", "primary"));
+  } else if (S.out === "clip") {
+    n = A ? notice("warn", "Clip 7 can't be made into a " + what + " here.", "It still plays in the slideshow. Remove the clip, or create the " + what + " in another browser.")
+      : notice("warn", "Clip 7 cannot be exported.", "This browser cannot decode that clip frame by frame. It still plays in the show; remove the clip or export from another browser.");
+    f = A ? foot(btn("close", "Close", "ghost"), btn("again", "Try again", "primary")) : foot(btn("close", "Close"));
+  } else if (S.out === "nobr") {
+    n = A ? notice("warn", "This browser can't create " + what + "s.", "Current Chrome, Edge, Firefox and Safari can. Open Glissando there and try again.")
+      : notice("warn", "This browser cannot create " + what + "s.", "Glissando needs WebCodecs for it. Current Chrome, Edge, Firefox and Safari (also on iPhone and iPad) have it.");
+    f = foot(btn("close", "Close"));
+  } else if (A) {
+    n = notice("error", v ? "Video not created." : "Web page not created.", "Something went wrong. Nothing was saved.", disclose());
+    f = foot(btn("close", "Close", "ghost"), btn("again", "Try again", "primary"));
+  } else {
+    n = notice("error", v ? "" : "Web page not created.", "Something went wrong while creating it. The unfinished file is discarded.", `<small>${RAW}</small>`);
+    f = foot(btn("close", "Close"));
+  }
+  return sheet(`${head(v ? "Video" : "Web page", SUB)}${n}${f}`, "Result");
+}
+function videoSheet() {
+  if (R.phase === "run") return running("video");
+  if (R.phase === "out") return outcome("video");
+  const A = after(), opus = S.snd === "opus";
+  const est = ["about 180 MB", "about 410 MB", "about 1.6 GB"];
+  const items = A
+    ? [["small", "Small", "1280 × 720 · For sending"], ["std", "Standard", "1920 × 1080 · Full HD, for computer, phone and tablet"], ["large", "Large", "3840 × 2160 · 4K, for the TV"]].map((x, i) => ({ id: x[0], t: x[1], u: x[2], e: est[i] }))
+    : [["small", "Small", "1280 × 720", "For sending"], ["std", "Standard", "1920 × 1080", "For computer, phone and tablet"], ["large", "Large", "3840 × 2160", "For the TV"]].map((x, i) => ({ id: x[0], t: x[1], r: x[2], u: x[3], e: est[i] }));
+  const apple = "Won't play on iPhone, iPad or Apple TV from this browser. For those, create it in Safari.";
+  const time = "Takes about as long as the slideshow. Keep Glissando open.";
+  let mid = "", ft;
+  if (!A) mid = `<div class="chips"><span class="chip">MP4</span><span class="chip">H.264</span><span class="chip">${opus ? "Opus" : "AAC"}</span><span class="chip">30 fps</span></div>`
+    + (opus ? notice("warn", "The sound will be Opus.", "This browser cannot encode AAC. The video plays on computers, in VLC and on Android, but not on iPhone, iPad and Apple TV. For Apple devices, save it in Safari, or in Chrome on Windows or macOS.") : "")
+    + `<p class="hint">Glissando renders every frame one by one, which takes about as long as the slideshow, depending on the device. Keep Glissando open meanwhile; the screen stays on.</p>`;
+  const go = btn("create", `${ic("film", "s")} Create video`, "primary");
+  if (!A) ft = foot(btn("close", "Cancel", "ghost"), go);
+  else if (S.var === "a") { mid = opus ? `<p class="hint ic">${ic("info", "s")}<span>${apple}</span></p>` : ""; ft = `<div class="foot"><span class="hint tt">${time}</span>${btn("close", "Cancel", "ghost")}${go}</div>`; }
+  else { mid = `<div class="notes">${opus ? `<p class="hint ic">${ic("info", "s")}<span>${apple}</span></p>` : ""}<p class="hint ic">${ic("clock", "s")}<span>${time}</span></p></div>`; ft = foot(btn("close", "Cancel", "ghost"), go); }
+  return sheet(`${head("Video", SUB, true)}<div><p class="eyebrow">Size</p>${radio("Size", items, R.size.video)}</div>${mid}${ft}`, "Video");
+}
+function webSheet() {
+  if (R.phase === "run") return running("web");
+  if (R.phase === "out") return outcome("web");
+  const A = after(), c = S.clips === "clips2", mb = c ? [240, 241, 246] : [48, 96, 290];
+  const ids = ["small", "std", "large"], px = [1280, 1920, 3840], sel = R.size.web, k = ids.indexOf(sel);
+  const e = (i) => "about " + mb[i] + " MB";
+  const items = A ? [["Small", "1280 px", "For sending in a message"], ["Standard", "1920 px", "Full HD, for a computer or tablet"], ["Large", "3840 px", "4K, for the TV"]].map((x, i) => ({ id: ids[i], t: x[0], u: x[1] + " · " + x[2], e: e(i) }))
+    : [["Small", "1280 px", "For sending in a message"], ["Sharp", "1920 px", "For a computer or tablet"], ["4K", "3840 px", "For the TV"]].map((x, i) => ({ id: ids[i], t: x[0], r: x[1], u: x[2], e: e(i) }));
+  const collapsed = A && c && S.var === "b" && !R.webOpen;
+  let sizes = collapsed
+    ? `<div class="sum"><span>Standard · 1920 px</span><span class="mono">about 241 MB</span></div><p class="hint">The 2 clips go in whole; another picture size changes little.</p><div><button class="btn small" data-a="webopen">Choose another size</button></div>`
+    : radio("Picture size", items, sel);
+  if (A && c && S.var === "a") sizes += `<p class="hint">The 2 clips go in whole, so the size barely changes with the picture size.</p>`;
+  const bars = `<div class="bars" role="group" aria-label="Size compared with the video"><div class="barrow"><span>Web page</span><div><i style="width:${(mb[k] / 410) * 100}%"></i></div><span class="m">${mb[k]} MB</span></div><div class="barrow"><span>Video 1080p</span><div><i class="f" style="width:100%"></i></div><span class="m">410 MB</span></div></div>`;
+  let mid = bars;
+  if (!A) mid = (c ? notice("warn", "Video clips in the show: 2.", "They go into the file whole, at their original size, so the page is about 240 MB at every size.") : "") + bars
+    + `<div class="chips"><span class="chip">one .html file</span><span class="chip">plays offline</span><span class="chip">music, captions, Ken Burns</span></div><p class="hint">Opens in any current browser on a computer, phone or tablet, without the internet and without Glissando. Pictures are downscaled; the originals stay here.</p>`;
+  else mid += `<p class="hint">Plays in any browser, offline. Pictures are downscaled; the originals stay here.</p>`;
+  return sheet(`${head("Web page", SUB, true)}<div><p class="eyebrow">Picture size</p><div class="set">${sizes}</div></div>${mid}${foot(btn("close", "Cancel", "ghost"), btn("create", "Create web page", "primary"))}`, "Web page");
+}
+
+/* ---- settings ---- */
+function settings() {
+  const A = after(), srv = S.srv === "srv", g = (t, b) => `<div><p class="eyebrow">${t}</p>${b}</div>`;
+  let h = head("Settings", "") ;
+  h += g("Appearance", radio("Appearance", [{ id: "system", t: "Same as device", u: "Light or dark, following the system setting", ic: "monitor" }, { id: "light", t: "Light", ic: "sun" }, { id: "dark", t: "Dark", ic: "moon" }], R.appear, true));
+  h += g("Language", radio("Language", [{ id: "browser", t: "Same as browser", u: "Currently English" }, { id: "de", t: "Deutsch" }, { id: "en", t: "English" }], R.lang));
+  if (srv) {
+    const q = A ? [{ id: "auto", t: "Automatic", u: "Standard on this device" }, { id: "std", t: "Standard", u: "1440 px · Starts at once, sharp on phones and laptops" }, { id: "large", t: "Large", u: "4K · Sharp on large screens; prepares pictures before it starts" }]
+      : [{ id: "auto", t: "Automatic", u: "Chooses 1440 pixels on this device" }, { id: "std", t: "1440 pixels", u: "Starts at once, sharp on phones and laptops" }, { id: "large", t: "4K", u: "Sharp on large screens; prepares pictures before it starts" }];
+    h += g("Quality of server slideshows", radio("Quality", q, R.qual));
+    h += g("Picture frame", `<div class="set"><button class="swrow" data-a="noop"><div>Set up a picture frame</div>${ic("chevr", "s")}</button><button class="swrow" role="switch" aria-checked="${R.frame}" data-a="frame"><div>Show the card on the start page<small>Shown above your slideshows</small></div><span class="sw"></span></button></div>`);
+  }
+  if (!A || srv) h += g("Immich", srv ? `<div class="immich">${ic("immich")}<div><b>Through this Glissando server</b><span class="sub">Immich 1.142 · 12 albums</span></div></div>`
+    : `<div class="immich">${ic("immich")}<div><b>Not set up</b><p>Immich is there when you run your own Glissando server next to it. The key is set there, not here.</p><button class="btn small" data-a="noop">How to set it up</button></div></div>`);
+  h += g("Version", `<span class="mono">Glissando 0.0.12</span>`);
+  h += `<p class="fn">Applies at once and is stored on this device.</p>`;
+  const L = (t) => `<a href="#" data-a="noop">${t}</a>`;
+  h += `<div class="links">${L("Documentation")}${L("Source code on GitHub")}${L("Open-source licences")}${A && S.var === "a" ? L("Self-hosting and Immich") : ""}</div>`;
+  const inner = `<div class="scrim clear" data-a="scrim"><div class="sheet pop" role="dialog" aria-modal="true" aria-label="Settings" tabindex="-1">${h}</div></div>`;
+  return inner;
+}
+function filePage() {
+  const A = after(), dmg = S.prob === "damaged";
+  let e;
+  if (!dmg) e = `<p class="err" role="alert">This folder holds no glissando.json. Unpack the whole .glissando file, then choose the folder holding index.html.</p>`;
+  else if (!A) e = `<p class="err" role="alert">glissando.json can’t be read: Unexpected token '&lt;', "&lt;!doctype "... is not valid JSON</p>`;
+  else e = `<div><p class="err" role="alert">This file is damaged. Try the original file again.</p><div style="margin-top:8px"><button class="link" data-a="det" aria-expanded="${R.det}">Show details ${ic("chev", "s")}</button>${R.det ? `<span class="det">Unexpected token '&lt;', "&lt;!doctype "... is not valid JSON</span>` : ""}</div></div>`;
+  return `<div class="fp"><div class="card"><p class="eyebrow">Slideshow</p><h1>Choose this slideshow’s folder</h1><p>This slideshow needs its folder to play. Choose the folder that holds index.html, glissando.json and the pictures.</p><button class="fbtn" data-a="noop">${ic("folder")} Choose folder</button>${e}</div></div>`;
+}
+
+/* ---- render ---- */
+const NOTES = {
+  before: { share: "Before — the app as it is today. Esc, a click on the dimmed area and ✕ close everything; Back returns to the chooser. The video sheet carries chips and a yellow Opus box; sizes are listed with resolution and estimate.",
+    settings: "Before — Immich is always shown, even without a server, with a box that explains how it is set up. The quality list uses pixel names of its own.",
+    file: "Before — the raw parser message is shown as the error." },
+  after: { share: { a: "After A (UX-17/18/19/21) — Esc inside Video, Web page or Glissando file goes back to Share; Esc on the chooser closes; ✕ and the scrim still close everything. The Opus warning shrinks to one muted line under the sizes, the time note sits left of the buttons. Errors are mapped sentences.",
+      b: "After B — same as A, but the Apple-device line and the time line sit together as a compact notes list between sizes and buttons; the footer holds only buttons. With 2 clips the web-page sizes collapse into one summary row." },
+    settings: { a: "After A (UX-19/20) — the Immich block is gone without a server; the quality list uses the shared Small/Standard/Large scale. “Self-hosting and Immich” becomes a fourth link.",
+      b: "After B — as A, but no extra link: the self-hosting guide is one click inside Documentation." },
+    file: "After (UX-17) — a damaged file gets a sentence; the parser text is behind “Show details”. The no-glissando.json text is unchanged." },
+};
+function noteText() { const n = NOTES[S.ver][S.scr]; return typeof n === "string" ? n : n[S.var]; }
+
+let lastKey = "";
+function render() {
+  const dev = $("#device");
+  dev.className = "device " + S.w;
+  document.documentElement.dataset.theme = S.th;
+  const prev = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.f : null;
+  let layer = "";
+  if (S.scr === "file") layer = "";
+  else if (R.sheet === "chooser") layer = chooser();
+  else if (R.sheet === "video") layer = videoSheet();
+  else if (R.sheet === "web") layer = webSheet();
+  else if (R.sheet === "file") layer = fileSheet();
+  else if (R.sheet === "settings") layer = settings();
+  dev.innerHTML = S.scr === "file" ? filePage() : `<div class="bar"><span class="brand">Glissando</span><button class="btn small primary" data-a="open-share">Share</button><button class="iconbtn" data-a="open-settings" aria-label="Settings">${ic("gear")}</button></div>
+    <main><h1>Summer in the mountains</h1><div class="tiles">${'<div class="tile"></div>'.repeat(12)}</div></main>${layer}` + (R.cap ? `<div class="cap" role="status">${R.cap}</div>` : "");
+  const key = S.scr + R.sheet + R.phase + S.ver;
+  const sh = dev.querySelector(".sheet");
+  const again = prev && dev.querySelector(`[data-f="${prev}"]`);
+  if (again && key === lastKey) again.focus({ preventScroll: true }); else if (sh) sh.focus({ preventScroll: true });
+  lastKey = key;
+  $("#note").textContent = noteText();
+  document.querySelectorAll("[data-k]").forEach((b) => b.setAttribute("aria-pressed", S[b.dataset.k] === b.dataset.v));
+  document.querySelectorAll(".cg").forEach((g) => (g.hidden = !CTX[S.scr].includes(g.dataset.g)));
+  $("#esc").hidden = S.scr === "file";
+  history.replaceState(null, "", "#" + ORDER.map((k) => S[k]).join(","));
+}
+function reset() { clearTimeout(R.timer); R.phase = "choose"; R.det = false; R.webOpen = false; }
+function enterScreen() { reset(); R.sheet = S.scr === "share" ? "chooser" : S.scr === "settings" ? "settings" : null; }
+
+function setCap(t) { R.cap = t; clearTimeout(setCap.t); setCap.t = setTimeout(() => { R.cap = ""; render(); }, 1200); }
+function esc() {
+  if (S.scr === "file") return;
+  const nested = ["video", "web", "file"].includes(R.sheet);
+  if (after()) {
+    setCap(nested ? "Esc → back to Share" : R.sheet ? "Esc → closed" : "Esc");
+    if (nested) { reset(); R.sheet = "chooser"; } else if (R.sheet) { reset(); R.sheet = null; }
+  } else if (R.sheet) { reset(); R.sheet = null; }
+  render();
+}
+function run() { R.phase = "run"; render(); R.timer = setTimeout(skip, 1500); }
+function skip() { clearTimeout(R.timer); if (R.phase === "run") { R.phase = "out"; render(); } }
+const ACT = {
+  "open-share"() { R.sheet = "chooser"; },
+  "open-settings"() { R.sheet = "settings"; },
+  "go-video"() { R.sheet = "video"; }, "go-web"() { R.sheet = "web"; }, "go-file"() { R.sheet = "file"; },
+  back() { reset(); R.sheet = "chooser"; },
+  close() { reset(); R.sheet = null; },
+  create() { return run(); }, skip, again() { reset(); },
+  another() { reset(); R.size[R.sheet] = "small"; R.webOpen = true; },
+  det() { R.det = !R.det; }, webopen() { R.webOpen = true; }, frame() { R.frame = !R.frame; }, noop() {},
+};
+$("#device").addEventListener("click", (e) => {
+  const rad = e.target.closest("[data-radio]");
+  if (rad) {
+    const g = rad.closest("[role=radiogroup]").getAttribute("aria-label"), v = rad.dataset.radio;
+    if (g === "Size") R.size.video = v; else if (g === "Picture size") R.size.web = v;
+    else if (g === "Appearance") { R.appear = v; if (v !== "system") S.th = v; }
+    else if (g === "Language") R.lang = v; else if (g === "Quality") R.qual = v;
+    return render();
+  }
+  const el = e.target.closest("[data-a]");
+  if (!el) return;
+  const a = el.dataset.a;
+  if (a === "scrim") { if (e.target === el) ACT.close(); else return; }
+  else { e.preventDefault(); if (!ACT[a]) return; ACT[a](); }
+  render();
+});
+$("#device").addEventListener("keydown", (e) => {
+  const r = e.target.closest && e.target.closest("[role=radio]");
+  if (!r || !/^Arrow/.test(e.key)) return;
+  const all = [...r.parentElement.children], i = all.indexOf(r), d = /Down|Right/.test(e.key) ? 1 : -1;
+  e.preventDefault(); all[(i + d + all.length) % all.length].click();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); esc(); } });
+
+/* chrome */
+function seg(k) { const [label, opts] = SEGS[k]; return `<div class="grp cg" data-g="${k}"><span>${label}</span><span class="seg" role="group" aria-label="${label}">${opts.map((o) => `<button data-k="${k}" data-v="${o[0]}" aria-pressed="false">${o[1]}</button>`).join("")}</span></div>`; }
+$("#main").innerHTML = ["ver", "var", "w", "th", "scr"].map(seg).join("").replace(/ cg"/g, '"');
+$("#ctx").innerHTML = ["snd", "clips", "out", "srv", "prob"].map(seg).join("") + `<div class="grp" id="escg"><span>Keyboard</span><button class="keybtn" id="esc" aria-label="Press Escape">Esc</button></div>`;
+document.querySelector("body").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-k]");
+  if (!b) return;
+  const k = b.dataset.k; S[k] = b.dataset.v;
+  if (k === "scr") enterScreen(); else if (k === "th") R.appear = S.th; else if (["snd", "clips", "out", "ver", "var"].includes(k)) reset();
+  render();
+});
+$("#esc").addEventListener("click", esc);
+R.appear = "system"; enterScreen(); render();
+</script>
+</body>
+</html>
