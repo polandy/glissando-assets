@@ -195,7 +195,7 @@ const W = { p390: [390, 844], p360: [360, 780], desk: [1180, 780] };
 const SLIDES = 41;
 const MIN_SHARE = 2;
 const SEGS = {
-  v: [["cur", "Today"], ["a", "A — Details switch"], ["b", "B — Adjust per song"]],
+  v: [["cur", "Today"], ["a", "A — approved, built in #165"], ["a2", "A2 — bar under the songs"], ["a3", "A3 — bar in Picture length"], ["b", "B — Adjust per song"]],
   sc: [["fits", "Fits (2 songs)"], ["little", "A little short"], ["much", "Much too short"]],
   w: [["p390", "Phone 390×844"], ["p360", "Phone 360×780"], ["desk", "Desktop"]],
   th: [["light", "Light"], ["dark", "Dark"]],
@@ -204,6 +204,8 @@ const NOTES = {
   v: {
     cur: "<b>Today.</b> Details off still shows the waveform, Listen, Excerpt, Volume, Picture changes and both Fades, each with an explainer paragraph; the yellow notice repeats “Add a song”. Small hit areas (turn on “Show hit areas”).",
     a: "<b>A · UX-10/11/12/08.</b> Details off: songs, Picture length, Repeat the music, and one notice line — nothing else. Details on adds the playlist lane, the selected song (waveform, Listen, Excerpt, Volume, Picture changes, Fades) and Between songs. Every section is its control plus at most one line; the mechanics sit behind ⓘ. One “Add a song”, 44 px hit areas on the phone.",
+    a2: "<b>A2 · A plus the music/pictures bar in Essentials.</b> The compact bar (music above, pictures below, the silent stretch hatched) sits right under the song list, where the songs it shows are; the one notice line stays in Picture length. Details adds the waveform and the song's settings, the bar stays where it is.",
+    a3: "<b>A3 · A plus the bar inside Picture length.</b> The same bar sits directly above the notice line, so picture and words explain each other; the song list stays a plain list. Details adds the waveform and the song's settings.",
     b: "<b>B · same essentials, no Details switch.</b> Each song row has an “Adjust” chevron that opens that song's refinements right under it; Between songs and the playlist lane sit under “More settings” at the bottom. Refinements next to the song they change, but the stored Details preference goes away.",
   },
   sc: {
@@ -219,7 +221,7 @@ const SCENARIOS = {
 };
 const EXTRA = [["Slow Tide", 72], ["Kite Weather", 131]];
 const COLOURS = ["var(--gl-accent)", "var(--gl-mint)", "var(--gl-lilac)", "var(--gl-sky)", "var(--gl-lemon)"];
-const S = { v: "a", sc: "little", w: "p390", th: "light", hits: false, folds: true,
+const S = { v: "a2", sc: "little", w: "p390", th: "light", hits: false, folds: true,
   details: false, length: "about", own: 5, repeat: false, between: "crossfade", sel: 0, open: -1, more: false, pop: null,
   changes: "beat", fadeIn: "auto", fadeOut: "auto", volume: "auto", vol: 0, songs: [] };
 const I = {
@@ -260,7 +262,7 @@ const POPS = {
 function lengthLine(m) {
   if (S.repeat) return `<p class="line">Slideshow ${mmss(m.slideshow)} · the music repeats and fades out at the end</p>`;
   if (m.gap > 0) {
-    return `<p class="notice${m.warn ? " warn" : ""}">The music ends ${mmss(m.gap)} before the pictures. <button class="linkbtn" data-act="repeat-on">Repeat the music</button><span class="sep">·</span><button class="linkbtn" data-act="add">Add a song</button></p>`;
+    return `<p class="notice${m.warn ? " warn" : ""}">The music ends ${mmss(m.gap)} before the pictures. <button class="linkbtn" data-act="repeat-on">Repeat the music</button></p>`;
   }
   if (m.fitted !== undefined && S.length === "about") return `<p class="line">Shortened to ${m.fitted.toFixed(1)} s each, to end with the music · ${mmss(m.slideshow)}</p>`;
   if (m.fitted !== undefined) return `<p class="line">${m.fitted.toFixed(1)} s each · ${mmss(m.slideshow)}, ends with the music</p>`;
@@ -283,11 +285,11 @@ function songRows(withAdjust) {
 const addRow = () => `<button class="addrow" data-act="add"><span class="plus">${icon("plus", "s")}</span>Add a song</button>`;
 const songsCard = (withAdjust) => `<div class="songs">${songRows(withAdjust)}${addRow()}</div>`;
 
-function lengthSection(m) {
+function lengthSection(m, bar = "") {
   return `<section class="sec"><div class="shead"><h3>Picture length</h3>${info("length")}</div>
     ${radios("length", S.length, [["about", "About 5 s each"], ["fill", "Fill the music"], ["own", "Set it yourself"]])}
     ${S.length === "own" ? `<div class="steprow">${stepper(S.own.toFixed(1) + " s")}</div>` : ""}
-    ${lengthLine(m)}</section>`;
+    ${bar}${lengthLine(m)}</section>`;
 }
 const repeatSection = () => `<section class="sec"><div class="shead">${sw("repeat", S.repeat, "Repeat the music")}<span style="flex:1"></span>${info("repeat")}</div></section>`;
 
@@ -336,12 +338,14 @@ function lanes(m) {
 const betweenSection = () => S.songs.length > 1 ? `<section class="sec"><div class="shead"><h3>Between songs</h3>${info("between")}</div>${radios("between", S.between, [["crossfade", "Crossfade"], ["sequence", "One after another"]])}</section>` : "";
 
 /* ---------- variants ---------- */
-function variantA(m) {
+function variantA(m, barAt = "details") {
   const sel = Math.min(S.sel, S.songs.length - 1), det = S.details && sel >= 0;
-  const songs = `<section class="sec"><p class="eyebrow">Songs</p>${songsCard(false)}</section>`;
-  const side = `<p class="eyebrow">Slideshow</p>${lengthSection(m)}${repeatSection()}${S.details ? betweenSection() : ""}`;
+  const songsOnly = `<section class="sec"><p class="eyebrow">Songs</p>${songsCard(false)}</section>`;
+  const barInLength = barAt === "length" ? lanes(m) : "";
+  const side = `<p class="eyebrow">Slideshow</p>${lengthSection(m, barInLength)}${repeatSection()}${S.details ? betweenSection() : ""}`;
+  const songs = `${songsOnly}${barAt === "songs" ? lanes(m) : ""}`;
   const head = det ? `<p class="eyebrow group">Song ${sel + 1} · ${esc(S.songs[sel].n)}</p>` : "";
-  const wave = S.details ? `${lanes(m)}${head}${det ? songWave(sel) : ""}` : "";
+  const wave = S.details ? `${barAt === "details" ? lanes(m) : ""}${head}${det ? songWave(sel) : ""}` : "";
   const settings = det ? songSettings(sel) : "";
   if (S.w === "desk") return `<div class="cols"><div class="col">${songs}${wave}</div><div class="col panel">${side}${det ? `<p class="eyebrow group">Song ${sel + 1}</p>${settings}` : ""}</div></div>`;
   return `<div class="col">${songs}</div><div class="col panel">${side}</div>${S.details ? `<div class="col">${wave}${settings}</div>` : ""}`;
@@ -389,7 +393,7 @@ function render() {
   dev.style.width = `${w}px`; dev.style.height = `${h}px`;
   dev.className = "device" + (phone && S.v !== "cur" ? " hit44" : "") + (S.hits ? " showhits" : "");
   const m = model();
-  const body = S.v === "cur" ? variantToday(m) : S.v === "a" ? variantA(m) : variantB(m);
+  const body = S.v === "cur" ? variantToday(m) : S.v === "a" ? variantA(m) : S.v === "a2" ? variantA(m, "songs") : S.v === "a3" ? variantA(m, "length") : variantB(m);
   const detailsSwitch = S.v === "b" ? "" : sw("details", S.details, "Details");
   dev.innerHTML = `<div class="bar"><button class="iconbtn" aria-label="Back">${icon("back")}</button><div class="crumb"><small>Lake Week ›</small><b>Music</b></div>${detailsSwitch}</div>
     <div class="page" id="page">${body}${S.pop ? `<div class="pop" id="pop">${POPS[S.pop]}</div>` : ""}</div>`;
