@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P8 Picture editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=Geist+Mono&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33;
+  --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-mint: #6fcfb4;
+  --gl-accent-tint: color-mix(in srgb, var(--gl-accent) 22%, var(--gl-surface));
+  --gl-stage: #1d1a2a;
+  --gl-shadow: 0 1px 2px rgb(34 29 51 / .06), 0 6px 18px rgb(34 29 51 / .06); --gl-pop: 0 12px 32px rgb(10 8 18 / .22);
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif;
+  --gl-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-radius-small: 6px; --gl-radius-tile: 8px; --gl-radius: 10px; --gl-radius-large: 14px;
+  --gl-hit-min: 44px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2e293b; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-stage: #0b0a10; --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); --gl-pop: 0 12px 32px rgb(0 0 0 / .6); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2e293b; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-stage: #0b0a10; --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); --gl-pop: 0 12px 32px rgb(0 0 0 / .6); color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { overflow-x: hidden; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font-family: var(--gl-font-ui); font-size: 14px; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.mono { font-family: var(--gl-font-mono); font-variant-numeric: tabular-nums; }
+svg.i { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+svg.i.s { width: 16px; height: 16px; }
+:focus-visible { outline: 2px solid var(--gl-accent); outline-offset: 2px; }
+
+/* control bar (outside the device) */
+.chrome { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+.chrome > b { font: 700 17px var(--gl-font-display); }
+.grp { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.grp > span { font-size: 12px; color: var(--gl-muted); }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 6px 11px; border-radius: 7px; font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.notes { flex-basis: 100%; display: grid; gap: 4px; }
+.note { margin: 0; color: var(--gl-muted); font-size: 13px; line-height: 1.45; max-width: 900px; }
+.note b { color: var(--gl-ink); font-weight: 600; }
+.stage { display: flex; justify-content: center; padding: 20px 16px 40px; }
+
+/* device */
+.device { position: relative; width: 390px; height: 844px; max-width: 100%; background: var(--gl-ground); border: 1px solid var(--gl-line); border-radius: 22px; overflow: hidden; box-shadow: var(--gl-shadow); display: flex; flex-direction: column; flex: none; }
+.bar { flex: none; display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 4px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+.crumb { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: baseline; white-space: nowrap; overflow: hidden; }
+.crumb small { color: var(--gl-muted); overflow: hidden; text-overflow: ellipsis; }
+.crumb b { font: 700 17px var(--gl-font-display); }
+.iconbtn { width: var(--gl-hit-min); height: var(--gl-hit-min); border-radius: 10px; border: 0; background: transparent; display: grid; place-items: center; flex: none; }
+.iconbtn:hover { background: var(--gl-hover); }
+.count { font-size: 12.5px; color: var(--gl-muted); }
+.page { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; }
+.tabbar { flex: none; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--gl-line); background: var(--gl-surface); padding-bottom: 6px; }
+.tabbar button { border: 0; background: transparent; height: 56px; display: grid; place-items: center; align-content: center; gap: 2px; font-size: 12px; font-weight: 600; color: var(--gl-muted); }
+.tabbar button[aria-selected="true"] { color: var(--gl-ink); }
+.tabbar button[aria-selected="true"] svg { color: var(--gl-accent); }
+
+/* picture block */
+.top { position: sticky; top: 0; z-index: 3; background: var(--gl-surface); border-bottom: 1px solid var(--gl-line); }
+.well { background: var(--gl-stage); padding: 18px 26px; }
+.pic { position: relative; aspect-ratio: 3 / 2; border-radius: 4px; overflow: hidden; }
+.pic svg.photo, .tile svg.photo { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.dim { position: absolute; inset: 0; background: rgb(0 0 0 / .32); pointer-events: none; }
+.frame { position: absolute; border: 2px solid #fff; border-radius: 2px; touch-action: none; }
+.frame.inactive { border-style: dashed; border-color: rgb(255 255 255 / .55); }
+.frame.active { border-color: var(--gl-accent); box-shadow: 0 0 0 999px rgb(0 0 0 / .28); cursor: grab; }
+.frame b { position: absolute; left: 6px; top: 6px; background: #fff; color: #221d33; font-size: 11.5px; font-weight: 600; padding: 2px 7px; border-radius: 6px; }
+.frame.active b { background: var(--gl-accent); color: var(--gl-accent-ink); }
+.frame i { position: absolute; width: 14px; height: 14px; background: #fff; border-radius: 3px; }
+.frame i:nth-of-type(1) { left: -8px; top: -8px; } .frame i:nth-of-type(2) { right: -8px; top: -8px; }
+.frame i:nth-of-type(3) { left: -8px; bottom: -8px; } .frame i:nth-of-type(4) { right: -8px; bottom: -8px; }
+.frame.inactive i { display: none; }
+.lookline { margin: 0; padding: 8px 14px 0; display: flex; gap: 8px; align-items: center; justify-content: center; font-size: 13px; color: var(--gl-muted); flex-wrap: wrap; }
+.link { border: 0; background: transparent; padding: 0 4px; min-height: var(--gl-hit-min); color: var(--gl-accent); text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+.playwell { padding: 14px 14px 0; }
+.playpic { border-radius: var(--gl-radius); }
+.playpic .layer { position: absolute; inset: 0; transform-origin: 0 0; }
+.playpic .next { opacity: 0; }
+.transport { display: flex; align-items: center; gap: 10px; padding: 8px 0 2px; }
+.round { width: var(--gl-hit-min); height: var(--gl-hit-min); border-radius: 50%; border: 0; background: var(--gl-ink); color: var(--gl-surface); display: grid; place-items: center; flex: none; }
+.round svg { fill: currentColor; stroke: none; }
+.track { flex: 1; height: 4px; border-radius: 2px; background: var(--gl-line); position: relative; overflow: hidden; }
+.track span { position: absolute; inset: 0 auto 0 0; background: var(--gl-accent); }
+.track em { position: absolute; inset: 0 0 0 auto; background: repeating-linear-gradient(135deg, var(--gl-accent) 0 3px, transparent 3px 6px); opacity: .5; }
+.time { font-size: 12.5px; color: var(--gl-muted); }
+.playline { margin: 0; padding: 0 0 4px; font-size: 13px; color: var(--gl-muted); }
+.playline b { color: var(--gl-ink); }
+.viewseg { padding: 10px 14px 12px; }
+.bigseg { display: grid; grid-template-columns: 1fr 1fr; background: var(--gl-hover); border-radius: 12px; padding: 4px; gap: 4px; }
+.bigseg button { border: 0; background: transparent; min-height: var(--gl-hit-min); border-radius: 9px; display: flex; gap: 8px; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; }
+.bigseg button[aria-pressed="true"] { background: var(--gl-surface); box-shadow: var(--gl-shadow); }
+
+/* panel */
+.sections { padding: 4px 16px 24px; display: grid; }
+.sec { padding: 16px 0; border-bottom: 1px solid var(--gl-line); display: grid; gap: 10px; }
+.sec:last-child { border-bottom: 0; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--gl-muted); margin: 0; }
+.sub { font-size: 13.5px; font-weight: 600; margin: 0; }
+.pill { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--gl-line); color: var(--gl-muted); white-space: nowrap; }
+.pill.own { background: var(--gl-accent-tint); border-color: transparent; color: var(--gl-ink); }
+.hint { margin: 0; color: var(--gl-muted); font-size: 13px; line-height: 1.45; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--gl-hit-min); padding: 0 14px; border-radius: var(--gl-radius); border: 1px solid var(--gl-line); background: var(--gl-surface); font-weight: 500; }
+.btn.ghost { border-color: transparent; background: transparent; padding: 0 8px; }
+.btn[aria-disabled="true"] { color: var(--gl-faint); cursor: default; }
+.btn.full { width: 100%; }
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; background: var(--gl-hover); border-radius: 10px; padding: 3px; gap: 3px; }
+.seg2 button { border: 0; background: transparent; min-height: 40px; border-radius: 8px; font-weight: 500; }
+.seg2 button[aria-pressed="true"] { background: var(--gl-surface); box-shadow: var(--gl-shadow); font-weight: 600; }
+.seg2.small button { min-height: 32px; font-size: 13px; }
+.cap { position: relative; }
+.cap input { width: 100%; min-height: var(--gl-hit-min); border-radius: var(--gl-radius); border: 1px solid var(--gl-line); background: var(--gl-raised); padding: 0 48px 0 14px; font-size: 15px; }
+.cap button { position: absolute; right: 0; top: 0; }
+.ctr { font-size: 12.5px; color: var(--gl-muted); }
+
+/* duration */
+.stepper { display: grid; grid-template-columns: var(--gl-hit-min) 1fr var(--gl-hit-min); align-items: center; background: var(--gl-hover); border-radius: 12px; padding: 4px; gap: 4px; }
+.stepper button { height: var(--gl-hit-min); border: 0; border-radius: 9px; background: var(--gl-surface); font-size: 20px; display: grid; place-items: center; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.stepper output { text-align: center; font-size: 18px; }
+.stepper.today button { height: 40px; }
+.slider { display: grid; gap: 2px; }
+.slidertop { display: flex; justify-content: space-between; align-items: baseline; }
+.slidertop output { font-size: 22px; }
+.range { position: relative; height: var(--gl-hit-min); }
+.range input { position: absolute; inset: 0; width: 100%; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; height: var(--gl-hit-min); }
+.range input::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--gl-accent) var(--fill), var(--gl-line) var(--fill)); }
+.range input::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--gl-accent) var(--fill), var(--gl-line) var(--fill)); }
+.range input::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -11px; border-radius: 50%; background: var(--gl-surface); border: 2px solid var(--gl-accent); box-shadow: var(--gl-shadow); }
+.range input::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: var(--gl-surface); border: 2px solid var(--gl-accent); }
+.automark { position: absolute; top: 4px; width: 2px; height: 10px; background: var(--gl-muted); transform: translateX(-1px); pointer-events: none; }
+.ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--gl-faint); padding: 0 6px; }
+.presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.presets button { min-height: var(--gl-hit-min); border-radius: 10px; border: 1px solid var(--gl-line); background: var(--gl-surface); font-weight: 600; }
+.presets button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); border-color: var(--gl-ink); }
+
+/* transition tiles */
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 8px; }
+.tilebtn { border: 0; background: transparent; padding: 0; display: grid; gap: 5px; justify-items: center; font-size: 13px; min-height: var(--gl-hit-min); }
+.tile { position: relative; width: 100%; aspect-ratio: 16 / 10; border-radius: var(--gl-radius-tile); overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; }
+.tilebtn[aria-checked="true"] .tile { outline-color: var(--gl-accent); }
+.tilebtn.auto[aria-checked="true"] .tile { outline-style: dashed; }
+.tile .tag { position: absolute; left: 4px; top: 4px; z-index: 2; font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; background: rgb(0 0 0 / .55); color: #fff; padding: 1px 5px; border-radius: 5px; }
+.tile .b { position: absolute; inset: 0; }
+.t-crossfade .b { animation: fade 2.4s infinite; }
+.t-push .a { animation: pushA 2.4s infinite; } .t-push .b { animation: pushB 2.4s infinite; }
+.t-wipe .b { animation: wipe 2.4s infinite; }
+.t-circle .b { animation: circle 2.4s infinite; }
+.t-zoom .b { animation: zoom 2.4s infinite; }
+.t-dissolve .b { animation: fade 2.4s steps(6) infinite; }
+.t-cut .b { animation: cut 2.4s infinite; }
+.tile .a { position: absolute; inset: 0; }
+@keyframes fade { 0%, 30% { opacity: 0 } 60%, 100% { opacity: 1 } }
+@keyframes pushA { 0%, 30% { transform: none } 60%, 100% { transform: translateX(-100%) } }
+@keyframes pushB { 0%, 30% { transform: translateX(100%) } 60%, 100% { transform: none } }
+@keyframes wipe { 0%, 30% { clip-path: inset(0 100% 0 0) } 60%, 100% { clip-path: inset(0 0 0 0) } }
+@keyframes circle { 0%, 30% { clip-path: circle(0 at 50% 50%) } 60%, 100% { clip-path: circle(75% at 50% 50%) } }
+@keyframes zoom { 0%, 30% { opacity: 0; transform: scale(1.4) } 60%, 100% { opacity: 1; transform: none } }
+@keyframes cut { 0%, 45% { opacity: 0 } 46%, 100% { opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .tile * { animation: none !important; } }
+.ends { margin: 0; padding: 12px; border-radius: var(--gl-radius); background: var(--gl-hover); font-size: 13px; color: var(--gl-muted); }
+.status { margin: 0; padding: 10px 12px; border-radius: var(--gl-radius); background: var(--gl-hover); font-size: 13px; }
+
+/* switch */
+.switch { display: inline-flex; align-items: center; gap: 10px; border: 0; background: transparent; padding: 0; min-height: var(--gl-hit-min); font-size: 14px; font-weight: 500; }
+.switch i { position: relative; width: 40px; height: 24px; border-radius: 12px; background: var(--gl-line); transition: background .15s; flex: none; }
+.switch i::after { content: ""; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--gl-surface); box-shadow: 0 1px 2px rgb(0 0 0 / .2); transition: transform .15s; }
+.switch[aria-checked="true"] i { background: var(--gl-accent); }
+.switch[aria-checked="true"] i::after { transform: translateX(16px); }
+
+/* toast */
+.toast { position: absolute; left: 12px; right: 12px; bottom: 16px; z-index: 9; display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: 12px; background: var(--gl-ink); color: var(--gl-surface); box-shadow: var(--gl-pop); font-size: 14px; }
+.toast span { flex: 1; }
+.toast button { border: 0; background: transparent; color: var(--gl-accent); font-weight: 600; min-height: var(--gl-hit-min); padding: 0 12px; border-radius: 9px; }
+.device.tabs .toast { bottom: 78px; }
+@media (max-width: 420px) { .stage { padding: 12px 0 30px; } .device { border-radius: 0; border-left: 0; border-right: 0; height: 780px; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="skyA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2786b"/><stop offset=".55" stop-color="#f7a77f"/><stop offset="1" stop-color="#f5d67a"/></linearGradient>
+    <linearGradient id="skyB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5bb8e8"/><stop offset="1" stop-color="#9fdcc0"/></linearGradient>
+    <symbol id="photoA" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"><rect width="300" height="200" fill="url(#skyA)"/><circle cx="150" cy="78" r="30" fill="#fff4e8" opacity=".9"/><path d="M0 200 L120 92 L190 150 L230 120 L300 170 L300 200Z" fill="#8a5a4a" opacity=".75"/><path d="M0 200 L0 178 Q150 160 300 182 L300 200Z" fill="#4b3a52" opacity=".8"/></symbol>
+    <symbol id="photoB" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"><rect width="300" height="200" fill="url(#skyB)"/><circle cx="230" cy="44" r="18" fill="#fff" opacity=".85"/><path d="M0 200 L0 140 Q75 120 150 138 T300 132 L300 200Z" fill="#2e7f8f" opacity=".8"/><path d="M40 140 L70 70 L100 140Z" fill="#2f5d4f"/><path d="M190 136 L215 82 L240 136Z" fill="#2f5d4f" opacity=".85"/></symbol>
+    <symbol id="ic-frame" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="10" rx="1.5"/><rect x="8" y="9" width="13" height="10" rx="1.5"/></symbol>
+    <symbol id="ic-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="ic-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="ic-swap" viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></symbol>
+    <symbol id="ic-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5M4 4v4.5h4.5"/></symbol>
+    <symbol id="ic-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="ic-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="ic-next" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="ic-eye" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
+  </defs>
+</svg>
+
+<div class="chrome">
+  <b>P8 · Picture editor</b>
+  <div class="grp"><span>Layout</span><div class="seg" id="sw-layout">
+    <button data-v="today">Today</button><button data-v="top" aria-pressed="true">A · Frame | Play on top</button><button data-v="tabs">B · Tab bar at the bottom</button>
+  </div></div>
+  <div class="grp"><span>Picture length</span><div class="seg" id="sw-dur">
+    <button data-v="slider" aria-pressed="true">1 · Slider</button><button data-v="presets">2 · Presets + fine</button>
+  </div></div>
+  <div class="grp"><span>Picture</span><div class="seg" id="sw-last">
+    <button data-v="mid" aria-pressed="true">4 of 30</button><button data-v="last">Last</button>
+  </div></div>
+  <div class="grp"><span>Theme</span><div class="seg" id="sw-theme">
+    <button data-v="auto" aria-pressed="true">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button>
+  </div></div>
+  <div class="notes">
+    <p class="note"><b>Both proposals:</b> Picture length and Transition share one <b>Timing</b> section with a single "Back to automatic"; "Look again" moves out of the dark picture area into Motion; every control is at least 44 px under touch; clearing the caption shows "Caption cleared · Undo".</p>
+    <p class="note"><b>A</b> keeps Frame | Play under the picture. <b>B</b> moves it to a tab bar at the bottom, so the picture area never jumps. <b>1</b> reaches any length in one drag (tap the mark to return to automatic); <b>2</b> offers 3 · 5 · 7 · 10 · 15 s with − / +, and holding − or + speeds up.</p>
+    <p class="note"><b>Number on the tiles:</b> the "5" in today's tiles is painted into the test pictures, not a badge — real photos show none, so there is nothing to remove.</p>
+  </div>
+</div>
+
+<div class="stage"><div class="device" id="device">
+  <div class="bar">
+    <button class="iconbtn" aria-label="Back"><svg class="i"><use href="#ic-back"/></svg></button>
+    <div class="crumb"><small>Summer by the lake ›</small><b id="crumbN">Picture 4</b></div>
+    <button class="iconbtn" aria-label="Previous picture"><svg class="i"><use href="#ic-back"/></svg></button>
+    <span class="count mono" id="countN">4 / 30</span>
+    <button class="iconbtn" aria-label="Next picture"><svg class="i"><use href="#ic-next"/></svg></button>
+  </div>
+  <div class="page" id="page"></div>
+  <nav class="tabbar" id="tabbar" role="tablist" aria-label="View" hidden>
+    <button role="tab" data-view="frame"><svg class="i"><use href="#ic-frame"/></svg>Frame</button>
+    <button role="tab" data-view="play"><svg class="i"><use href="#ic-play"/></svg>Play</button>
+  </nav>
+  <div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button id="toastUndo">Undo</button></div>
+</div></div>
+
+<script>
+const TRANSITIONS = [["crossfade","Crossfade"],["push","Push"],["wipe","Wipe"],["circle","Circle"],["zoom","Zoom"],["dissolve","Dissolve"],["cut","Hard cut"]];
+const AUTO_DURATION = 6.9, AUTO_TRANSITION = "crossfade", MIN = 2, MAX = 15, STEP = 0.5;
+const PRESETS = [3, 5, 7, 10, 15];
+const ui = { layout: "top", dur: "slider", last: false };
+const st = { view: "frame", frame: "start", motionOwn: false, swapped: false,
+  frames: { start: { x: 12, y: 14, w: 76, h: 76 }, end: { x: 4, y: 4, w: 92, h: 92 } },
+  duration: null, transition: null, caption: "Evening on the jetty", alone: false };
+let toastTimer, undoFn, playT0 = performance.now(), playing = true, pausedAt = 0;
+
+const $ = (s, r = document) => r.querySelector(s);
+const page = $("#page"), device = $("#device");
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = s => (Math.round(s * 10) / 10).toLocaleString("en", { minimumFractionDigits: 1 });
+const dur = () => st.duration ?? AUTO_DURATION;
+const trans = () => st.transition ?? AUTO_TRANSITION;
+const timingOwn = () => st.duration !== null || st.transition !== null;
+const photo = (id, cls = "") => `<svg class="photo ${cls}"><use href="#${id}"/></svg>`;
+const icon = (id, s = "") => `<svg class="i ${s}"><use href="#${id}"/></svg>`;
+
+function frameRect(name) {
+  const f = st.frames[name], active = st.frame === name;
+  return `<div class="frame ${active ? "active" : "inactive"}" data-f="${name}" style="left:${f.x}%;top:${f.y}%;width:${f.w}%;height:${f.h}%">
+    <b>${name === "start" ? "Start" : "End"}</b><i></i><i></i><i></i><i></i></div>`;
+}
+function topBlock() {
+  const seg = ui.layout === "tabs" ? "" : `<div class="viewseg"><div class="bigseg" role="group" aria-label="View">
+      <button data-view="frame" aria-pressed="${st.view === "frame"}">${icon("ic-frame")}Frame</button>
+      <button data-view="play" aria-pressed="${st.view === "play"}">${icon("ic-play")}Play</button></div></div>`;
+  if (st.view === "play") {
+    return `<div class="top"><div class="playwell">
+      <div class="pic playpic"><div class="layer" id="layerA">${photo("photoA")}</div><div class="layer next" id="layerB">${photo("photoB")}</div></div>
+      <div class="transport"><button class="round" id="pp" aria-label="${playing ? "Pause preview" : "Play preview"}"><svg class="i s"><use href="#${playing ? "ic-pause" : "ic-play"}"/></svg></button>
+        <div class="track"><span id="prog"></span><em style="width:${ui.last ? 0 : Math.min(30, 100 * 0.6 / dur())}%"></em></div>
+        <span class="time mono" id="ptime"></span></div>
+      <p class="playline"><b>Picture 4</b> · ${fmt(dur())} s${ui.last ? ", then the slideshow ends" : `, with ${TRANSITIONS.find(t => t[0] === trans())[1]} into picture 5`}</p>
+      </div>${seg}</div>`;
+  }
+  const look = ui.layout === "today" ? `<p class="lookline">No subject found – the motion stays centred. <button class="link" data-act="look">Look again</button></p>` : "";
+  return `<div class="top"><div class="well"><div class="pic" id="pic">${photo("photoA")}${frameRect(st.frame === "start" ? "end" : "start")}${frameRect(st.frame)}</div></div>${look}${seg}</div>`;
+}
+function motionSec() {
+  const today = ui.layout === "today";
+  return `<section class="sec"${today ? ' style="border-top:0"' : ""}>
+    ${today ? "" : `<div class="head"><h3 class="eyebrow">Motion</h3><span class="pill ${st.motionOwn ? "own" : ""}">${st.motionOwn ? "Own motion" : "Automatic"}</span></div>
+    <div class="seg2" role="group" aria-label="Frames"><button data-frame="start" aria-pressed="${st.frame === "start"}">Start</button><button data-frame="end" aria-pressed="${st.frame === "end"}">End</button></div>`}
+    <p class="hint">Drag anywhere to move the frame; corners or two fingers zoom.</p>
+    <div class="row"><button class="btn" data-act="swap">${icon("ic-swap")}Swap start and end</button>
+      <button class="btn ghost" data-act="motionAuto" aria-disabled="${!st.motionOwn}">${icon("ic-reset", "s")}Back to automatic</button></div>
+    ${today ? "" : `<div class="row" style="gap:0 4px"><span class="hint">No subject found – the motion stays centred.</span><button class="link" data-act="look">Look again</button></div>`}
+  </section>`;
+}
+function captionSec() {
+  return `<section class="sec"><div class="head"><label class="eyebrow" for="cap">Caption</label><span class="ctr mono" id="ctr">${st.caption.length} / 80</span></div>
+    <div class="cap"><input id="cap" maxlength="80" placeholder="e.g. Evening on the jetty" value="${esc(st.caption)}">
+      <button class="iconbtn" data-act="clearCap" aria-label="Remove caption" title="Remove caption"${st.caption ? "" : " hidden"}>${icon("ic-x", "s")}</button></div>
+    <p class="hint">Shown bottom left in the player, fading in and out with the picture.</p></section>`;
+}
+function durationControl() {
+  const d = dur();
+  if (ui.layout === "today") return `<div class="stepper today"><button data-step="-1" aria-label="Half a second shorter">−</button><output class="mono">${fmt(d)} s</output><button data-step="1" aria-label="Half a second longer">+</button></div>`;
+  if (ui.dur === "slider") {
+    const pct = v => (v - MIN) / (MAX - MIN) * 100;
+    return `<div class="slider"><div class="slidertop"><h4 class="sub">Picture length</h4><output class="mono" id="durOut">${fmt(d)} s</output></div>
+      <div class="range"><input type="range" id="durRange" min="${MIN}" max="${MAX}" step="0.1" value="${d}" aria-label="Picture length in seconds" style="--fill:${pct(d)}%">
+        <span class="automark" style="left:calc(14px + (100% - 28px) * ${pct(AUTO_DURATION) / 100})" title="Automatic"></span></div>
+      <div class="ticks"><span>2 s</span><span>5</span><span>10</span><span>15 s</span></div></div>`;
+  }
+  return `<div class="slidertop"><h4 class="sub">Picture length</h4></div>
+    <div class="presets" role="group" aria-label="Picture length">${PRESETS.map(p => `<button data-preset="${p}" aria-pressed="${st.duration === p}">${p} s</button>`).join("")}</div>
+    <div class="stepper"><button data-step="-1" aria-label="Half a second shorter">−</button><output class="mono">${fmt(d)} s</output><button data-step="1" aria-label="Half a second longer">+</button></div>`;
+}
+function tiles() {
+  return `<div class="tiles" role="radiogroup" aria-label="Transition">${TRANSITIONS.map(([id, name]) => `
+    <button class="tilebtn ${st.transition === null ? "auto" : ""}" role="radio" data-trans="${id}" aria-checked="${trans() === id}">
+      <span class="tile t-${id}"><span class="a">${photo("photoA")}</span><span class="b">${photo("photoB")}</span>${st.transition === null && id === AUTO_TRANSITION ? '<span class="tag">Auto</span>' : ""}</span>${name}</button>`).join("")}</div>`;
+}
+function durationHint() { return st.duration === null ? "Shared evenly across the music." : `Automatic would be ${fmt(AUTO_DURATION)} s.`; }
+function timingSecs() {
+  const transBody = ui.last ? `<p class="ends"><b>The slideshow ends here</b>, without a transition.</p>`
+    : `${tiles()}<p class="hint">${st.transition === null ? "Automatically: Crossfade, " : ""}${trans() === "cut" ? "picture 5 follows at once." : "takes 0.6 s at the end of this picture."}</p>`;
+  if (ui.layout === "today") {
+    return `<section class="sec"><div class="head"><h3 class="eyebrow">Picture length</h3><span class="pill ${st.duration !== null ? "own" : ""}">${st.duration !== null ? "Own duration" : "Automatic"}</span></div>
+      ${durationControl()}<p class="hint">The music is shared evenly across the 30 pictures without an own duration. 2 to 15 s.</p>
+      <div><button class="btn ghost" data-act="durAuto" aria-disabled="${st.duration === null}">${icon("ic-reset", "s")}Back to automatic</button></div></section>
+      <section class="sec"><div class="head"><h3 class="eyebrow">${ui.last ? "Transition" : "Transition to picture 5"}</h3><span class="pill ${st.transition !== null ? "own" : ""}">${ui.last ? "Last picture" : st.transition !== null ? "Own transition" : "Automatic"}</span></div>
+      ${transBody}${ui.last ? "" : `<div><button class="btn ghost" data-act="transAuto" aria-disabled="${st.transition === null}">${icon("ic-reset", "s")}Back to automatic</button></div>`}</section>`;
+  }
+  return `<section class="sec"><div class="head"><h3 class="eyebrow">Timing</h3><span class="pill ${timingOwn() ? "own" : ""}">${timingOwn() ? "Own timing" : "Automatic"}</span></div>
+    ${durationControl()}<p class="hint">${durationHint()}</p>
+    <div class="head" style="margin-top:6px"><h4 class="sub">${ui.last ? "Transition" : "Transition to picture 5"}</h4></div>${transBody}
+    <button class="btn full" data-act="timingAuto" aria-disabled="${!timingOwn()}">${icon("ic-reset", "s")}Back to automatic</button></section>`;
+}
+function layoutSec() {
+  return `<section class="sec"><div class="head"><h3 class="eyebrow">Layout</h3>
+    <button class="switch" role="switch" data-act="alone" aria-checked="${st.alone}"><i></i>Always alone</button></div>
+    <p class="status">${st.alone ? "Shown alone." : "Shares a slide with picture 5."}</p></section>`;
+}
+
+function render() {
+  const keep = page.scrollTop, focusCap = document.activeElement?.id === "cap";
+  device.classList.toggle("tabs", ui.layout === "tabs");
+  $("#tabbar").hidden = ui.layout !== "tabs";
+  for (const b of $("#tabbar").children) b.setAttribute("aria-selected", b.dataset.view === st.view);
+  $("#crumbN").textContent = ui.last ? "Picture 30" : "Picture 4";
+  $("#countN").textContent = ui.last ? "30 / 30" : "4 / 30";
+  page.innerHTML = topBlock() + `<div class="sections">${ui.layout === "today" && st.view === "play" ? "" : ""}${motionSec()}${captionSec()}${timingSecs()}${layoutSec()}</div>`;
+  page.scrollTop = keep;
+  if (focusCap) { const c = $("#cap"); c.focus(); c.setSelectionRange(c.value.length, c.value.length); }
+}
+
+function toast(text, undo) {
+  $("#toastText").textContent = text; undoFn = undo; $("#toast").hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("#toast").hidden = true; }, 6000);
+}
+$("#toastUndo").onclick = () => { undoFn?.(); $("#toast").hidden = true; render(); };
+
+function setView(v) { if (st.view === v) return; st.view = v; if (v === "play") { playT0 = performance.now(); playing = true; } render(); }
+function toPlay() { if (ui.layout !== "today" || true) setView("play"); }
+function clamp(v) { return Math.min(MAX, Math.max(MIN, Math.round(v / STEP) * STEP)); }
+
+page.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.view) return setView(t.dataset.view);
+  if (t.dataset.frame) { st.frame = t.dataset.frame; st.view = "frame"; return render(); }
+  if (t.dataset.preset) { st.duration = +t.dataset.preset; return toPlay(), render(); }
+  if (t.dataset.trans) { st.transition = t.dataset.trans === AUTO_TRANSITION && st.transition === null ? null : t.dataset.trans; return toPlay(), render(); }
+  if (t.id === "pp") { if (playing) { pausedAt = performance.now() - playT0; playing = false; } else { playT0 = performance.now() - pausedAt; playing = true; } return render(); }
+  if (t.getAttribute("aria-disabled") === "true") return;
+  const act = t.dataset.act;
+  if (act === "swap") { [st.frames.start, st.frames.end] = [st.frames.end, st.frames.start]; st.motionOwn = true; toPlay(); render(); }
+  else if (act === "motionAuto") { const prev = structuredClone(st.frames); st.motionOwn = false; st.frames = { start: { x: 12, y: 14, w: 76, h: 76 }, end: { x: 4, y: 4, w: 92, h: 92 } }; toast("Motion back to automatic", () => { st.frames = prev; st.motionOwn = true; }); toPlay(); render(); }
+  else if (act === "timingAuto") { const d = st.duration, tr = st.transition; st.duration = null; st.transition = null; toast("Timing back to automatic", () => { st.duration = d; st.transition = tr; }); toPlay(); render(); }
+  else if (act === "durAuto") { const d = st.duration; st.duration = null; toast("Picture length back to automatic", () => { st.duration = d; }); render(); }
+  else if (act === "transAuto") { const tr = st.transition; st.transition = null; toast("Transition back to automatic", () => { st.transition = tr; }); render(); }
+  else if (act === "clearCap") { const prev = st.caption; st.caption = ""; render(); $("#cap").focus(); toast("Caption cleared", () => { st.caption = prev; }); }
+  else if (act === "alone") { st.alone = !st.alone; render(); }
+  else if (act === "look") { toast("Looked again – still no subject found.", null); $("#toastUndo").hidden = true; setTimeout(() => $("#toastUndo").hidden = false, 6000); }
+});
+$("#tabbar").addEventListener("click", e => { const t = e.target.closest("button"); if (t) setView(t.dataset.view); });
+
+page.addEventListener("input", e => {
+  if (e.target.id === "cap") { st.caption = e.target.value; $("#ctr").textContent = `${st.caption.length} / 80`; $('[data-act="clearCap"]').hidden = !st.caption; }
+  if (e.target.id === "durRange") {
+    let v = +e.target.value;
+    if (Math.abs(v - AUTO_DURATION) < 0.3) v = AUTO_DURATION; else v = clamp(v);
+    st.duration = v === AUTO_DURATION ? null : v;
+    e.target.style.setProperty("--fill", `${(v - MIN) / (MAX - MIN) * 100}%`);
+    $("#durOut").textContent = `${fmt(v)} s`;
+    $(".sec .pill:not([data-x])", page);
+  }
+});
+page.addEventListener("change", e => { if (e.target.id === "durRange") { toPlay(); render(); } });
+
+/* press-and-hold stepping, accelerating */
+let holdTimer;
+page.addEventListener("pointerdown", e => {
+  const b = e.target.closest("[data-step]"); if (!b) return;
+  e.preventDefault();
+  const dir = +b.dataset.step; let n = 0;
+  const step = () => { st.duration = clamp(dur() + dir * STEP); if (st.duration === AUTO_DURATION) st.duration = null; $(".stepper output", page).textContent = `${fmt(dur())} s`; };
+  step();
+  const loop = () => { n++; if (ui.layout !== "today") step(); holdTimer = setTimeout(loop, n < 4 ? 260 : n < 10 ? 110 : 50); };
+  holdTimer = setTimeout(loop, 420);
+  const stop = () => { clearTimeout(holdTimer); removeEventListener("pointerup", stop); removeEventListener("pointercancel", stop); render(); };
+  addEventListener("pointerup", stop); addEventListener("pointercancel", stop);
+});
+
+/* drag the active frame */
+page.addEventListener("pointerdown", e => {
+  const pic = e.target.closest("#pic"); if (!pic || st.view !== "frame") return;
+  const r = pic.getBoundingClientRect(), f = st.frames[st.frame], x0 = e.clientX, y0 = e.clientY, fx = f.x, fy = f.y;
+  pic.setPointerCapture(e.pointerId);
+  const el = pic.querySelector(".frame.active");
+  const move = ev => {
+    f.x = Math.min(100 - f.w, Math.max(0, fx + (ev.clientX - x0) / r.width * 100));
+    f.y = Math.min(100 - f.h, Math.max(0, fy + (ev.clientY - y0) / r.height * 100));
+    el.style.left = f.x + "%"; el.style.top = f.y + "%"; st.motionOwn = true;
+  };
+  const up = () => { pic.removeEventListener("pointermove", move); pic.removeEventListener("pointerup", up); render(); };
+  pic.addEventListener("pointermove", move); pic.addEventListener("pointerup", up);
+});
+
+/* motion preview */
+function tick(now) {
+  const a = $("#layerA");
+  if (a) {
+    const total = dur() + (ui.last ? 0 : 0.6) , t = playing ? ((now - playT0) / 1000) % total : (pausedAt / 1000) % total;
+    const p = Math.min(1, t / dur()), s = st.frames.start, e = st.frames.end;
+    const lerp = (k) => s[k] + (e[k] - s[k]) * p;
+    const w = lerp("w"), scale = 100 / w;
+    a.style.transform = `scale(${scale}) translate(${-lerp("x")}%, ${-lerp("y")}%)`;
+    const b = $("#layerB"); b.style.opacity = ui.last ? 0 : Math.max(0, (t - (dur() - 0.6)) / 0.6);
+    $("#prog").style.width = `${t / total * 100}%`;
+    $("#ptime").textContent = `0:${fmt(t).padStart(4, "0")} / 0:${fmt(total).padStart(4, "0")}`;
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+function bindSeg(id, fn) {
+  const g = $("#" + id);
+  g.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+    for (const x of g.children) x.setAttribute("aria-pressed", x === b); fn(b.dataset.v); });
+}
+bindSeg("sw-layout", v => { ui.layout = v; render(); });
+bindSeg("sw-dur", v => { ui.dur = v; render(); });
+bindSeg("sw-last", v => { ui.last = v === "last"; render(); });
+bindSeg("sw-theme", v => { if (v === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = v; });
+render();
+</script>
+</body>
+</html>
