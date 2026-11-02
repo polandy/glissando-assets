@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sort by date again</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --page: #f3f2f6; --page-ink: #221d33; --page-muted: #6b6580; --page-line: #dedbe6; --page-card: #ffffff;
+  --chip: #ebe9f1; --chip-on: #221d33; --chip-on-ink: #ffffff;
+  --ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --peach: #ff9f7f; --lemon: #f5c94a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0c14; --page-ink: #ece9f3; --page-muted: #8e88a0; --page-line: #2a2636; --page-card: #17141f;
+    --chip: #211d2c; --chip-on: #ece9f3; --chip-on-ink: #17141f;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font-family: var(--ui); font-size: 14px; }
+.page { max-width: 1240px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 18px; }
+.intro { display: grid; gap: 12px; }
+.intro h1 { font-family: var(--display); font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+.intro p { margin: 4px 0 0; color: var(--page-muted); max-width: 80ch; line-height: 1.5; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--page-ink); font: 500 13px var(--ui); padding: 6px 11px; border-radius: 7px; cursor: pointer; min-height: 32px; }
+.seg button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.seg.plain button { background: var(--page-card); border: 1px solid var(--page-line); }
+button:focus-visible { outline: 2px solid var(--peach); outline-offset: 2px; }
+.stage { display: grid; justify-items: center; }
+.concept { display: grid; gap: 14px; max-width: 980px; }
+.concept h2 { font-family: var(--display); font-size: 20px; margin: 10px 0 0; }
+.concept p, .concept li { line-height: 1.55; max-width: 76ch; margin: 0; }
+.concept ul { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+.card { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 8px; line-height: 1.5; }
+.card.q { border-left: 3px solid var(--lemon); }
+
+.app {
+  --radius: 10px; --on-photo: #ffffff; --photo-badge: rgba(0, 0, 0, 0.5);
+  width: 100%; max-width: 1200px; height: 720px; overflow: hidden; position: relative;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--ground); color: var(--ink);
+  display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(20, 14, 40, 0.14);
+}
+.app.phone { max-width: 372px; height: 780px; border-radius: 34px; border: 6px solid #1a1722; }
+.app.light {
+  --ground: #f6f5f8; --surface: #ffffff; --ink: #221d33; --muted: #6b6580; --line: #e5e2eb; --hover: #efedf3;
+  --accent: #ff9f7f; --accent-ink: #2a1a14; --accent-soft: #ffe9e0; --inverse-bg: #221d33; --inverse-text: #ffffff;
+}
+.app.dark {
+  --ground: #121019; --surface: #1a1723; --ink: #edeaf3; --muted: #9a94ab; --line: #2c2838; --hover: #26222f;
+  --accent: #ffb59a; --accent-ink: #2a1a14; --accent-soft: #3a2a27; --inverse-bg: #edeaf3; --inverse-text: #1a1723;
+  color-scheme: dark;
+}
+.app button { font-family: inherit; }
+svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.bar { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); flex: none; }
+.crumbs { color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumbs b { color: var(--ink); font-weight: 600; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 11px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap; position: relative; }
+.btn:hover { background: var(--hover); }
+.btn:disabled { opacity: .45; cursor: default; }
+.phone .btn::after { content: ""; position: absolute; inset: -6px 0; }
+.linkbtn { border: 0; background: transparent; color: var(--ink); font: 600 13px var(--ui); text-decoration: underline; text-underline-offset: 2px; padding: 0; cursor: pointer; position: relative; }
+.phone .linkbtn::after { content: ""; position: absolute; inset: -13px -6px; }
+.scroll { flex: 1; overflow: auto; min-height: 0; }
+.eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.show { padding: 24px; }
+.phone .show { padding: 16px; }
+
+/* Strip head as on main: order line under the eyebrow, buttons to the right; narrow, buttons get their own row. */
+.head { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 3px; align-items: center; margin-bottom: 14px; }
+.head .eyebrow { grid-area: 1 / 1; }
+.head .line { grid-area: 2 / 1; margin: 0; color: var(--muted); font-size: 13px; min-height: 18px; }
+.head .tools { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: 8px; align-items: center; }
+.head .count { color: var(--muted); font-size: 13px; margin-right: 4px; }
+.phone .head { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
+.phone .head .eyebrow { grid-area: 1 / 1; display: flex; justify-content: space-between; }
+.phone .head .tools { grid-area: 2 / 1; flex-wrap: wrap; }
+.phone .head .tools .count { display: none; }
+.phone .head .line { grid-area: 3 / 1; }
+.phone-count { display: none; }
+.phone .phone-count { display: inline; font-family: var(--mono); letter-spacing: 0; text-transform: none; font-weight: 400; }
+
+.menuwrap { position: relative; }
+.menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; min-width: 230px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 6px; box-shadow: 0 12px 32px rgba(0,0,0,.18); display: grid; }
+.phone .menu { left: 0; right: auto; }
+.menu button { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--ink); font: 500 14px var(--ui); padding: 0 10px; min-height: 44px; border-radius: 8px; text-align: left; cursor: pointer; }
+.menu button:hover:not(:disabled) { background: var(--hover); }
+.menu button:disabled { color: var(--muted); cursor: default; }
+.menu small { display: block; color: var(--muted); font-size: 12px; }
+
+.btn.spin svg { animation: roll .55s ease-in-out; }
+@keyframes roll { to { transform: rotate(360deg); } }
+.tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.phone .tiles { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tile { position: relative; border-radius: 8px; overflow: hidden; background: var(--hover); cursor: grab; }
+.tile img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; pointer-events: none; }
+.tile.drop { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tile.moved::after { content: ""; position: absolute; inset: 0; border-radius: 8px; box-shadow: inset 0 0 0 3px var(--accent); animation: fade 2.4s ease-out forwards; pointer-events: none; }
+@keyframes fade { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
+.toast { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; background: var(--inverse-bg); color: var(--inverse-text); border-radius: 12px; padding: 6px 8px 6px 16px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,.25); white-space: nowrap; }
+.phone .toast { white-space: normal; width: calc(100% - 24px); justify-content: space-between; }
+.toast button { border: 0; background: transparent; color: inherit; font: 700 13px var(--ui); text-decoration: underline; cursor: pointer; min-height: 44px; padding: 0 10px; }
+@media (prefers-reduced-motion: reduce) { .btn.spin svg, .tile.moved::after { animation: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Sort by date again</h1>
+      <p>Mockup. After a shuffle or a move, one control puts every picture back in capture-date order. Try <b>Shuffle</b> (or drag a tile onto another, or use "Move a picture" on a phone), then bring the date order back. The date painted on each picture is a mockup aid; the real tiles carry no label.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" id="variant"><button data-v="button" aria-pressed="true">A · Button beside Shuffle</button><button data-v="line" aria-pressed="false">B · Link in the order line</button><button data-v="menu" aria-pressed="false">C · Order menu</button></div>
+      <div class="seg" id="screen"><button data-s="editor" aria-pressed="true">Slideshow</button><button data-s="import" aria-pressed="false">New slideshow · Pictures step</button></div>
+      <div class="seg" id="width"><button data-w="desktop" aria-pressed="true">Desktop</button><button data-w="phone" aria-pressed="false">Phone</button></div>
+      <div class="seg" id="theme"><button data-t="light" aria-pressed="true">Light</button><button data-t="dark" aria-pressed="false">Dark</button></div>
+      <div class="seg plain"><button id="moveOne" type="button">Move a picture</button></div>
+      <div class="seg"><button id="tabApp" aria-pressed="true">Mockup</button><button id="tabConcept" aria-pressed="false">Concept</button></div>
+    </div>
+  </div>
+
+  <div class="stage" id="stageApp">
+    <div class="app light" id="app">
+      <div class="bar"><span class="crumbs" id="crumbs"></span></div>
+      <div class="scroll"><div class="show">
+        <div class="head">
+          <h2 class="eyebrow"><span>Pictures</span> <span class="phone-count" id="phoneCount"></span></h2>
+          <p class="line" id="line"></p>
+          <div class="tools" id="tools"></div>
+        </div>
+        <div class="tiles" id="tiles"></div>
+      </div></div>
+      <div class="toast" id="toast" hidden role="status"><span id="toastText"></span><button type="button" id="toastUndo">Undo</button></div>
+    </div>
+  </div>
+
+  <div class="concept" id="stageConcept" hidden>
+    <h2>What it does</h2>
+    <p>Shuffle and every move (Earlier, Later, Move to, a drag) make the order the user's own; the order line then reads "Own order" and automatic chapters switch off. Nothing so far leads back. <b>Sort by date</b> puts every picture in capture-date order again: the order line returns to "Sorted by capture date" (in the pictures step of a new slideshow: "Capture order"), automatic chapters come back on, and pictures added later are sorted in by date again.</p>
+    <ul>
+      <li>It shows only while the order is the user's own; in date order there is nothing to restore.</li>
+      <li>Moves made by hand go too, since a shuffle and a move are one order. A toast "12 pictures sorted by capture date" with <b>Undo</b> brings the own order back, as Shuffle's Undo does.</li>
+      <li>The tiles glide to their places (not with reduced motion), like after a shuffle.</li>
+      <li>The same control in the slideshow editor and in the pictures step of a new slideshow.</li>
+    </ul>
+    <h2>Variants</h2>
+    <div class="card"><b>A · Button beside Shuffle.</b> "Sort by date" appears in the strip head next to Shuffle while the order is your own. Easy to find; on a phone the button row gets a fourth button and may wrap.</div>
+    <div class="card"><b>B · Link in the order line.</b> The order line reads "Own order · Sort by date"; it takes the place of the "Drag to reorder" hint. No extra button; quieter and sits where the order is described, but a link is easier to overlook.</div>
+    <div class="card"><b>C · Order menu.</b> Shuffle becomes "Order", a menu with "Shuffle" and "Sort by capture date" (disabled, with a check, while already sorted). Keeps the head as it is, but Shuffle is one tap further away.</div>
+    <div class="card q"><b>Words.</b> "Sort by date" mirrors the order line "Sorted by capture date". The glossary's "Back to automatic" was considered, but the order line never calls the date order "Automatic", so it would introduce a second name.</div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const ICON = {
+  shuffle: '<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
+  date: '<rect x="3" y="5" width="13" height="14" rx="2"/><path d="M3 9h13M7 3v4M12 3v4M20 8v12M17 17l3 3 3-3"/>',
+  select: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  order: '<path d="M4 7h11M4 12h8M4 17h5M18 5v14M15 16l3 3 3-3"/>',
+  chevron: '<path d="m6 9 6 6 6-6"/>',
+  check: '<path d="m5 12 5 5 9-10"/>',
+};
+const icon = name => `<svg class="i" viewBox="0 0 24 24">${ICON[name]}</svg>`;
+const MONTH = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+const hues = [200, 190, 18, 150, 35, 205, 28, 185, 45, 210, 260, 195];
+const thumb = (hue, label) => {
+  const c = document.createElement("canvas"); c.width = 240; c.height = 180;
+  const g = c.getContext("2d");
+  const sky = g.createLinearGradient(0, 0, 0, 120);
+  sky.addColorStop(0, `hsl(${hue} 55% 60%)`); sky.addColorStop(1, `hsl(${(hue + 30) % 360} 70% 84%)`);
+  g.fillStyle = sky; g.fillRect(0, 0, 240, 180);
+  g.fillStyle = `hsl(${(hue + 180) % 360} 22% 38%)`;
+  g.beginPath(); g.moveTo(0, 120);
+  for (let x = 0; x <= 240; x += 30) g.lineTo(x, 68 + ((hue * (x + 7)) % 40));
+  g.lineTo(240, 120); g.fill();
+  g.fillStyle = `hsl(${hue} 45% 48%)`; g.fillRect(0, 120, 240, 60);
+  g.fillStyle = "rgba(0,0,0,.5)"; g.fillRect(8, 146, 118, 26);
+  g.fillStyle = "#fff"; g.font = "500 15px ui-monospace, monospace"; g.fillText(label, 15, 164);
+  return c.toDataURL("image/jpeg", 0.85);
+};
+const pictures = hues.map((hue, i) => {
+  const day = 12 + Math.floor(i / 3), hour = 9 + (i % 3) * 3;
+  const label = `${day} ${MONTH[6]} ${String(hour).padStart(2, "0")}:${String((i * 17) % 60).padStart(2, "0")}`;
+  return { id: i, src: thumb(hue, label) };
+});
+const byDate = pictures.slice();
+
+let order = byDate.slice(), own = false, variant = "button", screen = "editor", phone = false, menuOpen = false;
+let undoState = null;
+const tilesEl = $("tiles");
+
+function lineText() {
+  if (own) {
+    const hint = screen === "editor" ? (phone ? "Hold and drag to reorder" : "Drag to reorder") : "";
+    if (variant === "line") return `Own order · <button class="linkbtn" id="lineSort" type="button">Sort by date</button>`;
+    return hint ? `Own order · ${hint}` : "Own order";
+  }
+  return screen === "editor" ? "Sorted by capture date" : "Capture order";
+}
+
+function renderHead() {
+  $("crumbs").innerHTML = screen === "editor"
+    ? `Library / <b>Summer in Ticino</b>`
+    : `New slideshow / <b>Pictures</b>`;
+  $("line").innerHTML = lineText();
+  if ($("lineSort")) $("lineSort").onclick = sortByDate;
+  $("phoneCount").textContent = order.length;
+  const count = `<span class="count mono">${order.length}</span>`;
+  const shuffleBtn = `<button class="btn" id="shuffle" type="button" aria-label="Shuffle">${icon("shuffle")}<span>Shuffle</span></button>`;
+  const sortBtn = own ? `<button class="btn" id="sortBtn" type="button" aria-label="Sort by capture date">${icon("date")}<span>Sort by date</span></button>` : "";
+  const menu = `<span class="menuwrap"><button class="btn" id="orderBtn" type="button" aria-haspopup="menu" aria-expanded="${menuOpen}">${icon("order")}<span>Order</span>${icon("chevron")}</button>${menuOpen ? `
+    <div class="menu" role="menu">
+      <button role="menuitem" id="mShuffle" type="button">${icon("shuffle")}<span>Shuffle</span></button>
+      <button role="menuitem" id="mSort" type="button" ${own ? "" : "disabled"}>${icon(own ? "date" : "check")}<span>Sort by capture date${own ? "" : "<small>The order now</small>"}</span></button>
+    </div>` : ""}</span>`;
+  const select = `<button class="btn" type="button" aria-label="Select">${icon("select")}<span>Select</span></button>`;
+  const add = `<button class="btn" type="button" aria-label="Add pictures">${icon("plus")}<span>${phone ? "Add" : "Add pictures"}</span></button>`;
+  const orderTools = variant === "menu" ? menu : variant === "button" ? shuffleBtn + sortBtn : shuffleBtn;
+  $("tools").innerHTML = count + orderTools + select + add;
+  if ($("shuffle")) $("shuffle").onclick = shuffle;
+  if ($("sortBtn")) $("sortBtn").onclick = sortByDate;
+  if ($("orderBtn")) $("orderBtn").onclick = () => { menuOpen = !menuOpen; renderHead(); };
+  if ($("mShuffle")) $("mShuffle").onclick = () => { menuOpen = false; shuffle(); };
+  if ($("mSort")) $("mSort").onclick = () => { menuOpen = false; sortByDate(); };
+}
+
+function render(moved = new Set()) {
+  const first = new Map([...tilesEl.children].map(el => [el.dataset.id, el.getBoundingClientRect()]));
+  tilesEl.replaceChildren(...order.map(p => {
+    const el = document.createElement("div");
+    el.className = "tile" + (moved.has(p.id) ? " moved" : ""); el.dataset.id = p.id; el.draggable = true;
+    el.innerHTML = `<img alt="" src="${p.src}">`;
+    el.ondragstart = e => e.dataTransfer.setData("text/plain", p.id);
+    el.ondragover = e => { e.preventDefault(); el.classList.add("drop"); };
+    el.ondragleave = () => el.classList.remove("drop");
+    el.ondrop = e => { e.preventDefault(); el.classList.remove("drop"); moveBefore(Number(e.dataTransfer.getData("text/plain")), p.id); };
+    return el;
+  }));
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    for (const el of tilesEl.children) {
+      const a = first.get(el.dataset.id); if (!a) continue;
+      const b = el.getBoundingClientRect();
+      el.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)` }, { transform: "none" }], { duration: 550, easing: "cubic-bezier(.3,.7,.2,1)" });
+    }
+  }
+  renderHead();
+}
+
+const movedOf = (from, to) => new Set(to.filter((p, i) => p !== from[i]).map(p => p.id));
+function toast(text, state) {
+  undoState = state; $("toastText").textContent = text; $("toast").hidden = false;
+}
+function hideToast() { $("toast").hidden = true; undoState = null; }
+
+function shuffle() {
+  const prev = { order, own };
+  let next;
+  do { next = order.slice().sort(() => Math.random() - 0.5); } while (next.every((p, i) => p === order[i]));
+  const moved = movedOf(order, next);
+  order = next; own = true;
+  render(moved);
+  const b = $("shuffle") || $("orderBtn"); if (b) { b.classList.remove("spin"); void b.offsetWidth; b.classList.add("spin"); }
+  toast(`${order.length} pictures shuffled`, prev);
+}
+function sortByDate() {
+  const prev = { order, own };
+  const next = byDate.slice();
+  const moved = movedOf(order, next);
+  order = next; own = false;
+  render(moved);
+  toast(`${order.length} pictures sorted by capture date`, prev);
+}
+function moveBefore(id, beforeId) {
+  if (id === beforeId) return;
+  const prev = order;
+  const p = order.find(x => x.id === id);
+  const rest = order.filter(x => x.id !== id);
+  rest.splice(rest.findIndex(x => x.id === beforeId), 0, p);
+  order = rest; own = true; hideToast();
+  render(movedOf(prev, order));
+}
+$("moveOne").onclick = () => {
+  const i = 2 + Math.floor(Math.random() * (order.length - 2));
+  moveBefore(order[i].id, order[0].id);
+};
+$("toastUndo").onclick = () => {
+  if (!undoState) return;
+  const prev = order; ({ order, own } = undoState); hideToast(); render(movedOf(prev, order));
+};
+
+function pick(groupId, attr, apply) {
+  $(groupId).onclick = e => { const b = e.target.closest("button"); if (!b) return;
+    for (const x of $(groupId).children) x.setAttribute("aria-pressed", x === b); apply(b.dataset[attr]); };
+}
+pick("variant", "v", v => { variant = v; menuOpen = false; renderHead(); });
+pick("screen", "s", s => { screen = s; renderHead(); });
+pick("width", "w", w => { phone = w === "phone"; $("app").classList.toggle("phone", phone); renderHead(); });
+pick("theme", "t", t => { $("app").classList.toggle("dark", t === "dark"); $("app").classList.toggle("light", t === "light"); });
+const tabs = { tabApp: ["stageApp", "stageConcept"], tabConcept: ["stageConcept", "stageApp"] };
+for (const [id, [show, hide]] of Object.entries(tabs)) $(id).onclick = () => {
+  $(show).hidden = false; $(hide).hidden = true;
+  $("tabApp").setAttribute("aria-pressed", id === "tabApp"); $("tabConcept").setAttribute("aria-pressed", id === "tabConcept");
+};
+document.addEventListener("click", e => { if (menuOpen && !e.target.closest(".menuwrap")) { menuOpen = false; renderHead(); } });
+render();
+</script>
+</body>
+</html>
