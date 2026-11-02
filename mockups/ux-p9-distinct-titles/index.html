@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P9 Distinct titles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700&family=Geist+Mono&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gl-ground: #f6f5f8; --gl-surface: #fff; --gl-raised: #fbfafc; --gl-ink: #221d33;
+  --gl-muted: #6b6580; --gl-faint: #9c97ad; --gl-line: #e5e2eb; --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f; --gl-accent-ink: #2a1a14; --gl-mint: #6fcfb4;
+  --gl-accent-tint: color-mix(in srgb, var(--gl-accent) 22%, var(--gl-surface));
+  --gl-stage: #1d1a2a;
+  --gl-shadow: 0 1px 2px rgb(34 29 51 / .06), 0 6px 18px rgb(34 29 51 / .06); --gl-pop: 0 12px 32px rgb(10 8 18 / .22);
+  --gl-font-ui: "Instrument Sans", system-ui, sans-serif;
+  --gl-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, monospace;
+  --gl-radius-small: 6px; --gl-radius-tile: 8px; --gl-radius: 10px; --gl-radius-large: 14px;
+  --gl-hit-min: 44px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2e293b; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-stage: #0b0a10; --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); --gl-pop: 0 12px 32px rgb(0 0 0 / .6); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --gl-ground: #121019; --gl-surface: #1a1723; --gl-raised: #221e2d; --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab; --gl-faint: #6c6680; --gl-line: #2e293b; --gl-hover: #26222f; --gl-accent: #ffb59a;
+  --gl-stage: #0b0a10; --gl-shadow: 0 1px 3px rgb(0 0 0 / .5); --gl-pop: 0 12px 32px rgb(0 0 0 / .6); color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { overflow-x: hidden; }
+body { margin: 0; background: var(--gl-ground); color: var(--gl-ink); font-family: var(--gl-font-ui); font-size: 14px; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.mono { font-family: var(--gl-font-mono); font-variant-numeric: tabular-nums; }
+svg.i { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+svg.i.s { width: 16px; height: 16px; }
+:focus-visible { outline: 2px solid var(--gl-accent); outline-offset: 2px; }
+
+/* control bar (outside the device) */
+.chrome { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+.chrome > b { font: 700 17px var(--gl-font-display); }
+.grp { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.grp > span { font-size: 12px; color: var(--gl-muted); }
+.seg { display: inline-flex; background: var(--gl-hover); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 6px 11px; border-radius: 7px; font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--gl-ink); color: var(--gl-surface); }
+.notes { flex-basis: 100%; display: grid; gap: 4px; }
+.note { margin: 0; color: var(--gl-muted); font-size: 13px; line-height: 1.45; max-width: 900px; }
+.note b { color: var(--gl-ink); font-weight: 600; }
+.stage { display: flex; justify-content: center; padding: 20px 16px 40px; }
+
+/* device */
+.device { position: relative; width: 390px; height: 844px; max-width: 100%; background: var(--gl-ground); border: 1px solid var(--gl-line); border-radius: 22px; overflow: hidden; box-shadow: var(--gl-shadow); display: flex; flex-direction: column; flex: none; }
+.bar { flex: none; display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 4px; border-bottom: 1px solid var(--gl-line); background: var(--gl-surface); }
+.crumb { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: baseline; white-space: nowrap; overflow: hidden; }
+.crumb small { color: var(--gl-muted); overflow: hidden; text-overflow: ellipsis; }
+.crumb b { font: 700 17px var(--gl-font-display); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--gl-hit-min); padding: 0 14px; border-radius: var(--gl-radius); border: 1px solid var(--gl-line); background: var(--gl-surface); font-weight: 500; }
+.btn.primary { background: var(--gl-accent); border-color: var(--gl-accent); color: var(--gl-accent-ink); font-weight: 600; }
+.btn.ghost { border-color: transparent; background: transparent; }
+.iconbtn { display: inline-grid; place-items: center; width: var(--gl-hit-min); height: var(--gl-hit-min); border: 0; background: transparent; border-radius: var(--gl-radius); }
+.scroll { flex: 1; overflow-y: auto; padding: 16px; }
+h2 { font: 700 22px var(--gl-font-display); margin: 4px 0 14px; letter-spacing: -.01em; }
+.grid { display: grid; gap: 14px; }
+.show { display: grid; padding: 0; overflow: hidden; border: 1px solid var(--gl-line); border-radius: var(--gl-radius-large); background: var(--gl-surface); text-align: left; }
+.show.fresh { animation: pop .6s ease-out; }
+@keyframes pop { from { box-shadow: 0 0 0 4px var(--gl-accent); } to { box-shadow: 0 0 0 0 transparent; } }
+.cover { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; aspect-ratio: 16 / 7; background: var(--gl-line); }
+.cover i { display: block; }
+.cover i:first-child { grid-row: 1 / 3; }
+.meta { display: grid; gap: 4px; padding: 10px 14px 12px; }
+.name { font: 700 17px var(--gl-font-display); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.facts { display: flex; gap: 10px; align-items: center; color: var(--gl-muted); font-size: 12px; }
+.made { color: var(--gl-faint); font-size: 12px; }
+.steps { display: flex; gap: 8px; margin-bottom: 16px; font-size: 13px; color: var(--gl-muted); }
+.steps span { display: inline-flex; align-items: center; gap: 6px; }
+.steps b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--gl-hover); font-size: 12px; }
+.steps .on { color: var(--gl-ink); font-weight: 600; } .steps .on b { background: var(--gl-ink); color: var(--gl-surface); }
+.steps .done b { background: var(--gl-mint); color: #10302a; }
+.sets { display: grid; gap: 10px; }
+.set { display: flex; gap: 12px; align-items: center; min-height: 64px; padding: 8px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); background: var(--gl-surface); text-align: left; }
+.set[aria-pressed="true"] { border-color: var(--gl-accent); box-shadow: 0 0 0 1px var(--gl-accent); }
+.set i { width: 64px; height: 44px; border-radius: var(--gl-radius-small); flex: none; }
+.set small { display: block; color: var(--gl-muted); }
+.hint { color: var(--gl-muted); font-size: 13px; line-height: 1.45; margin: 10px 0 0; }
+.music { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); background: var(--gl-surface); }
+.foot { flex: none; display: grid; gap: 10px; padding: 12px 16px 16px; border-top: 1px solid var(--gl-line); background: var(--gl-surface); }
+.foot .row { display: flex; gap: 10px; } .foot .row .btn { flex: 1; }
+label.field { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+label.field input { min-height: var(--gl-hit-min); padding: 0 12px; border: 1px solid var(--gl-line); border-radius: var(--gl-radius); background: var(--gl-raised); font: 500 16px var(--gl-font-ui); }
+label.field input:focus { outline: 2px solid var(--gl-accent); outline-offset: 0; border-color: transparent; }
+label.field small { font-weight: 400; color: var(--gl-muted); }
+.ttl { width: 100%; border: 0; background: transparent; font: 700 24px var(--gl-font-display); padding: 4px 0; border-bottom: 1px dashed var(--gl-line); }
+.empty-note { color: var(--gl-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="chrome">
+  <b>P9 · Distinct slideshow titles</b>
+  <div class="grp"><span>Variant</span>
+    <div class="seg" id="variants">
+      <button data-v="now">Today</button>
+      <button data-v="a">A · Title field</button>
+      <button data-v="b">B · “· 2”</button>
+      <button data-v="c">C · Day range</button>
+      <button data-v="d">D · Field + day range</button>
+    </div>
+  </div>
+  <div class="grp"><button class="btn" id="reset">Reset library</button></div>
+  <div class="notes"><p class="note" id="note"></p>
+    <p class="note">Try it: tap <b>New slideshow</b>, pick a set from July, create it, repeat with another July set — or the same folder twice. Tap a card to see its title stays editable in place. Images are generated gradients.</p></div>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<script>
+const NOTES = {
+  now: "<b>Today:</b> the title is the capture month. Two July slideshows are both “July 2025”, and from the same folder they even share a cover.",
+  a: "<b>A · Title field:</b> the music step ends with a <b>Title</b> field, prefilled with the month. Enter or <b>Create slideshow</b> keeps it. Whoever skips it still gets duplicates.",
+  b: "<b>B · Automatic number:</b> no new field. A repeated title gets “· 2”, “· 3”; the card adds “Created 2 Nov”. Distinct, but the number says nothing about the content.",
+  c: "<b>C · Automatic day range:</b> no new field. When the month is taken, the title narrows to the days (“12–19 July 2025”); the same dates again fall back to “· 2”. The card adds “Created 2 Nov”.",
+  d: "<b>D · Field + day range (recommended):</b> the Title field of A, prefilled with C’s distinct title. One Enter keeps a title that already tells the shows apart; a name is one tap away. The card adds “Created …”.",
+};
+const SETS = [
+  { id: "lake", label: "Lake week", from: "2025-07-12", to: "2025-07-19", n: 86, hue: 195 },
+  { id: "bday", label: "Birthday", from: "2025-07-26", to: "2025-07-26", n: 31, hue: 330 },
+  { id: "folder", label: "Folder “2025-07”", from: "2025-07-01", to: "2025-07-31", n: 240, hue: 40 },
+  { id: "autumn", label: "Autumn walk", from: "2025-10-04", to: "2025-10-05", n: 22, hue: 20 },
+];
+const SEED = [
+  { set: { from: "2025-07-01", to: "2025-07-31", n: 240, hue: 40 }, created: "2025-08-14", title: "July 2025" },
+  { set: { from: "2025-06-02", to: "2025-06-28", n: 58, hue: 140 }, created: "2025-07-02", title: "June 2025" },
+];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const TODAY = "2025-11-02";
+const params = new URLSearchParams(location.search);
+let variant = params.get("v") in NOTES ? params.get("v") : "d";
+let library, screen, pick, draft, freshId, openId, nextId = 1;
+
+const parts = (iso) => iso.split("-").map(Number);
+function monthTitle(s) {
+  const [fy, fm] = parts(s.from), [ty, tm] = parts(s.to);
+  if (fy === ty && fm === tm) return `${MONTHS[fm - 1]} ${fy}`;
+  return fy === ty ? `${MONTHS[fm - 1]}–${MONTHS[tm - 1]} ${fy}` : `${MONTHS[fm - 1]} ${fy}–${MONTHS[tm - 1]} ${ty}`;
+}
+function dayTitle(s) {
+  const [fy, fm, fd] = parts(s.from), [, tm, td] = parts(s.to);
+  if (s.from === s.to) return `${fd} ${MONTHS[fm - 1]} ${fy}`;
+  return fm === tm ? `${fd}–${td} ${MONTHS[fm - 1]} ${fy}` : `${fd} ${SHORT[fm - 1]} – ${td} ${SHORT[tm - 1]} ${fy}`;
+}
+const taken = (t) => library.some((x) => x.title === t);
+function numbered(base) { let i = 2; while (taken(`${base} · ${i}`)) i++; return `${base} · ${i}`; }
+function autoTitle(s) {
+  const month = monthTitle(s);
+  if (variant === "now" || variant === "a" || !taken(month)) return month;
+  if (variant === "b") return numbered(month);
+  if (library.some((x) => x.set.from === s.from && x.set.to === s.to)) return numbered(month);
+  const days = dayTitle(s);
+  return taken(days) ? numbered(days) : days;
+}
+const showsMade = () => variant === "b" || variant === "c" || variant === "d";
+const hasField = () => variant === "a" || variant === "d";
+const made = (iso) => { const [y, m, d] = parts(iso); return `Created ${d} ${SHORT[m - 1]}${iso.slice(0, 4) === TODAY.slice(0, 4) ? "" : " " + y}`; };
+const cover = (h) => `<i style="background:linear-gradient(135deg,hsl(${h} 70% 62%),hsl(${h + 40} 60% 38%))"></i><i style="background:linear-gradient(160deg,hsl(${h + 20} 65% 70%),hsl(${h + 60} 50% 45%))"></i><i style="background:linear-gradient(200deg,hsl(${h - 25} 60% 55%),hsl(${h + 10} 55% 30%))"></i>`;
+const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const duration = (n) => { const s = n * 4; return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+const ICON_BACK = `<svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>`;
+const ICON_PLUS = `<svg class="i s" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>`;
+const ICON_NOTE = `<svg class="i s" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>`;
+
+function reset() { library = SEED.map((x) => ({ ...x, id: "seed" + nextId++ })); screen = "library"; freshId = null; render(); }
+function bar(crumb, back) {
+  return `<div class="bar">${back ? `<button class="iconbtn" data-act="${back}" aria-label="Back">${ICON_BACK}</button>` : `<span style="width:12px"></span>`}<div class="crumb">${crumb}</div></div>`;
+}
+function renderLibrary() {
+  const cards = library.map((x) => `
+    <button class="show${x.id === freshId ? " fresh" : ""}" data-open="${x.id}">
+      <span class="cover">${cover(x.set.hue)}</span>
+      <span class="meta"><span class="name">${esc(x.title)}</span>
+        <span class="facts"><span>${x.set.n} pictures</span><span class="mono">${duration(x.set.n)}</span>${ICON_NOTE}</span>
+        ${showsMade() ? `<span class="made">${made(x.created)}</span>` : ""}
+      </span>
+    </button>`).join("");
+  return `${bar("<b>Glissando</b>")}
+    <div class="scroll"><h2>Your slideshows</h2>
+      <button class="btn primary full" data-act="new" style="width:100%;margin-bottom:16px">${ICON_PLUS}New slideshow</button>
+      <div class="grid">${cards}</div></div>`;
+}
+function renderPictures() {
+  const sets = SETS.map((s) => `
+    <button class="set" aria-pressed="${pick?.id === s.id}" data-pick="${s.id}">
+      <i style="background:linear-gradient(135deg,hsl(${s.hue} 70% 62%),hsl(${s.hue + 40} 60% 38%))"></i>
+      <span><b>${s.label}</b><small>${s.n} pictures · ${dayTitle(s)}</small></span>
+    </button>`).join("");
+  return `${bar("<small>Library /</small><b>New slideshow</b>", "library")}
+    <div class="scroll">
+      <div class="steps"><span class="on"><b>1</b>Pictures</span><span><b>2</b>Music</span></div>
+      <p class="empty-note" style="margin-top:0">Stand-in for the picker: choose a set.</p>
+      <div class="sets">${sets}</div>
+      ${pick ? `<p class="hint">${pick.n} pictures · ${dayTitle(pick)}</p>` : ""}
+    </div>
+    <div class="foot"><div class="row"><button class="btn" data-act="library">Cancel</button>
+      <button class="btn primary" data-act="music" ${pick ? "" : 'aria-disabled="true"'}>Next</button></div></div>`;
+}
+function renderMusic() {
+  return `${bar("<small>Library /</small><b>New slideshow</b>", "pictures")}
+    <div class="scroll">
+      <div class="steps"><span class="done"><b>✓</b>Pictures</span><span class="on"><b>2</b>Music</span></div>
+      <div class="music">${ICON_NOTE}<span><b>Golden Hour</b><br><small style="color:var(--gl-muted)">Sample music · 3:12</small></span></div>
+      <p class="hint">Stand-in for the music step.</p>
+    </div>
+    <div class="foot">
+      ${hasField() ? `<label class="field">Title <input id="title" value="${esc(draft)}" enterkeyhint="done" autocomplete="off">
+        <small>You can change it later on the slideshow screen.</small></label>` : ""}
+      <div class="row"><button class="btn" data-act="create">Create without music</button>
+        <button class="btn primary" data-act="create">Create slideshow</button></div>
+    </div>`;
+}
+function renderShow() {
+  const x = library.find((y) => y.id === openId);
+  return `${bar(`<small>Library /</small><b>${esc(x.title)}</b>`, "library")}
+    <div class="scroll"><input class="ttl" id="ttl" value="${esc(x.title)}" aria-label="Title">
+      <p class="hint">The title is edited in place, as today. Emptying it brings the automatic title back.</p>
+      <div class="show" style="margin-top:12px"><span class="cover">${cover(x.set.hue)}</span></div></div>`;
+}
+function render() {
+  document.querySelectorAll("#variants button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.v === variant));
+  document.getElementById("note").innerHTML = NOTES[variant];
+  const views = { library: renderLibrary, pictures: renderPictures, music: renderMusic, show: renderShow };
+  document.getElementById("device").innerHTML = views[screen]();
+  const title = document.getElementById("title");
+  if (title) { title.focus(); title.select(); }
+}
+function create() {
+  const typed = document.getElementById("title")?.value.trim();
+  const title = typed || autoTitle(pick);
+  const id = "new" + nextId++;
+  library.unshift({ id, set: pick, created: TODAY, title });
+  freshId = id; screen = "library"; render();
+}
+document.getElementById("device").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-act],[data-pick],[data-open]");
+  if (!t || t.getAttribute("aria-disabled") === "true") return;
+  if (t.dataset.pick) { pick = SETS.find((s) => s.id === t.dataset.pick); render(); return; }
+  if (t.dataset.open) { openId = t.dataset.open; screen = "show"; render(); return; }
+  const act = t.dataset.act;
+  if (act === "new") { pick = null; screen = "pictures"; }
+  else if (act === "music") { draft = autoTitle(pick); screen = "music"; }
+  else if (act === "create") return create();
+  else screen = act;
+  freshId = act === "library" ? freshId : null;
+  render();
+});
+document.getElementById("device").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id === "title") create();
+  if (e.key === "Enter" && e.target.id === "ttl") e.target.blur();
+});
+document.getElementById("device").addEventListener("change", (e) => {
+  if (e.target.id !== "ttl") return;
+  const x = library.find((y) => y.id === openId);
+  x.title = e.target.value.trim() || monthTitle(x.set);
+  render();
+});
+document.getElementById("variants").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  variant = b.dataset.v; history.replaceState(null, "", "?v=" + variant); reset();
+});
+document.getElementById("reset").addEventListener("click", reset);
+reset();
+</script>
+</body>
+</html>
