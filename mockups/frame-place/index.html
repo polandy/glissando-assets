@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Frame date and place</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --page:#f3f2f6;--page-ink:#221d33;--page-muted:#6b6580;--page-line:#dedbe6;--chip:#ebe9f1;--chip-on:#221d33;--chip-on-ink:#fff;
+  --ground:#f6f5f8;--surface:#fff;--ink:#221d33;--muted:#6b6580;--line:#e5e2eb;
+  --accent:#ff9f7f;--accent-ink:#2a1a14;
+  --ui:"Instrument Sans","Segoe UI",system-ui,sans-serif;--display:"Bricolage Grotesque","Instrument Sans",sans-serif;--mono:"Geist Mono",ui-monospace,monospace;
+}
+[data-theme=dark]{color-scheme:dark;
+  --page:#0e0c14;--page-ink:#ece9f3;--page-muted:#8e88a0;--page-line:#2a2636;--chip:#211d2c;--chip-on:#ece9f3;--chip-on-ink:#17141f;
+  --ground:#121019;--surface:#1a1723;--ink:#edeaf3;--muted:#9a94ab;--line:#2c2838;--accent:#ffb59a;
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--page);color:var(--page-ink);font:14px var(--ui)}
+.page{max-width:1300px;margin:0 auto;padding:20px 16px 48px;display:grid;gap:16px}
+h1{font:700 26px var(--display);margin:0}.lead{color:var(--page-muted);max-width:80ch;margin:4px 0 0;line-height:1.45}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.controls label{font:600 11px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--page-muted);margin-right:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:var(--chip);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;color:var(--page-ink);font:600 13px var(--ui);padding:8px 12px;min-height:36px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--chip-on);color:var(--chip-on-ink)}
+.note{color:var(--page-muted);max-width:80ch;line-height:1.45;margin:0;min-height:3em}
+.stagewrap{overflow:auto;max-width:100%}
+.app{position:relative;overflow:hidden;border:1px solid var(--page-line);border-radius:14px;background:#000}
+.app.tablet{width:820px;height:512px}.app.phone{width:760px;height:342px;border-radius:28px}.app.tv{width:960px;height:540px;border-radius:6px;border:10px solid #111}
+/* the running frame */
+.stage{position:absolute;inset:0;overflow:hidden;cursor:pointer;color:#fff}
+.pic{position:absolute;inset:-4%;transition:opacity 1.6s;animation:kb 12s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1) translate(0,0)}to{transform:scale(1.08) translate(-1.5%,-1%)}}
+.stamp{position:absolute;left:24px;bottom:20px;text-shadow:0 1px 6px rgb(0 0 0/.5);transition:opacity .6s;max-width:60%}
+.stamp b{display:block;font:700 22px var(--display);line-height:1.2}
+.stamp span{display:block;font:400 14px var(--mono);opacity:.88;margin-top:2px}
+.stamp.one span{font:500 17px var(--ui);opacity:.92}
+.app.phone .stamp b{font-size:18px}.app.phone .stamp span{font-size:12px}.app.phone .stamp.one span{font-size:14px}
+.app.tv .stamp{left:40px;bottom:32px}.app.tv .stamp b{font-size:28px}.app.tv .stamp span{font-size:17px}.app.tv .stamp.one span{font-size:21px}
+.clock{position:absolute;right:24px;top:20px;font:500 34px var(--mono);text-shadow:0 1px 6px rgb(0 0 0/.5)}
+.app.phone .clock{font-size:26px}
+.bar{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:6px;background:rgb(18 16 25/.78);backdrop-filter:blur(10px);border-radius:999px;padding:6px;transition:opacity .25s}
+.bar button{border:0;background:none;color:#fff;font:600 13px var(--ui);padding:8px 14px;min-height:44px;border-radius:99px;cursor:pointer}
+.stage.idle .bar,.stage.idle .exit{opacity:0;pointer-events:none}
+.exit{position:absolute;left:16px;top:16px;border:0;background:rgb(18 16 25/.78);color:#fff;font:600 13px var(--ui);padding:8px 14px;min-height:44px;border-radius:99px;cursor:pointer;transition:opacity .25s}
+.hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgb(18 16 25/.7);padding:8px 14px;border-radius:99px;font-size:13px;pointer-events:none;transition:opacity .4s}
+/* set-up row */
+.setup{width:412px;max-width:100%;background:var(--ground);color:var(--ink);border:1px solid var(--page-line);border-radius:20px;padding:16px;display:grid;gap:10px}
+.row{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:12px;padding:12px 14px}
+.row div{flex:1}.row small{display:block;color:var(--muted);margin-top:2px}
+.sw{flex:none;width:44px;height:44px;border:0;background:none;cursor:pointer;position:relative}
+.sw::before{content:"";position:absolute;left:1px;top:10px;width:42px;height:24px;border-radius:99px;background:var(--line)}
+.sw::after{content:"";position:absolute;top:13px;left:4px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
+.sw[aria-pressed=true]::before{background:var(--accent)}.sw[aria-pressed=true]::after{left:22px}
+h2{font:700 18px var(--display);margin:8px 0 0}
+</style></head><body><div class="page">
+<div><h1>Picture frame · date and place</h1>
+<p class="lead">The frame's caption bottom left today shows only the album name. Here it shows each picture's own capture date and the place where it was taken. The place is the one Immich already worked out from the GPS (its reverse geocoding: city and country). A picture without a place shows only its date. Every third picture here has no place. Pictures are generated gradients. Tap the frame for its controls.</p></div>
+
+<div class="controls">
+ <div><label>Variant</label><span class="seg" id="v"><button data-v="a" aria-pressed="true">A · Album, then date · place</button><button data-v="b" aria-pressed="false">B · Place, then date</button><button data-v="c" aria-pressed="false">C · One quiet line</button></span></div>
+ <div><label>Place</label><span class="seg" id="pf"><button data-p="city" aria-pressed="true">City</button><button data-p="cc" aria-pressed="false">City, country</button></span></div>
+ <div><label>Device</label><span class="seg" id="d"><button data-d="tablet" aria-pressed="true">Tablet</button><button data-d="phone" aria-pressed="false">Phone (landscape)</button><button data-d="tv" aria-pressed="false">TV</button></span></div>
+ <div><label>Page</label><span class="seg" id="theme"><button data-t="light" aria-pressed="true">Light</button><button data-t="dark" aria-pressed="false">Dark</button></span></div>
+</div>
+<p class="note" id="note"></p>
+
+<div class="stagewrap"><div class="app tablet" id="app"><div class="stage idle" id="stage">
+ <div class="pic" id="pic"></div>
+ <button class="exit" type="button">‹ Exit frame</button>
+ <div class="clock" id="clock"></div>
+ <div class="stamp" id="stamp"><b id="s1"></b><span id="s2"></span></div>
+ <div class="bar"><button id="b-pause" type="button">Pause</button><button id="b-next" type="button">Next ›</button></div>
+ <div class="hint" id="hint">Tap for controls</div>
+</div></div></div>
+
+<h2>Set-up screen: the switch</h2>
+<p class="note" style="min-height:0">The existing "Show date" switch now covers both, because date and place are one caption. Turning it off hides the caption completely.</p>
+<div class="setup">
+ <div class="row"><div><b>Show the clock</b><small>Time in the top right corner</small></div><button class="sw" id="sw-clock" aria-pressed="true" aria-label="Show the clock"></button></div>
+ <div class="row"><div><b>Show date and place</b><small>When and where each picture was taken, bottom left</small></div><button class="sw" id="sw-date" aria-pressed="true" aria-label="Show date and place"></button></div>
+</div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const album="Summer at the lake";
+const pics=[
+ ["#ff9f7f,#6fcfb4","2025-07-12","Annecy","France"],
+ ["#f5c94a,#ff9f7f","2025-07-13","Talloires-Montmin","France"],
+ ["#6fcfb4,#3b3f8f","2025-07-14",null,null],
+ ["#c9a7ff,#ff9f7f","2025-07-19","Lucerne","Switzerland"],
+ ["#7fb8ff,#6fcfb4","2025-07-20","Vitznau","Switzerland"],
+ ["#f58a8a,#f5c94a","2024-12-25",null,null]];
+const notes={
+ a:"A keeps the album name as the bold title, as today, with the picture's date and place in small type below it. On a wall frame showing one album, the title never changes.",
+ b:"B drops the album name: the frame always shows one album, so it says nothing new. The place is the bold title and the date sits below it. A picture without a place shows its date as the title.",
+ c:"C is a single unobtrusive line, place · date, with no title. It is the quietest option and covers the least of the picture."};
+let v="a",pf="city",n=0,paused=false,showDate=true,idle;
+const fmtDate=iso=>new Date(iso+"T12:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"long",year:"numeric"});
+const place=p=>p[2]===null?null:(pf==="cc"?`${p[2]}, ${p[3]}`:p[2]);
+function render(){
+ const p=pics[n],d=fmtDate(p[1]),pl=place(p),st=$('#stamp');
+ $('#pic').style.background=`linear-gradient(${120+n*40}deg,${p[0]})`;
+ st.hidden=!showDate;st.classList.toggle('one',v==="c");
+ const s1=$('#s1'),s2=$('#s2');
+ if(v==="a"){s1.hidden=false;s1.textContent=album;s2.textContent=pl?`${d} · ${pl}`:d}
+ else if(v==="b"){s1.hidden=false;s1.textContent=pl??d;s2.hidden=!pl;s2.textContent=pl?d:""}
+ else{s1.hidden=true;s2.hidden=false;s2.textContent=pl?`${pl} · ${d}`:d}
+ if(v!=="b")s2.hidden=false;
+ $('#note').textContent=notes[v];
+}
+function seg(id,fn){document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{document.querySelectorAll(`#${id} button`).forEach(x=>x.setAttribute('aria-pressed',x===b));fn(b.dataset)})}
+seg('v',ds=>{v=ds.v;render()});seg('pf',ds=>{pf=ds.p;render()});
+seg('d',ds=>{$('#app').className=`app ${ds.d}`});
+seg('theme',ds=>{document.documentElement.dataset.theme=ds.t});
+const st=$('#stage');
+st.onclick=e=>{if(e.target.closest('.bar button,.exit'))return;st.classList.remove('idle');$('#hint').style.opacity=0;clearTimeout(idle);idle=setTimeout(()=>st.classList.add('idle'),4000)};
+const next=()=>{n=(n+1)%pics.length;render()};
+$('#b-next').onclick=next;$('#b-pause').onclick=e=>{paused=!paused;e.target.textContent=paused?'Resume':'Pause'};
+setInterval(()=>{if(!paused)next()},6000);
+const tick=()=>$('#clock').textContent=new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});tick();setInterval(tick,10000);
+const sw=(id,fn)=>$(id).onclick=e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=="true";e.currentTarget.setAttribute('aria-pressed',on);fn(on)};
+sw('#sw-clock',on=>$('#clock').hidden=!on);sw('#sw-date',on=>{showDate=on;render()});
+render();
+</script></body></html>
