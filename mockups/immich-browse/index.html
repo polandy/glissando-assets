@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Immich Browse</title>
+<style>
+:root{--gl-ground:#F6F5F8;--gl-surface:#FFFFFF;--gl-raised:#FBFAFC;--gl-ink:#221D33;--gl-muted:#6B6580;--gl-faint:#9C97AD;--gl-line:#E5E2EB;--gl-hover:#EFEDF3;--gl-accent:#FF9F7F;--gl-accent-ink:#2A1A14;--gl-mint:#6FCFB4;--gl-lemon:#F5C94A;--gl-peach:#FFB59A;
+--ui:"Instrument Sans",system-ui,sans-serif;--display:"Bricolage Grotesque",system-ui,sans-serif;--mono:"Geist Mono",ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--gl-ground:#121019;--gl-surface:#1A1723;--gl-raised:#221E2D;--gl-ink:#EDEAF3;--gl-muted:#9A94AB;--gl-faint:#6C6680;--gl-line:#2C2838;--gl-hover:#26222F;--gl-accent:#FFB59A}}
+:root[data-theme="dark"]{--gl-ground:#121019;--gl-surface:#1A1723;--gl-raised:#221E2D;--gl-ink:#EDEAF3;--gl-muted:#9A94AB;--gl-faint:#6C6680;--gl-line:#2C2838;--gl-hover:#26222F;--gl-accent:#FFB59A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--gl-ground);color:var(--gl-ink);font:15px/1.4 var(--ui)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+/* Variant switcher (not part of the design) */
+.switcher{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:8px 16px;background:#14111C;color:#EDEAF3;font-size:13px}
+.switcher label{display:flex;gap:6px;align-items:center}
+.switcher select{font:inherit;background:#221E2D;color:#EDEAF3;border:1px solid #3a3448;border-radius:6px;padding:2px 6px}
+.stage{display:flex;justify-content:center;padding:20px 16px}
+.device{background:var(--gl-ground);border:1px solid var(--gl-line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;position:relative;width:412px;height:860px;max-width:100%}
+.device.desktop{width:1200px;height:780px;border-radius:10px}
+header{background:var(--gl-surface);border-bottom:1px solid var(--gl-line);padding:10px 16px}
+.crumbs{font-size:13px;color:var(--gl-muted)}
+.crumbs b{color:var(--gl-ink);font-weight:600}
+h1{font:700 22px/1.2 var(--display);margin:4px 0 8px;display:flex;gap:8px;align-items:center}
+.back{border:0;background:none;font-size:20px;padding:0 4px 0 0}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.tab{border:0;background:none;padding:8px 12px;border-radius:999px;color:var(--gl-muted);font-weight:500;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--gl-ink);color:var(--gl-surface)}
+.body{flex:1;display:flex;min-height:0}
+.main{flex:1;overflow-y:auto;padding:0 16px 16px}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--gl-ground);display:flex;gap:8px;align-items:center;padding:10px 0;flex-wrap:wrap}
+.chip{border:1px solid var(--gl-line);background:var(--gl-surface);border-radius:999px;padding:6px 12px;display:inline-flex;gap:6px;align-items:center}
+.chip[aria-pressed="true"]{background:var(--gl-peach);border-color:var(--gl-peach);color:var(--gl-accent-ink)}
+.jpegnote{margin-left:auto;font-size:12px;color:var(--gl-muted)}
+.day{margin:14px 0 6px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.day h2{font-size:15px;font-weight:600;margin:0}
+.day .count{color:var(--gl-muted);font-size:13px}
+.day .hidden{color:var(--gl-faint);font-size:12px}
+.day .sel{margin-left:auto;border:0;background:none;color:var(--gl-muted);font-size:13px;text-decoration:underline}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.desktop .grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+.tile{aspect-ratio:1;border:0;padding:0;position:relative;border-radius:4px;overflow:hidden;background:var(--gl-hover)}
+.tile .img{position:absolute;inset:0;transition:inset .12s}
+.tile[aria-pressed="true"]{background:var(--gl-peach)}
+.tile[aria-pressed="true"] .img{inset:10px;border-radius:4px}
+.tile .ring{position:absolute;top:6px;left:6px;width:20px;height:20px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.15)}
+.tile[aria-pressed="true"] .ring{background:var(--gl-accent);border-color:var(--gl-accent)}
+.tile[aria-pressed="true"] .ring::after{content:"✓";color:var(--gl-accent-ink);font-size:12px;position:absolute;inset:0;display:grid;place-items:center}
+.tile .vid{position:absolute;right:5px;bottom:4px;color:#fff;font:11px var(--mono);text-shadow:0 1px 2px #0008}
+.tile .tag{position:absolute;right:5px;top:5px;background:#000a;color:#fff;font:10px var(--mono);padding:1px 4px;border-radius:3px}
+.rail{width:150px;border-left:1px solid var(--gl-line);overflow-y:auto;padding:10px 8px;background:var(--gl-surface)}
+.rail h3{font-size:12px;color:var(--gl-muted);margin:10px 6px 4px;font-weight:600}
+.month{display:flex;justify-content:space-between;width:100%;border:0;background:none;padding:4px 6px;border-radius:6px;font-size:13px}
+.month:hover{background:var(--gl-hover)}
+.month.on{background:var(--gl-peach);color:var(--gl-accent-ink)}
+.month .mono{color:var(--gl-muted);font-size:12px}
+.month.on .mono{color:inherit}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:4px}
+.desktop .cards{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.card{border:0;padding:0;background:var(--gl-surface);border-radius:10px;overflow:hidden;text-align:left;border:1px solid var(--gl-line)}
+.card .cover{aspect-ratio:4/3}
+.card .meta{padding:8px 10px}
+.card .meta small{display:block;color:var(--gl-muted);font-family:var(--mono);font-size:11px}
+.people{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 10px;margin-top:6px}
+.desktop .people{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+.person{border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+.face{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font:700 26px var(--display);color:#fff}
+.person small{color:var(--gl-muted);font-family:var(--mono);font-size:11px}
+.filter{flex:1;min-width:140px;border:1px solid var(--gl-line);background:var(--gl-surface);border-radius:8px;padding:7px 10px;font:inherit;color:inherit}
+.rows{background:var(--gl-surface);border:1px solid var(--gl-line);border-radius:10px;margin-top:4px}
+.row{display:flex;gap:10px;align-items:center;width:100%;border:0;background:none;padding:11px 12px;border-bottom:1px solid var(--gl-line);text-align:left}
+.row:last-child{border-bottom:0}
+.row small{margin-left:auto;color:var(--gl-muted);font-family:var(--mono);font-size:12px}
+.path{font-family:var(--mono);font-size:13px;color:var(--gl-muted)}
+.path button{border:0;background:none;padding:0;color:var(--gl-ink);text-decoration:underline;font:inherit}
+.end{color:var(--gl-muted);text-align:center;margin:20px 0;font-size:13px}
+footer{background:var(--gl-surface);border-top:1px solid var(--gl-line);padding:10px 16px;display:flex;gap:10px;align-items:center}
+footer .what{flex:1;font-size:14px;color:var(--gl-muted)}
+footer .what b{color:var(--gl-ink)}
+.btn{border:1px solid var(--gl-line);background:var(--gl-surface);border-radius:8px;padding:8px 14px}
+.btn.primary{background:var(--gl-accent);border-color:var(--gl-accent);color:var(--gl-accent-ink);font-weight:600}
+.btn:disabled{opacity:.45;cursor:default}
+.scrim{position:absolute;inset:0;background:#0006;z-index:30;display:none}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:31;background:var(--gl-surface);border-radius:16px 16px 0 0;max-height:70%;overflow-y:auto;padding:12px 16px 20px;display:none}
+.sheet.open,.scrim.open{display:block}
+.sheet h3{font-size:13px;color:var(--gl-muted);margin:12px 0 6px}
+.sheet .months{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sheet .month{border:1px solid var(--gl-line);flex-direction:column;align-items:flex-start;padding:8px}
+.notes{max-width:1200px;margin:0 auto 30px;padding:0 16px;color:var(--gl-muted);font-size:13px}
+.notes li{margin:4px 0}
+</style>
+<body>
+<div class="switcher" role="group" aria-label="Mockup variants">
+  <strong>Mockup</strong>
+  <label>Width <select id="v-width"><option value="phone">Phone (Pixel 9 Pro)</option><option value="desktop">Desktop</option></select></label>
+  <label>Tools <select id="v-tools"><option value="people">All · Albums · People (recommended)</option><option value="folders">+ Folders</option><option value="core">All · Albums only</option></select></label>
+  <label>Hidden note <select id="v-hidden"><option value="day">Per day (recommended)</option><option value="top">Once on top</option><option value="none">None</option></select></label>
+  <label>HEIC <select id="v-heic"><option value="hide">Hidden (recommended)</option><option value="tag">Via preview, tagged</option></select></label>
+  <label>Month counts <select id="v-counts"><option value="approx">≈ count</option><option value="none">No counts</option></select></label>
+</div>
+<div class="stage"><div class="device" id="device"></div></div>
+<ul class="notes">
+  <li>Only JPEGs are listed (MIME <span class="mono">image/jpeg</span>, else <span class="mono">.jpg .jpeg .jpe .jfif</span>). RAW+JPEG pairs show as their JPEG. Videos stay (device slideshow) — owner question 1.</li>
+  <li>"Jump to month" uses Immich's timeline buckets; on the desktop the months sit in a rail beside the grid, on the phone they open in a sheet.</li>
+  <li>People and Folders open into the same day-grouped grid with "Select all n" as an album. All pictures are generated colour fields, no real photos.</li>
+</ul>
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const state = { tab: "all", month: "2025-07", fav: false, sel: new Set(), open: null, folder: ["Pictures"], sheet: false };
+const hues = [12, 28, 42, 160, 200, 260, 330, 90];
+const img = (id) => { const h = hues[id % hues.length] + (id * 37) % 30; return `linear-gradient(${(id * 53) % 360}deg,hsl(${h} 60% 62%),hsl(${(h + 40) % 360} 55% 38%))`; };
+const MONTHS = { 2025: [["2025-08", 96], ["2025-07", 412], ["2025-06", 188], ["2025-05", 61], ["2025-04", 140], ["2025-03", 23]], 2024: [["2024-12", 302], ["2024-10", 77], ["2024-08", 530], ["2024-05", 44]], 2019: [["2019-09", 210], ["2019-07", 98]] };
+const monthName = (k) => new Date(k + "-15").toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+const ALBUMS = [["Summer in Ticino", 214, "Jul – Aug 2025"], ["Nonna's 90th", 88, "12 Apr 2025"], ["Iceland", 640, "Aug 2024"], ["Garden", 57, "2019 – 2025"]];
+const PEOPLE = [["Lena", 1204, "#E58F6F"], ["Marco", 860, "#6FA7CF"], ["Nonna", 312, "#B98FD9"], ["Jonas", 290, "#6FCFB4"], ["Mia", 145, "#E5B85A"], ["Ava", 98, "#E07A9A"]];
+const FOLDERS = { "Pictures": [["Camera", 3], ["Scans", 1]], "Pictures/Camera": [["2024", 2], ["2025", 4]], "Pictures/Scans": [] };
+function days(seed, n) {
+  const names = ["Sat, 26 July 2025", "Fri, 25 July 2025", "Tue, 15 July 2025", "Sun, 6 July 2025"];
+  return names.slice(0, n).map((d, i) => ({ d, items: Array.from({ length: 5 + ((seed + i) * 3) % 9 }, (_, k) => ({ id: seed * 100 + i * 20 + k, video: (k + i) % 9 === 4, heic: (k + seed) % 6 === 2 })), hidden: [0, 3, 12, 1][(i + seed) % 4] }));
+}
+const v = (id) => $("#" + id).value;
+function tiles(list) {
+  const heic = v("v-heic");
+  return list.filter((t) => heic === "tag" || !t.heic).map((t) => `<button class="tile" aria-pressed="${state.sel.has(t.id)}" data-id="${t.id}" aria-label="Photo"><span class="img" style="background:${img(t.id)}"></span><span class="ring"></span>${t.video ? '<span class="vid">▶ 0:14</span>' : ""}${t.heic && heic === "tag" ? '<span class="tag">HEIC</span>' : ""}</button>`).join("");
+}
+function dayBlocks(seed, n) {
+  return days(seed, n).map((g) => `<div class="day"><h2>${g.d}</h2><span class="count mono">${g.items.filter((t) => v("v-heic") === "tag" || !t.heic).length}</span>${v("v-hidden") === "day" && g.hidden ? `<span class="hidden"><span class="mono">${g.hidden}</span> not JPEG, hidden</span>` : ""}<button class="sel" data-day="${g.items.map((t) => t.id).join(",")}">Select day</button></div><div class="grid">${tiles(g.items)}</div>`).join("");
+}
+function monthList(cls) {
+  const counts = v("v-counts") === "approx";
+  return Object.entries(MONTHS).sort((a, b) => b[0] - a[0]).map(([y, ms]) => `<h3>${y}</h3><div class="${cls}">${ms.map(([k, c]) => `<button class="month ${k === state.month ? "on" : ""}" data-month="${k}"><span>${new Date(k + "-15").toLocaleDateString("en-GB", { month: "short" })}</span>${counts ? `<span class="mono">≈ ${c}</span>` : ""}</button>`).join("")}</div>`).join("");
+}
+function topNote() { return v("v-hidden") === "top" ? '<span class="jpegnote">JPEG only · <span class="mono">214</span> others hidden</span>' : ""; }
+function tabsFor() { const t = v("v-tools"); return [["all", "All pictures"], ["albums", "Albums"], ...(t !== "core" ? [["people", "People"]] : []), ...(t === "folders" ? [["folders", "Folders"]] : [])]; }
+function render() {
+  const desktop = v("v-width") === "desktop";
+  if (!tabsFor().some(([k]) => k === state.tab)) { state.tab = "all"; state.open = null; }
+  const dev = $("#device"); dev.className = "device" + (desktop ? " desktop" : "");
+  let crumb = "Immich", title = "Immich", main = "", rail = "";
+  if (state.open) {
+    crumb = `Immich / <b>${state.open.name}</b>`; title = `<button class="back" data-back aria-label="Back">←</button>${state.open.name}`;
+    main = `<div class="toolbar"><span class="mono" style="color:var(--gl-muted)">${state.open.count} photos</span>${v("v-hidden") !== "none" ? '<span class="jpegnote"><span class="mono">31</span> not JPEG, hidden</span>' : ""}<button class="btn" data-all="${state.open.seed}">Select all ${state.open.count}</button></div>${dayBlocks(state.open.seed, 3)}<p class="end">That's all · <span class="mono">${state.open.count}</span> photos</p>`;
+  } else if (state.tab === "all") {
+    main = `<div class="toolbar"><button class="chip mono" data-sheet aria-haspopup="dialog">${monthName(state.month)} ▾</button><button class="chip" aria-pressed="${state.fav}" data-fav>★ Favourites</button>${topNote()}</div>${dayBlocks(state.fav ? 7 : 1, 4)}`;
+    if (desktop) rail = `<nav class="rail" aria-label="Months">${monthList("")}</nav>`;
+  } else if (state.tab === "albums") {
+    main = `<div class="toolbar"><input class="filter" placeholder="Filter albums">${topNote()}</div><div class="cards">${ALBUMS.map(([n, c, r], i) => `<button class="card" data-open="${n}" data-count="${c}" data-seed="${i + 3}"><div class="cover" style="background:${img(i * 11 + 5)}"></div><div class="meta">${n}<small>${c} photos · ${r}</small></div></button>`).join("")}</div>`;
+  } else if (state.tab === "people") {
+    main = `<div class="toolbar"><input class="filter" placeholder="Filter people">${topNote()}</div><div class="people">${PEOPLE.map(([n, c, col], i) => `<button class="person" data-open="${n}" data-count="${c}" data-seed="${i + 9}"><span class="face" style="background:${col}">${n[0]}</span>${n}<small>${c}</small></button>`).join("")}</div>`;
+  } else {
+    const key = state.folder.join("/"), subs = FOLDERS[key] ?? [];
+    main = `<div class="toolbar"><span class="path">${state.folder.map((p, i) => i < state.folder.length - 1 ? `<button data-up="${i}">${p}</button>` : `<b>${p}</b>`).join(" / ")}</span>${topNote()}</div>${subs.length ? `<div class="rows">${subs.map(([n, c]) => `<button class="row" data-folder="${n}">📁 ${n}<small>${c} folders</small></button>`).join("")}</div>` : ""}${dayBlocks(state.folder.length + 13, 2)}`;
+  }
+  const n = state.sel.size;
+  dev.innerHTML = `<header><div class="crumbs">New slideshow / Pictures / ${crumb}</div><h1>${title}</h1>${state.open ? "" : `<div class="tabs" role="tablist">${tabsFor().map(([k, l]) => `<button class="tab" role="tab" aria-selected="${k === state.tab}" data-tab="${k}">${l}</button>`).join("")}</div>`}</header>
+  <div class="body"><div class="main">${main}</div>${rail}</div>
+  <footer><span class="what">${n ? `<b class="mono">${n}</b> selected` : "Tap photos or pick a whole album"}</span><button class="btn" data-clear ${n ? "" : "disabled"}>Clear selection</button><button class="btn primary" ${n ? "" : "disabled"}>Add ${n || ""}</button></footer>
+  <div class="scrim ${state.sheet ? "open" : ""}" data-close></div>
+  <div class="sheet ${state.sheet ? "open" : ""}" role="dialog" aria-label="Jump to a month"><strong>Jump to a month</strong>${monthList("months")}</div>`;
+}
+document.addEventListener("change", (e) => { if (e.target.closest(".switcher")) render(); });
+$("#device").addEventListener("click", (e) => {
+  const t = e.target.closest("button,[data-close]"); if (!t) return;
+  const d = t.dataset;
+  if (d.tab) { state.tab = d.tab; state.open = null; }
+  else if (d.id) { const id = +d.id; state.sel.has(id) ? state.sel.delete(id) : state.sel.add(id); }
+  else if (d.day) { const ids = d.day.split(",").map(Number); const all = ids.every((i) => state.sel.has(i)); ids.forEach((i) => all ? state.sel.delete(i) : state.sel.add(i)); }
+  else if (d.all) { $("#device").querySelectorAll(".tile").forEach((x) => state.sel.add(+x.dataset.id)); }
+  else if (d.open) state.open = { name: d.open, count: d.count, seed: +d.seed };
+  else if ("back" in d) state.open = null;
+  else if ("fav" in d) state.fav = !state.fav;
+  else if ("sheet" in d) state.sheet = v("v-width") === "phone";
+  else if ("close" in d) state.sheet = false;
+  else if (d.month) { state.month = d.month; state.sheet = false; }
+  else if ("clear" in d) state.sel.clear();
+  else if (d.folder) state.folder = [...state.folder, d.folder];
+  else if (d.up) state.folder = state.folder.slice(0, +d.up + 1);
+  render();
+});
+render();
+</script>
+</body>
+</html>
