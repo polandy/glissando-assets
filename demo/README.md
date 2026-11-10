@@ -3,6 +3,8 @@
 The media of the demo slideshow that the public install (https://polandy.github.io/glissando/)
 offers on an empty library. `glissando-demo.glissando` is the slideshow itself, exported from
 Glissando; the app downloads it on demand.
+It is format version 22 and carries each picture's found focus, so opening it needs no focus
+search; an app older than polandy/glissando#331 refuses it as newer.
 
 ## Rights
 
